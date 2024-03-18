@@ -28,6 +28,7 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-validation', version: '3.2.3'
     implementation group: 'org.hibernate.validator', name: 'hibernate-validator', version: '8.0.1.Final'
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '3.2.3'
 }
 
 tasks.named('test') {
