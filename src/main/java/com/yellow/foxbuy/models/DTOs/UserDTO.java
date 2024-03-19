@@ -15,7 +15,7 @@ public class UserDTO {
 
     @NotBlank(message = "Password is required.")
     @Size(min = 8, message = "Password must have atleast 8 characters.")
-    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]+$", message = "Password must have at least one uppercase, one lowercase, one number, and one special character")
+    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&.,])[A-Za-z\\d@$!%*?&.,]+$", message = "Password must have at least one uppercase, one lowercase, one number, and one special character (@ $ ! % * ? & . ,).")
     private String password;
 
     public String getUsername() {
