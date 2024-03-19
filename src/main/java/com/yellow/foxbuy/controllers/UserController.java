@@ -1,19 +1,22 @@
 package com.yellow.foxbuy.controllers;
 
 import com.yellow.foxbuy.config.SecurityConfig;
+import com.yellow.foxbuy.models.ConfirmationToken;
 import com.yellow.foxbuy.models.DTOs.LoginRequest;
 import com.yellow.foxbuy.models.DTOs.UserDTO;
 import com.yellow.foxbuy.models.User;
+import com.yellow.foxbuy.services.ConfirmationTokenService;
+import com.yellow.foxbuy.services.EmailService;
+import com.yellow.foxbuy.services.EmailServiceImp;
 import com.yellow.foxbuy.services.UserService;
 import com.yellow.foxbuy.utils.JwtUtil;
+import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,16 +25,22 @@ import java.util.Map;
 public class UserController {
     private final UserService userService;
     private final JwtUtil jwtUtil;
+    private final EmailService emailService;
+    private final ConfirmationToken confirmationToken;
+    private final ConfirmationTokenService confirmationTokenService;
 
     @Autowired
-    public UserController(UserService userService, JwtUtil jwtUtil) {
+    public UserController(UserService userService, EmailServiceImp emailServiceImp, JwtUtil jwtUtil, EmailService emailService, ConfirmationToken confirmationToken, ConfirmationTokenService confirmationTokenService) {
         this.userService = userService;
         this.jwtUtil = jwtUtil;
+        this.emailService = emailService;
+        this.confirmationToken = confirmationToken;
+        this.confirmationTokenService = confirmationTokenService;
+
     }
 
-
     @PostMapping("/registration")
-    public ResponseEntity<?> userRegistration(@Valid @RequestBody UserDTO userDTO, BindingResult bindingResult){
+    public ResponseEntity<?> userRegistration(@Valid @RequestBody UserDTO userDTO, BindingResult bindingResult) throws MessagingException {
         Map<String, String> result = new HashMap<>();
 
         if (bindingResult.hasErrors()) {
@@ -50,8 +59,18 @@ public class UserController {
         } else if (userService.existsByEmail(userDTO.getEmail())) {
             result.put("error", "Email is already used.");
             return ResponseEntity.status(400).body(result);
-        } else {
-            User user = new User(userDTO.getUsername(), userDTO.getEmail(), SecurityConfig.passwordEncoder().encode(userDTO.getPassword()));
+
+        } else if (System.getenv("EMAIL_VERIFICATION").equals("on")) {
+            User user = new User(userDTO.getUsername(), userDTO.getEmail(),
+                    SecurityConfig.passwordEncoder().encode(userDTO.getPassword()));
+            userService.save(user);
+            emailService.sendVerificationEmail(user);
+            result.put("username", user.getUsername());
+            result.put("id", String.valueOf(user.getId()));
+            return ResponseEntity.status(200).body(result);
+        } else if (System.getenv("EMAIL_VERIFICATION").equals("off")) {
+            User user = new User(userDTO.getUsername(), userDTO.getEmail(),
+                    SecurityConfig.passwordEncoder().encode(userDTO.getPassword()), true);
             userService.save(user);
             String token = jwtUtil.createToken(user);
             System.out.println(token);
@@ -60,7 +79,9 @@ public class UserController {
             result.put("id", String.valueOf(user.getId()));
             return ResponseEntity.status(200).body(result);
         }
+        return null;
     }
+
 
 
     @PostMapping("/login")
@@ -81,9 +102,15 @@ public class UserController {
 
          //   String token = jwtUtil.createToken();
 
-
         }
         return null;
     }
 
+
+    @GetMapping(path = "/confirm")
+    public String confirm(@RequestParam("token") String token) {
+        return confirmationTokenService.confirmToken(token);
+    }
 }
+
+
