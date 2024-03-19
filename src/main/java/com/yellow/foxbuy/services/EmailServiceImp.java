@@ -24,6 +24,7 @@ public class EmailServiceImp implements EmailService{
     }
 
     @Override
+
     public void sendSimpleMessage(String to, String subject, String text) throws MessagingException {
         MimeMessage message = emailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
@@ -33,8 +34,8 @@ public class EmailServiceImp implements EmailService{
         helper.setSubject(subject);
         helper.setText(text, true);
         emailSender.send(message);
-
     }
+
 
     @Override
     public void sendVerificationEmail(User user) throws MessagingException {

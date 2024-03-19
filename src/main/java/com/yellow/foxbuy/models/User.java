@@ -21,6 +21,7 @@ public class User{
     private Boolean verified;
 
 
+
     public User(String username, String email, String password) {
         this.username = username;
         this.email = email;
@@ -78,6 +79,7 @@ public class User{
     }
 
     public Boolean isVerified() {
+
         return verified;
     }
 
