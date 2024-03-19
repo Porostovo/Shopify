@@ -1,6 +1,8 @@
 package com.yellow.foxbuy.utils;
 
 import com.yellow.foxbuy.models.User;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.stereotype.Component;
@@ -31,5 +33,13 @@ public class JwtUtil {
                 .signWith(hmacKey)
                 .compact();
         return jwtToken;
+    }
+    
+    public Jws<Claims> validateJwt(String jwtString) {
+        Jws<Claims> jwt = Jwts.parserBuilder()
+                .setSigningKey(hmacKey)
+                .build()
+                .parseClaimsJws(jwtString);
+        return jwt;
     }
 }

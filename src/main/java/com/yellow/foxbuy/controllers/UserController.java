@@ -53,7 +53,9 @@ public class UserController {
         } else {
             User user = new User(userDTO.getUsername(), userDTO.getEmail(), SecurityConfig.passwordEncoder().encode(userDTO.getPassword()));
             userService.save(user);
-            System.out.println(jwtUtil.createToken(user));
+            String token = jwtUtil.createToken(user);
+            System.out.println(token);
+            System.out.println(jwtUtil.validateJwt(token));
             result.put("username", user.getUsername());
             result.put("id", String.valueOf(user.getId()));
             return ResponseEntity.status(200).body(result);
@@ -77,6 +79,7 @@ public class UserController {
             return ResponseEntity.status(400).body(result);
             //  } else if (userService.isVerified) Vojtova metoda?
 
+         //   String token = jwtUtil.createToken();
 
 
         }
