@@ -18,19 +18,10 @@ public class User{
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @NotBlank(message = "Username is required.")
     private String username;
 
-    @NotBlank(message = "Email is required.")
-    @Email(message = "Email should be valid.")
     private String email;
-
-    @NotBlank(message = "Password is required.")
-    @Size(min = 8)
-    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]+$", message = "Password must have at least one uppercase, one lowercase, one number, and one special character")
     private String password;
-
-    private String token;
     private boolean verified;
 
     public User(String username, String email, String password) {
@@ -73,14 +64,6 @@ public class User{
 
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
     }
 
     public boolean isVerified() {
