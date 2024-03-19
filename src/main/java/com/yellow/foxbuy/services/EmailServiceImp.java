@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.UUID;
 
 @Service
-public class EmailServiceImp implements EmailService{
+public class EmailServiceImp implements EmailService {
 
     @Autowired
     private JavaMailSender emailSender;
@@ -24,6 +24,7 @@ public class EmailServiceImp implements EmailService{
     }
 
     @Override
+
     public void sendSimpleMessage(String to, String subject, String text) throws MessagingException {
         MimeMessage message = emailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
@@ -33,13 +34,13 @@ public class EmailServiceImp implements EmailService{
         helper.setSubject(subject);
         helper.setText(text, true);
         emailSender.send(message);
-
     }
+
 
     @Override
     public void sendVerificationEmail(User user) throws MessagingException {
         String token = UUID.randomUUID().toString();
-        ConfirmationToken confirmationToken = new ConfirmationToken(token,user);
+        ConfirmationToken confirmationToken = new ConfirmationToken(token, user);
         confirmationTokenService.saveConfirmationToken(confirmationToken);
 
         String email = "Hello, please confirm this link: " +

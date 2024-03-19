@@ -11,8 +11,10 @@ import com.yellow.foxbuy.services.UserService;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -38,6 +40,14 @@ public class UserController {
     @PostMapping("/registration")
     public ResponseEntity<?> userRegistration(@Valid @RequestBody UserDTO userDTO, BindingResult bindingResult) throws MessagingException {
         Map<String, String> result = new HashMap<>();
+
+        if (bindingResult.hasErrors()) {
+            for (FieldError error : bindingResult.getFieldErrors()) {
+                result.put(error.getField(), error.getDefaultMessage());
+            }
+            return ResponseEntity.status(400).body(result);
+        }
+        
         if (userService.existsByUsername(userDTO.getUsername()) && userService.existsByEmail(userDTO.getEmail())) {
             result.put("error", "Username and email are already used.");
             return ResponseEntity.status(400).body(result);
