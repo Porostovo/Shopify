@@ -1,8 +1,11 @@
 package com.yellow.foxbuy.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.User;
@@ -18,6 +21,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
+
     @Bean
     public static PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -27,7 +31,8 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests((authorize) ->
                         authorize.requestMatchers("/registration").permitAll()
-                                .anyRequest().permitAll())
+                                .anyRequest().authenticated())
+                .csrf(csrf -> csrf.disable())
                 .httpBasic(Customizer.withDefaults());
         return http.build();
     }
@@ -38,11 +43,12 @@ public class SecurityConfig {
 
         UserDetails user = User.builder()
                 .username("a")
-                .password("b")
+                .password(passwordEncoder().encode("b"))
                 .roles("user")
                 .build();
 
         return new InMemoryUserDetailsManager(user);
     }
-
 }
+
+
