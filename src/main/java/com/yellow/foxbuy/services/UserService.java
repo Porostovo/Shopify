@@ -11,4 +11,7 @@ public interface UserService {
     boolean existsByEmail (String email);
 
     void setUserAsVerified(Optional<ConfirmationToken> optionalToken);
+    Optional<User> findByUsername(String username);
+
+
 }
