@@ -2,7 +2,7 @@ package com.yellow.foxbuy.controllers;
 
 import com.yellow.foxbuy.config.SecurityConfig;
 import com.yellow.foxbuy.models.ConfirmationToken;
-import com.yellow.foxbuy.models.DTOs.LoginRequest;
+import com.yellow.foxbuy.models.LoginRequest;
 import com.yellow.foxbuy.models.DTOs.UserDTO;
 import com.yellow.foxbuy.models.User;
 import com.yellow.foxbuy.services.ConfirmationTokenService;
@@ -83,9 +83,9 @@ public class UserController {
     }
 
 
-
     @PostMapping("/login")
-    public ResponseEntity<?> userLoginAndGenerateJWToken(@Valid @RequestBody LoginRequest loginRequest, BindingResult bindingResult){
+    public ResponseEntity<?> userLoginAndGenerateJWToken(@Valid @RequestBody LoginRequest loginRequest, BindingResult bindingResult) {
+
         String username = loginRequest.getUsername();
         String password = loginRequest.getPassword();
 
@@ -94,16 +94,23 @@ public class UserController {
         if (username == null || password == null) {
             result.put("error", "Field username or field password was empty!");
             return ResponseEntity.status(400).body(result);
-
-        } else if (userService.existsByUsername(loginRequest.getUsername())) {
-            result.put("error", "This user does not exist!");
-            return ResponseEntity.status(400).body(result);
-            //  } else if (userService.isVerified) Vojtova metoda?
-
-         //   String token = jwtUtil.createToken();
-
         }
-        return null;
+
+        User user = userService.findByUsername(username).orElse(null);
+        if (user == null) {
+            result.put("error", "User does not exist.");
+            return ResponseEntity.status(400).body(result);
+        }
+
+        else if (!user.isVerified()){
+            result.put("error", "User is not verified.");
+            return ResponseEntity.status(400).body(result);
+        }
+
+        String token = jwtUtil.createToken(user);
+        result.put("message", "Login successful.");
+        result.put("token", token);
+        return ResponseEntity.ok(result);
     }
 
 
