@@ -14,11 +14,11 @@ public class EmailServiceImp implements EmailService{
     @Override
     public void sendSimpleMessage(String to, String subject, String text){
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("noreply@baeldung.com");
-        message.setTo(to);
-        message.setSubject(subject);
-        message.setText(text);
+            message.setFrom("noreply@baeldung.com");
+            message.setTo(to);
+            message.setSubject(subject);
+            message.setText(text);
         emailSender.send(message);
-
     }
+
 }
