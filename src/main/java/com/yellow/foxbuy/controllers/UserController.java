@@ -1,14 +1,11 @@
 package com.yellow.foxbuy.controllers;
 
-import com.yellow.foxbuy.config.SecurityConfig;
 import com.yellow.foxbuy.models.DTOs.UserDTO;
-import com.yellow.foxbuy.models.LoginRequest;
 import com.yellow.foxbuy.models.User;
 import com.yellow.foxbuy.services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -44,11 +41,5 @@ public class UserController {
             return ResponseEntity.status(200).body(result);
         }
     }
-
-    @PostMapping("/login")
-    public ResponseEntity<?> userLoginAndGenerateToken(@Valid @RequestBody LoginRequest loginRequest){
-        return null;
-    }
-
 
 }
