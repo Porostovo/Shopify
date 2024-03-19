@@ -1,5 +1,6 @@
 package com.yellow.foxbuy.config;
 
+import com.yellow.foxbuy.models.ConfirmationToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,6 +32,7 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests((authorize) ->
                         authorize.requestMatchers("/registration").permitAll()
+                                .requestMatchers("/confirm").permitAll()
                                 .anyRequest().authenticated())
                 .csrf(csrf -> csrf.disable())
                 .httpBasic(Customizer.withDefaults());
@@ -48,6 +50,10 @@ public class SecurityConfig {
                 .build();
 
         return new InMemoryUserDetailsManager(user);
+    }
+    @Bean
+    public ConfirmationToken confirmationToken() {
+        return new ConfirmationToken(); // Or instantiate it using appropriate arguments if needed
     }
 }
 
