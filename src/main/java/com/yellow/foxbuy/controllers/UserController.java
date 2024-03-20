@@ -87,11 +87,21 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<?> userLoginAndGenerateJWToken(@Valid @RequestBody LoginRequest loginRequest, BindingResult bindingResult) {
+        Map<String, String> result = new HashMap<>();
+
+        if (bindingResult.hasErrors()) {
+
+            result.put("error", "Validation failed.");
+
+            for (FieldError error : bindingResult.getFieldErrors()) {
+                result.put(error.getField(), error.getDefaultMessage());
+            }
+            return ResponseEntity.status(400).body(result);
+        }
 
         String username = loginRequest.getUsername();
         String password = loginRequest.getPassword();
 
-        Map<String, String> result = new HashMap<>();
 
         if (username == null || password == null) {
             result.put("error", "Field username or field password was empty!");
