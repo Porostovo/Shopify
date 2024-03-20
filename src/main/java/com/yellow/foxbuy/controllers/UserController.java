@@ -2,12 +2,11 @@ package com.yellow.foxbuy.controllers;
 
 import com.yellow.foxbuy.config.SecurityConfig;
 import com.yellow.foxbuy.models.ConfirmationToken;
-import com.yellow.foxbuy.models.LoginRequest;
+import com.yellow.foxbuy.models.DTOs.LoginRequest;
 import com.yellow.foxbuy.models.DTOs.UserDTO;
 import com.yellow.foxbuy.models.User;
 import com.yellow.foxbuy.services.ConfirmationTokenService;
 import com.yellow.foxbuy.services.EmailService;
-import com.yellow.foxbuy.services.EmailServiceImp;
 import com.yellow.foxbuy.services.UserService;
 import com.yellow.foxbuy.utils.JwtUtil;
 import jakarta.mail.MessagingException;
@@ -27,16 +26,14 @@ public class UserController {
     private final UserService userService;
     private final JwtUtil jwtUtil;
     private final EmailService emailService;
-    private final ConfirmationToken confirmationToken;
     private final ConfirmationTokenService confirmationTokenService;
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserController(UserService userService, EmailServiceImp emailServiceImp, JwtUtil jwtUtil, EmailService emailService, ConfirmationToken confirmationToken, ConfirmationTokenService confirmationTokenService, PasswordEncoder passwordEncoder) {
+    public UserController(UserService userService, JwtUtil jwtUtil, EmailService emailService, ConfirmationTokenService confirmationTokenService, PasswordEncoder passwordEncoder) {
         this.userService = userService;
         this.jwtUtil = jwtUtil;
         this.emailService = emailService;
-        this.confirmationToken = confirmationToken;
         this.confirmationTokenService = confirmationTokenService;
         this.passwordEncoder = passwordEncoder;
     }
@@ -74,9 +71,6 @@ public class UserController {
             User user = new User(userDTO.getUsername(), userDTO.getEmail(),
                     SecurityConfig.passwordEncoder().encode(userDTO.getPassword()), true);
             userService.save(user);
-            String token = jwtUtil.createToken(user);
-            System.out.println(token);
-            System.out.println(jwtUtil.validateJwt(token));
             result.put("username", user.getUsername());
             result.put("id", String.valueOf(user.getId()));
             return ResponseEntity.status(200).body(result);
