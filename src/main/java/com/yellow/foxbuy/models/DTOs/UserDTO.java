@@ -18,6 +18,15 @@ public class UserDTO {
     @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&.,])[A-Za-z\\d@$!%*?&.,]+$", message = "Password must have at least one uppercase, one lowercase, one number, and one special character (@ $ ! % * ? & . ,).")
     private String password;
 
+    public UserDTO(String username, String email, String password) {
+        this.username = username;
+        this.email = email;
+        this.password = password;
+    }
+
+    public UserDTO() {
+    }
+
     public String getUsername() {
         return username;
     }
