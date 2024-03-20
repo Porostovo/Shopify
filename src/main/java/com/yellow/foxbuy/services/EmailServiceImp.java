@@ -50,3 +50,4 @@ public class EmailServiceImp implements EmailService {
         sendSimpleMessage(user.getEmail(), "Email Verification", email);
     }
 }
+

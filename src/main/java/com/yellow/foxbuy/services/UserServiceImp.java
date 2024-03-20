@@ -44,4 +44,9 @@ public class UserServiceImp implements UserService {
             userRepository.save(user);
         }
     }
+
+    @Override
+    public Optional<User> findByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
 }

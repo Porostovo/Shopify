@@ -34,7 +34,7 @@ public class ConfirmationTokenService {
             userService.setUserAsVerified(optionalToken);
             return "Confirmed";
         } else {
-            return "Token not found.";
+            return "Token not found..";
         }
     }
 }
