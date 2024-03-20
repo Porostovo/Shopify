@@ -1,5 +1,6 @@
 package com.yellow.foxbuy.config;
 
+import com.yellow.foxbuy.filters.JwtAuthorisationFilter;
 import com.yellow.foxbuy.models.ConfirmationToken;
 import com.yellow.foxbuy.services.UserServiceImp;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 
 @Configuration
@@ -45,6 +47,7 @@ public class SecurityConfig {
                                 .anyRequest().authenticated())
                 .csrf(csrf -> csrf.disable())
                 .httpBasic(Customizer.withDefaults());
+        http.addFilterBefore(jwtAuthorisationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -65,6 +68,11 @@ public class SecurityConfig {
     @Bean
     public ConfirmationToken confirmationToken() {
         return new ConfirmationToken(); // Or instantiate it using appropriate arguments if needed
+    }
+
+    @Bean
+    public JwtAuthorisationFilter jwtAuthorisationFilter (){
+        return new JwtAuthorisationFilter();
     }
 }
 

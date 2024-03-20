@@ -1,6 +1,7 @@
 package com.yellow.foxbuy.controllers;
 
 import com.yellow.foxbuy.config.SecurityConfig;
+import com.yellow.foxbuy.models.DTOs.AuthResponseDTO;
 import com.yellow.foxbuy.models.DTOs.LoginRequest;
 import com.yellow.foxbuy.models.DTOs.UserDTO;
 import com.yellow.foxbuy.models.User;
@@ -13,7 +14,6 @@ import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
@@ -28,12 +28,15 @@ public class UserController {
     private final EmailService emailService;
     private final ConfirmationTokenService confirmationTokenService;
 
+    private final JwtUtil jwtUtil;
+
     @Autowired
-    public UserController(UserService userService, JwtUtil jwtUtil, EmailService emailService, ConfirmationTokenService confirmationTokenService, PasswordEncoder passwordEncoder, AuthenticationService authenticationService) {
+    public UserController(UserService userService, AuthenticationService authenticationService, EmailService emailService, ConfirmationTokenService confirmationTokenService, JwtUtil jwtUtil) {
         this.userService = userService;
+        this.authenticationService = authenticationService;
         this.emailService = emailService;
         this.confirmationTokenService = confirmationTokenService;
-        this.authenticationService = authenticationService;
+        this.jwtUtil = jwtUtil;
     }
 
     @PostMapping("/registration")
@@ -81,22 +84,20 @@ public class UserController {
     public ResponseEntity<?> userLoginAndGenerateJWToken(@Valid @RequestBody LoginRequest loginRequest, BindingResult bindingResult) {
 
         if (bindingResult.hasErrors()) {
-            Map<String, String> result = new HashMap<>();
-            result.put("error", "Validation failed.");
-
-            for (FieldError error : bindingResult.getFieldErrors()) {
-                result.put(error.getField(), error.getDefaultMessage());
-            }
-            return ResponseEntity.status(400).body(result);
+            AuthResponseDTO response = new AuthResponseDTO();
+            response.setMessage("Validation failed.");
+            return ResponseEntity.badRequest().body(response);
         }
+
+        // Attempt user authentication
         return authenticationService.authenticateUser(loginRequest);
     }
-
 
     @GetMapping(path = "/confirm")
     public String confirm(@RequestParam("token") String token) {
         return confirmationTokenService.confirmToken(token);
     }
+
 }
 
 
