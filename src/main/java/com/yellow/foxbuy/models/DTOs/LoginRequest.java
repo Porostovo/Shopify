@@ -1,4 +1,4 @@
-package com.yellow.foxbuy.models;
+package com.yellow.foxbuy.models.DTOs;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;

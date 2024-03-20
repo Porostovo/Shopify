@@ -18,7 +18,7 @@ import java.util.UUID;
 @Component
 public class JwtUtil {
 
-    String secret = "asdfSFS34wfsdfsdfSDSD32dfsddDDerQSNCK34SOWEK5354fdgdf4";
+    String secret = System.getenv("JWT_SECRET_KEY");
 
     Key hmacKey = new SecretKeySpec(Base64.getDecoder().decode(secret), SignatureAlgorithm.HS256.getJcaName());
 

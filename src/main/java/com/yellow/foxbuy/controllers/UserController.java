@@ -2,7 +2,7 @@ package com.yellow.foxbuy.controllers;
 
 import com.yellow.foxbuy.config.SecurityConfig;
 import com.yellow.foxbuy.models.ConfirmationToken;
-import com.yellow.foxbuy.models.LoginRequest;
+import com.yellow.foxbuy.models.DTOs.LoginRequest;
 import com.yellow.foxbuy.models.DTOs.UserDTO;
 import com.yellow.foxbuy.models.User;
 import com.yellow.foxbuy.services.ConfirmationTokenService;
@@ -110,7 +110,7 @@ public class UserController {
 
         User user = userService.findByUsername(username).orElse(null);
         if (user == null) {
-            result.put("error", "User does not exist.");
+            result.put("error", "Username or password are incorrect.");
             return ResponseEntity.status(400).body(result);
         }
 
@@ -120,7 +120,7 @@ public class UserController {
         }
 
         else if (!passwordEncoder.matches(password, user.getPassword())) {
-            result.put("error", "Incorrect credentials.");
+            result.put("error", "Username or password are incorrect.");
             return ResponseEntity.status(400).body(result);
         }
 
