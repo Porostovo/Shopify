@@ -1,10 +1,10 @@
 package com.yellow.foxbuy.controllers;
 
 import com.yellow.foxbuy.config.SecurityConfig;
-import com.yellow.foxbuy.models.ConfirmationToken;
 import com.yellow.foxbuy.models.DTOs.LoginRequest;
 import com.yellow.foxbuy.models.DTOs.UserDTO;
 import com.yellow.foxbuy.models.User;
+import com.yellow.foxbuy.services.AuthenticationService;
 import com.yellow.foxbuy.services.ConfirmationTokenService;
 import com.yellow.foxbuy.services.EmailService;
 import com.yellow.foxbuy.services.UserService;
@@ -24,18 +24,16 @@ import java.util.Map;
 @RestController
 public class UserController {
     private final UserService userService;
-    private final JwtUtil jwtUtil;
+    private final AuthenticationService authenticationService;
     private final EmailService emailService;
     private final ConfirmationTokenService confirmationTokenService;
-    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserController(UserService userService, JwtUtil jwtUtil, EmailService emailService, ConfirmationTokenService confirmationTokenService, PasswordEncoder passwordEncoder) {
+    public UserController(UserService userService, JwtUtil jwtUtil, EmailService emailService, ConfirmationTokenService confirmationTokenService, PasswordEncoder passwordEncoder, AuthenticationService authenticationService) {
         this.userService = userService;
-        this.jwtUtil = jwtUtil;
         this.emailService = emailService;
         this.confirmationTokenService = confirmationTokenService;
-        this.passwordEncoder = passwordEncoder;
+        this.authenticationService = authenticationService;
     }
 
     @PostMapping("/registration")
@@ -81,10 +79,9 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<?> userLoginAndGenerateJWToken(@Valid @RequestBody LoginRequest loginRequest, BindingResult bindingResult) {
-        Map<String, String> result = new HashMap<>();
 
         if (bindingResult.hasErrors()) {
-
+            Map<String, String> result = new HashMap<>();
             result.put("error", "Validation failed.");
 
             for (FieldError error : bindingResult.getFieldErrors()) {
@@ -92,36 +89,7 @@ public class UserController {
             }
             return ResponseEntity.status(400).body(result);
         }
-
-        String username = loginRequest.getUsername();
-        String password = loginRequest.getPassword();
-
-
-        if (username == null || password == null) {
-            result.put("error", "Field username or field password was empty!");
-            return ResponseEntity.status(400).body(result);
-        }
-
-        User user = userService.findByUsername(username).orElse(null);
-        if (user == null) {
-            result.put("error", "Username or password are incorrect.");
-            return ResponseEntity.status(400).body(result);
-        }
-
-        else if (!user.isVerified()){
-            result.put("error", "User is not verified.");
-            return ResponseEntity.status(400).body(result);
-        }
-
-        else if (!passwordEncoder.matches(password, user.getPassword())) {
-            result.put("error", "Username or password are incorrect.");
-            return ResponseEntity.status(400).body(result);
-        }
-
-        String token = jwtUtil.createToken(user);
-        result.put("message", "Login successful.");
-        result.put("token", token);
-        return ResponseEntity.ok(result);
+        return authenticationService.authenticateUser(loginRequest);
     }
 
 
