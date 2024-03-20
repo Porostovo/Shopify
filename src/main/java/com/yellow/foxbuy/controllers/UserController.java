@@ -14,6 +14,7 @@ import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
@@ -28,15 +29,16 @@ public class UserController {
     private final EmailService emailService;
     private final ConfirmationToken confirmationToken;
     private final ConfirmationTokenService confirmationTokenService;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserController(UserService userService, EmailServiceImp emailServiceImp, JwtUtil jwtUtil, EmailService emailService, ConfirmationToken confirmationToken, ConfirmationTokenService confirmationTokenService) {
+    public UserController(UserService userService, EmailServiceImp emailServiceImp, JwtUtil jwtUtil, EmailService emailService, ConfirmationToken confirmationToken, ConfirmationTokenService confirmationTokenService, PasswordEncoder passwordEncoder) {
         this.userService = userService;
         this.jwtUtil = jwtUtil;
         this.emailService = emailService;
         this.confirmationToken = confirmationToken;
         this.confirmationTokenService = confirmationTokenService;
-
+        this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping("/registration")
@@ -104,6 +106,11 @@ public class UserController {
 
         else if (!user.isVerified()){
             result.put("error", "User is not verified.");
+            return ResponseEntity.status(400).body(result);
+        }
+
+        else if (!passwordEncoder.matches(password, user.getPassword())) {
+            result.put("error", "Incorrect credentials.");
             return ResponseEntity.status(400).body(result);
         }
 
