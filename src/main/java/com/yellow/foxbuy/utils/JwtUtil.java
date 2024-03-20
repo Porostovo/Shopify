@@ -27,9 +27,8 @@ public class JwtUtil {
         String jwtToken = Jwts.builder()
                 .claim("name", user.getUsername())
                 .claim("email", user.getEmail())
-                .setId(UUID.randomUUID().toString())
                 .setIssuedAt(Date.from(now))
-                .setExpiration(Date.from(now.plus(5, ChronoUnit.MINUTES)))
+//                .setExpiration(Date.from(now.plus(5, ChronoUnit.MINUTES)))
                 .signWith(hmacKey)
                 .compact();
         return jwtToken;
