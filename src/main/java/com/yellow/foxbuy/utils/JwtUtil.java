@@ -18,7 +18,7 @@ import java.util.UUID;
 @Component
 public class JwtUtil {
 
-    String secret = "asdfSFS34wfsdfsdfSDSD32dfsddDDerQSNCK34SOWEK5354fdgdf4";
+    String secret = System.getenv("JWT_SECRET_KEY");
 
     Key hmacKey = new SecretKeySpec(Base64.getDecoder().decode(secret), SignatureAlgorithm.HS256.getJcaName());
 
@@ -27,9 +27,8 @@ public class JwtUtil {
         String jwtToken = Jwts.builder()
                 .claim("name", user.getUsername())
                 .claim("email", user.getEmail())
-                .setId(UUID.randomUUID().toString())
                 .setIssuedAt(Date.from(now))
-                .setExpiration(Date.from(now.plus(5, ChronoUnit.MINUTES)))
+//                .setExpiration(Date.from(now.plus(5, ChronoUnit.MINUTES)))
                 .signWith(hmacKey)
                 .compact();
         return jwtToken;
