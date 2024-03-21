@@ -1,30 +1,31 @@
 package com.yellow.foxbuy.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yellow.foxbuy.models.ConfirmationToken;
 import com.yellow.foxbuy.models.DTOs.UserDTO;
 import com.yellow.foxbuy.models.User;
+import com.yellow.foxbuy.repositories.ConfirmationTokenRepository;
 import com.yellow.foxbuy.repositories.UserRepository;
+import com.yellow.foxbuy.services.ConfirmationTokenService;
 import com.yellow.foxbuy.services.UserService;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+
+import java.util.UUID;
+
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
@@ -39,12 +40,16 @@ class UserControllerTest {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private ConfirmationTokenRepository confirmationTokenRepository;
+    @Autowired
+    private ConfirmationTokenService confirmationTokenService;
 
 
     private ObjectMapper objectMapper;
 
     @BeforeEach
-    public void setUp(){
+    public void setUp() {
         objectMapper = new ObjectMapper();
         userRepository.deleteAll();
     }
@@ -56,8 +61,8 @@ class UserControllerTest {
         UserDTO userDTO = new UserDTO("user", "email@email.com", "Password123%");
 
         mockMvc.perform(MockMvcRequestBuilders.post("/registration")
-                .content(objectMapper.writeValueAsString(userDTO))
-                .contentType(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(userDTO))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(200))
                 .andExpect(jsonPath("$.username", is("user")));
 
@@ -74,10 +79,10 @@ class UserControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.post("/registration")
                 .content(objectMapper.writeValueAsString(userDTO))
                 .contentType(MediaType.APPLICATION_JSON));
-        
+
         mockMvc.perform(MockMvcRequestBuilders.post("/registration")
-                .content(objectMapper.writeValueAsString(userDTO2))
-                .contentType(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(userDTO2))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(400))
                 .andExpect(jsonPath("$.error", is("Username already exists.")));
 
@@ -96,8 +101,8 @@ class UserControllerTest {
                 .contentType(MediaType.APPLICATION_JSON));
 
         mockMvc.perform(MockMvcRequestBuilders.post("/registration")
-                .content(objectMapper.writeValueAsString(userDTO2))
-                .contentType(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(userDTO2))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(400))
                 .andExpect(jsonPath("$.error", is("Email is already used.")));
 
@@ -111,8 +116,8 @@ class UserControllerTest {
         UserDTO userDTO = new UserDTO("user", "email@email.com", "Pass1%");
 
         mockMvc.perform(MockMvcRequestBuilders.post("/registration")
-                .content(objectMapper.writeValueAsString(userDTO))
-                .contentType(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(userDTO))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(400))
                 .andExpect(jsonPath("$.password", is("Password must have atleast 8 characters.")));
 
@@ -126,8 +131,8 @@ class UserControllerTest {
         UserDTO userDTO = new UserDTO("user", "email@email.com", "Password1");
 
         mockMvc.perform(MockMvcRequestBuilders.post("/registration")
-                .content(objectMapper.writeValueAsString(userDTO))
-                .contentType(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(userDTO))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(400))
                 .andExpect(jsonPath("$.password", is("Password must have at least one uppercase, one lowercase, one number, and one special character (@ $ ! % * ? & . ,).")));
 
@@ -156,13 +161,28 @@ class UserControllerTest {
         UserDTO userDTO = new UserDTO();
 
         mockMvc.perform(MockMvcRequestBuilders.post("/registration")
-                .content(objectMapper.writeValueAsString(userDTO))
-                .contentType(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(userDTO))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(400))
                 .andExpect(jsonPath("$.email", is("Email is required.")))
                 .andExpect(jsonPath("$.password", is("Password is required.")))
                 .andExpect(jsonPath("$.username", is("Username is required.")));
 
         assertEquals(initialUserCount, userRepository.findAll().size());
+    }
+
+    @Test
+    public void testVerificationEmailConfirmEndpoint() throws Exception {
+        User user = new User("user", "emaile@mail.com", "Password1", false);
+        userRepository.save(user);
+
+        String token = UUID.randomUUID().toString();
+        ConfirmationToken confirmationToken = new ConfirmationToken(token, user);
+        confirmationTokenService.saveConfirmationToken(confirmationToken);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/confirm").param("token", token))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Confirmed")));
+        assertEquals(true,userRepository.findById(user.getId()).get().getVerified());
     }
 }
