@@ -1,10 +1,11 @@
 package com.yellow.foxbuy.controllers;
 
 import com.yellow.foxbuy.config.SecurityConfig;
-import com.yellow.foxbuy.models.ConfirmationToken;
+import com.yellow.foxbuy.models.DTOs.AuthResponseDTO;
 import com.yellow.foxbuy.models.DTOs.LoginRequest;
 import com.yellow.foxbuy.models.DTOs.UserDTO;
 import com.yellow.foxbuy.models.User;
+import com.yellow.foxbuy.services.AuthenticationService;
 import com.yellow.foxbuy.services.ConfirmationTokenService;
 import com.yellow.foxbuy.services.EmailService;
 import com.yellow.foxbuy.services.UserService;
@@ -13,7 +14,6 @@ import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
@@ -24,19 +24,21 @@ import java.util.Map;
 @RestController
 public class UserController {
     private final UserService userService;
-    private final JwtUtil jwtUtil;
+    private final AuthenticationService authenticationService;
     private final EmailService emailService;
     private final ConfirmationTokenService confirmationTokenService;
-    private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
     @Autowired
-    public UserController(UserService userService, JwtUtil jwtUtil, EmailService emailService, ConfirmationTokenService confirmationTokenService, PasswordEncoder passwordEncoder) {
+    public UserController(UserService userService, AuthenticationService authenticationService, EmailService emailService, ConfirmationTokenService confirmationTokenService, JwtUtil jwtUtil) {
         this.userService = userService;
-        this.jwtUtil = jwtUtil;
+        this.authenticationService = authenticationService;
         this.emailService = emailService;
         this.confirmationTokenService = confirmationTokenService;
-        this.passwordEncoder = passwordEncoder;
+        this.jwtUtil = jwtUtil;
     }
+
+
 
     @PostMapping("/registration")
     public ResponseEntity<?> userRegistration(@Valid @RequestBody UserDTO userDTO, BindingResult bindingResult) throws MessagingException {
@@ -81,53 +83,25 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<?> userLoginAndGenerateJWToken(@Valid @RequestBody LoginRequest loginRequest, BindingResult bindingResult) {
-        Map<String, String> result = new HashMap<>();
 
         if (bindingResult.hasErrors()) {
-
-            result.put("error", "Validation failed.");
-
-            for (FieldError error : bindingResult.getFieldErrors()) {
-                result.put(error.getField(), error.getDefaultMessage());
-            }
-            return ResponseEntity.status(400).body(result);
+            AuthResponseDTO response = new AuthResponseDTO();
+            response.setMessage("Validation failed.");
+            return ResponseEntity.badRequest().body(response);
         }
 
-        String username = loginRequest.getUsername();
-        String password = loginRequest.getPassword();
-
-
-        if (username == null || password == null) {
-            result.put("error", "Field username or field password was empty!");
-            return ResponseEntity.status(400).body(result);
-        }
-
-        User user = userService.findByUsername(username).orElse(null);
-        if (user == null) {
-            result.put("error", "Username or password are incorrect.");
-            return ResponseEntity.status(400).body(result);
-        }
-
-        else if (!user.isVerified()){
-            result.put("error", "User is not verified.");
-            return ResponseEntity.status(400).body(result);
-        }
-
-        else if (!passwordEncoder.matches(password, user.getPassword())) {
-            result.put("error", "Username or password are incorrect.");
-            return ResponseEntity.status(400).body(result);
-        }
-
-        String token = jwtUtil.createToken(user);
-        result.put("message", "Login successful.");
-        result.put("token", token);
-        return ResponseEntity.ok(result);
+        // Attempt user authentication
+        return authenticationService.authenticateUser(loginRequest);
     }
-
 
     @GetMapping(path = "/confirm")
     public String confirm(@RequestParam("token") String token) {
         return confirmationTokenService.confirmToken(token);
+    }
+
+    @GetMapping("/test")
+    public String test() {
+        return "Hello World";
     }
 }
 
