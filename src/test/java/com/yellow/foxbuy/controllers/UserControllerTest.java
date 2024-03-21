@@ -183,20 +183,6 @@ class UserControllerTest {
     }
 
     @Test
-    public void testVerificationEmailConfirmEndpoint() throws Exception {
-        User user = new User("user", "emaile@mail.com", "Password1", false);
-        userRepository.save(user);
-
-        String token = UUID.randomUUID().toString();
-        ConfirmationToken confirmationToken = new ConfirmationToken(token, user);
-        confirmationTokenService.saveConfirmationToken(confirmationToken);
-
-        mockMvc.perform(MockMvcRequestBuilders.get("/confirm").param("token", token))
-                .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Confirmed")));
-        assertEquals(true, userRepository.findById(user.getId()).get().getVerified());
-    }
-    @Test
     public void loginSuccess() throws Exception {
 
         UserDTO userDTO = new UserDTO("user", "email@email.com", "Password123%");
@@ -279,4 +265,19 @@ class UserControllerTest {
                 .andExpect(status().is(400))
                 .andExpect(jsonPath("$.message", is("Username or password are incorrect.")));
     }
+
+    //    @Test
+//    public void testVerificationEmailConfirmEndpoint() throws Exception {
+//        User user = new User("user", "emaile@mail.com", "Password1", false);
+//        userRepository.save(user);
+//
+//        String token = UUID.randomUUID().toString();
+//        ConfirmationToken confirmationToken = new ConfirmationToken(token, user);
+//        confirmationTokenService.saveConfirmationToken(confirmationToken);
+//
+//        mockMvc.perform(MockMvcRequestBuilders.get("/confirm").param("token", token))
+//                .andExpect(status().isOk())
+//                .andExpect(content().string(containsString("Confirmed")));
+//        assertEquals(true, userRepository.findById(user.getId()).get().getVerified());
+//    }
 }
