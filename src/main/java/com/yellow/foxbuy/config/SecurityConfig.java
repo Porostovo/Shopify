@@ -21,7 +21,7 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig {git push
+public class SecurityConfig {
 
 
     private final UserServiceImp userServiceImp;
