@@ -86,7 +86,8 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> userLoginAndGenerateJWToken(@Valid @RequestBody LoginRequest loginRequest, BindingResult bindingResult) {
+    public ResponseEntity<?> userLoginAndGenerateJWToken(@Valid @RequestBody LoginRequest loginRequest,
+                                                         BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             AuthResponseDTO response = new AuthResponseDTO();
             response.setMessage("Validation failed.");

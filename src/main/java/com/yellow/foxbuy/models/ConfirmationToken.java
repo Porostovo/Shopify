@@ -1,10 +1,17 @@
 package com.yellow.foxbuy.models;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
 
 
+@Setter
+@Getter
+@NoArgsConstructor
 @Entity
 public class ConfirmationToken {
     @Id
@@ -21,33 +28,6 @@ public class ConfirmationToken {
     public ConfirmationToken(String token,User user) {
         this.token = token;
         this.User = user;
-    }
-
-    public ConfirmationToken() {
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
-    }
-
-    public com.yellow.foxbuy.models.User getUser() {
-        return User;
-    }
-
-    public void setUser(com.yellow.foxbuy.models.User user) {
-        User = user;
     }
 }
 
