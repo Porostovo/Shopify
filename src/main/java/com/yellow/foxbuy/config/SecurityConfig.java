@@ -19,17 +19,16 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-
    private final JwtAuthorisationFilter jwtAuthorisationFilter;
 
     @Autowired
     public SecurityConfig(JwtAuthorisationFilter jwtAuthorisationFilter) {
         this.jwtAuthorisationFilter = jwtAuthorisationFilter;
     }
-
 
     @Bean
     public static PasswordEncoder passwordEncoder() {

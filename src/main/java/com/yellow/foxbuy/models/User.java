@@ -21,8 +21,6 @@ public class User{
     private String token;
     private Boolean verified;
 
-
-
     public User(String username, String email, String password) {
         this.username = username;
         this.email = email;

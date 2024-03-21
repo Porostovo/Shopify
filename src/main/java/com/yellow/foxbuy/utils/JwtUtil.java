@@ -10,9 +10,14 @@ import org.springframework.stereotype.Component;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.Key;
 import java.time.Instant;
+
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.Function;
+
+import java.util.Base64;
+import java.util.Date;
+
 
 @Component
 public class JwtUtil {
@@ -32,6 +37,7 @@ public class JwtUtil {
                 .compact();
         return jwtToken;
     }
+
 
     public Jws<Claims> validateJwt(String jwtString) {
         Jws<Claims> jwt = Jwts.parserBuilder()
