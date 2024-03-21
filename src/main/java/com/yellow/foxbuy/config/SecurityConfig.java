@@ -52,7 +52,6 @@ public class SecurityConfig {
 
     @Bean
     public UserDetailsService userDetailsService() {
-
         UserDetails user = User.builder()
                 .username("a")
                 .password(passwordEncoder().encode("b"))
@@ -65,6 +64,5 @@ public class SecurityConfig {
     public ConfirmationToken confirmationToken() {
         return new ConfirmationToken();
     }
-
 }
 

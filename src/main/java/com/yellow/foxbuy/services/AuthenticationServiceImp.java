@@ -41,7 +41,7 @@ public class AuthenticationServiceImp implements AuthenticationService {
         if (user == null) {
             response.setMessage("Username or password are incorrect.");
             return ResponseEntity.badRequest().body(response);
-        } else if (!user.isVerified()) {
+        } else if (!user.getVerified()) {
             response.setMessage("User is not verified.");
             return ResponseEntity.badRequest().body(response);
         } else if (!passwordEncoder.matches(password, user.getPassword())) {
