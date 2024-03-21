@@ -15,10 +15,7 @@ public class ConfirmationToken {
     private String token;
 
     @ManyToOne
-    @JoinColumn(
-            nullable = false,
-            name = "user_id"
-    )
+    @JoinColumn(nullable = false,name = "user_id")
     private User User;
 
     public ConfirmationToken(String token,User user) {

@@ -12,6 +12,4 @@ public interface UserService {
 
     void setUserAsVerified(Optional<ConfirmationToken> optionalToken);
     Optional<User> findByUsername(String username);
-
-
 }

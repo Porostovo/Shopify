@@ -3,7 +3,9 @@ package com.yellow.foxbuy.controllers;
 import com.yellow.foxbuy.config.SecurityConfig;
 import com.yellow.foxbuy.models.DTOs.AuthResponseDTO;
 import com.yellow.foxbuy.models.DTOs.LoginRequest;
+
 import com.yellow.foxbuy.models.DTOs.UserDTO;
+
 import com.yellow.foxbuy.models.User;
 import com.yellow.foxbuy.services.AuthenticationService;
 import com.yellow.foxbuy.services.ConfirmationTokenService;
@@ -14,6 +16,8 @@ import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
@@ -27,21 +31,23 @@ public class UserController {
     private final AuthenticationService authenticationService;
     private final EmailService emailService;
     private final ConfirmationTokenService confirmationTokenService;
-    private final JwtUtil jwtUtil;
 
     @Autowired
-    public UserController(UserService userService, AuthenticationService authenticationService, EmailService emailService, ConfirmationTokenService confirmationTokenService, JwtUtil jwtUtil) {
+
+    public UserController(UserService userService,
+                          EmailService emailService,
+                          ConfirmationTokenService confirmationTokenService,
+                          AuthenticationService authenticationService) {
         this.userService = userService;
-        this.authenticationService = authenticationService;
         this.emailService = emailService;
         this.confirmationTokenService = confirmationTokenService;
-        this.jwtUtil = jwtUtil;
+        this.authenticationService = authenticationService;
     }
 
 
-
     @PostMapping("/registration")
-    public ResponseEntity<?> userRegistration(@Valid @RequestBody UserDTO userDTO, BindingResult bindingResult) throws MessagingException {
+    public ResponseEntity<?> userRegistration(@Valid @RequestBody UserDTO userDTO,
+                                              BindingResult bindingResult) throws MessagingException {
         Map<String, String> result = new HashMap<>();
 
         if (bindingResult.hasErrors()) {
@@ -60,7 +66,6 @@ public class UserController {
         } else if (userService.existsByEmail(userDTO.getEmail())) {
             result.put("error", "Email is already used.");
             return ResponseEntity.status(400).body(result);
-
         } else if (System.getenv("EMAIL_VERIFICATION").equals("on")) {
             User user = new User(userDTO.getUsername(), userDTO.getEmail(),
                     SecurityConfig.passwordEncoder().encode(userDTO.getPassword()));
@@ -80,10 +85,8 @@ public class UserController {
         return null;
     }
 
-
     @PostMapping("/login")
     public ResponseEntity<?> userLoginAndGenerateJWToken(@Valid @RequestBody LoginRequest loginRequest, BindingResult bindingResult) {
-
         if (bindingResult.hasErrors()) {
             AuthResponseDTO response = new AuthResponseDTO();
             response.setMessage("Validation failed.");
@@ -99,9 +102,9 @@ public class UserController {
         return confirmationTokenService.confirmToken(token);
     }
 
-    @GetMapping("/test")
-    public String test() {
-        return "Hello World";
+    @GetMapping(path = "/test")
+    public Authentication confirm(Authentication authentication) {
+        return authentication;
     }
 }
 
