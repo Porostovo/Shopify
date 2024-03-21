@@ -13,6 +13,7 @@ import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -30,7 +31,11 @@ public class UserController {
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserController(UserService userService, JwtUtil jwtUtil, EmailService emailService, ConfirmationTokenService confirmationTokenService, PasswordEncoder passwordEncoder) {
+    public UserController(UserService userService,
+                          JwtUtil jwtUtil,
+                          EmailService emailService,
+                          ConfirmationTokenService confirmationTokenService,
+                          PasswordEncoder passwordEncoder) {
         this.userService = userService;
         this.jwtUtil = jwtUtil;
         this.emailService = emailService;
@@ -39,7 +44,8 @@ public class UserController {
     }
 
     @PostMapping("/registration")
-    public ResponseEntity<?> userRegistration(@Valid @RequestBody UserDTO userDTO, BindingResult bindingResult) throws MessagingException {
+    public ResponseEntity<?> userRegistration(@Valid @RequestBody UserDTO userDTO,
+                                              BindingResult bindingResult) throws MessagingException {
         Map<String, String> result = new HashMap<>();
 
         if (bindingResult.hasErrors()) {
@@ -78,9 +84,9 @@ public class UserController {
         return null;
     }
 
-
     @PostMapping("/login")
-    public ResponseEntity<?> userLoginAndGenerateJWToken(@Valid @RequestBody LoginRequest loginRequest, BindingResult bindingResult) {
+    public ResponseEntity<?> userLoginAndGenerateJWToken(@Valid @RequestBody LoginRequest loginRequest,
+                                                         BindingResult bindingResult) {
         Map<String, String> result = new HashMap<>();
 
         if (bindingResult.hasErrors()) {
@@ -126,8 +132,12 @@ public class UserController {
 
 
     @GetMapping(path = "/confirm")
-    public String confirm(@RequestParam("token") String token) {
+    public String confirm(@RequestParam("token") String token)  {
         return confirmationTokenService.confirmToken(token);
+    }
+    @GetMapping(path = "/test")
+    public Authentication confirm(Authentication authentication){
+        return authentication;
     }
 }
 

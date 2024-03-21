@@ -14,16 +14,17 @@ public class ConfirmationTokenService {
     private final ConfirmationTokenRepository confirmationTokenRepository;
     private final UserService userService;
 
-@Autowired
+    @Autowired
     public ConfirmationTokenService(ConfirmationTokenRepository confirmationTokenRepository, UserService userService) {
         this.confirmationTokenRepository = confirmationTokenRepository;
-    this.userService = userService;
-}
+        this.userService = userService;
+    }
+
     public void saveConfirmationToken(ConfirmationToken token) {
         confirmationTokenRepository.save(token);
     }
 
-    public Optional <ConfirmationToken> getToken(String token) {
+    public Optional<ConfirmationToken> getToken(String token) {
         return confirmationTokenRepository.findByToken(token);
     }
 
