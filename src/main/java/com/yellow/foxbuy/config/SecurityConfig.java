@@ -1,8 +1,6 @@
 package com.yellow.foxbuy.config;
 
 import com.yellow.foxbuy.models.ConfirmationToken;
-import com.yellow.foxbuy.services.UserServiceImp;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -21,17 +19,7 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig {git push
-
-
-    private final UserServiceImp userServiceImp;
-
-    @Autowired
-    public SecurityConfig(UserServiceImp userServiceImp) {
-
-        this.userServiceImp = userServiceImp;
-    }
-
+public class SecurityConfig {
 
     @Bean
     public static PasswordEncoder passwordEncoder() {

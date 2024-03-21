@@ -3,6 +3,7 @@ package com.yellow.foxbuy.services;
 import com.yellow.foxbuy.models.DTOs.AuthResponseDTO;
 import com.yellow.foxbuy.models.DTOs.LoginRequest;
 import com.yellow.foxbuy.models.User;
+import com.yellow.foxbuy.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -40,9 +41,9 @@ public class AuthenticationServiceImp implements AuthenticationService {
         if (user == null) {
             response.setMessage("Username or password are incorrect.");
             return ResponseEntity.badRequest().body(response);
-        } else if (!user.isVerified()) {
-            response.setMessage("User is not verified.");
-            return ResponseEntity.badRequest().body(response);
+//        } else if (!user.isVerified()) {
+//            response.setMessage("User is not verified.");
+//            return ResponseEntity.badRequest().body(response);
         } else if (!passwordEncoder.matches(password, user.getPassword())) {
             response.setMessage("Username or password are incorrect.");
             return ResponseEntity.badRequest().body(response);
