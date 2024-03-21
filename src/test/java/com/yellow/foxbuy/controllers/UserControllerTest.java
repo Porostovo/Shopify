@@ -1,10 +1,15 @@
 package com.yellow.foxbuy.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import com.yellow.foxbuy.models.ConfirmationToken;
 import com.yellow.foxbuy.models.DTOs.UserDTO;
 import com.yellow.foxbuy.models.User;
 import com.yellow.foxbuy.repositories.ConfirmationTokenRepository;
+
+import com.yellow.foxbuy.models.DTOs.LoginRequest;
+import com.yellow.foxbuy.models.DTOs.UserDTO;
+
 import com.yellow.foxbuy.repositories.UserRepository;
 import com.yellow.foxbuy.services.ConfirmationTokenService;
 import com.yellow.foxbuy.services.UserService;
@@ -24,8 +29,14 @@ import java.util.UUID;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
@@ -183,6 +194,89 @@ class UserControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.get("/confirm").param("token", token))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Confirmed")));
-        assertEquals(true,userRepository.findById(user.getId()).get().getVerified());
+        assertEquals(true, userRepository.findById(user.getId()).get().getVerified());
+    }
+    @Test
+    public void loginSuccess() throws Exception {
+
+        UserDTO userDTO = new UserDTO("user", "email@email.com", "Password123%");
+        LoginRequest loginRequest = new LoginRequest("user", "Password123%");
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/registration")
+                .content(objectMapper.writeValueAsString(userDTO))
+                .contentType(MediaType.APPLICATION_JSON));
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/login")
+                        .content(objectMapper.writeValueAsString(loginRequest))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.message", is("Login successful.")));
+    }
+
+    @Test
+    public void loginFailedEmptyUsername() throws Exception {
+
+        UserDTO userDTO = new UserDTO("user", "email@email.com", "Password123%");
+        LoginRequest loginRequest = new LoginRequest("", "Password123%");
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/registration")
+                .content(objectMapper.writeValueAsString(userDTO))
+                .contentType(MediaType.APPLICATION_JSON));
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/login")
+                        .content(objectMapper.writeValueAsString(loginRequest))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.message", is("Validation failed.")));
+    }
+
+    @Test
+    public void loginFailedEmptyPassword() throws Exception {
+
+        UserDTO userDTO = new UserDTO("user", "email@email.com", "Password123%");
+        LoginRequest loginRequest = new LoginRequest("user", "");
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/registration")
+                .content(objectMapper.writeValueAsString(userDTO))
+                .contentType(MediaType.APPLICATION_JSON));
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/login")
+                        .content(objectMapper.writeValueAsString(loginRequest))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.message", is("Validation failed.")));
+    }
+
+    @Test
+    public void loginFailedWrongUsername() throws Exception {
+
+        UserDTO userDTO = new UserDTO("user", "email@email.com", "Password123%");
+        LoginRequest loginRequest = new LoginRequest("uuser", "Password123%");
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/registration")
+                .content(objectMapper.writeValueAsString(userDTO))
+                .contentType(MediaType.APPLICATION_JSON));
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/login")
+                        .content(objectMapper.writeValueAsString(loginRequest))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.message", is("Username or password are incorrect.")));
+    }
+    @Test
+    public void loginFailedWrongPassword() throws Exception {
+
+        UserDTO userDTO = new UserDTO("user", "email@email.com", "Password123%");
+        LoginRequest loginRequest = new LoginRequest("user", "Password123%%");
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/registration")
+                .content(objectMapper.writeValueAsString(userDTO))
+                .contentType(MediaType.APPLICATION_JSON));
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/login")
+                        .content(objectMapper.writeValueAsString(loginRequest))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.message", is("Username or password are incorrect.")));
     }
 }
