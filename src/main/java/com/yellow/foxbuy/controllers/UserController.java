@@ -11,13 +11,11 @@ import com.yellow.foxbuy.services.AuthenticationService;
 import com.yellow.foxbuy.services.ConfirmationTokenService;
 import com.yellow.foxbuy.services.EmailService;
 import com.yellow.foxbuy.services.UserService;
-import com.yellow.foxbuy.utils.JwtUtil;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
@@ -57,32 +55,33 @@ public class UserController {
             return ResponseEntity.status(400).body(result);
         }
 
-        if (userService.existsByUsername(userDTO.getUsername()) && userService.existsByEmail(userDTO.getEmail())) {
-            result.put("error", "Username and email are already used.");
-            return ResponseEntity.status(400).body(result);
-        } else if (userService.existsByUsername(userDTO.getUsername())) {
+        if (userService.existsByUsername(userDTO.getUsername())) {
             result.put("error", "Username already exists.");
             return ResponseEntity.status(400).body(result);
         } else if (userService.existsByEmail(userDTO.getEmail())) {
             result.put("error", "Email is already used.");
             return ResponseEntity.status(400).body(result);
-        } else if (System.getenv("EMAIL_VERIFICATION").equals("on")) {
-            User user = new User(userDTO.getUsername(), userDTO.getEmail(),
-                    SecurityConfig.passwordEncoder().encode(userDTO.getPassword()));
-            userService.save(user);
-            emailService.sendVerificationEmail(user);
-            result.put("username", user.getUsername());
-            result.put("id", String.valueOf(user.getId()));
-            return ResponseEntity.status(200).body(result);
-        } else if (System.getenv("EMAIL_VERIFICATION").equals("off")) {
-            User user = new User(userDTO.getUsername(), userDTO.getEmail(),
-                    SecurityConfig.passwordEncoder().encode(userDTO.getPassword()), true);
-            userService.save(user);
-            result.put("username", user.getUsername());
-            result.put("id", String.valueOf(user.getId()));
-            return ResponseEntity.status(200).body(result);
+        } else {
+            User user = new User(userDTO.getUsername(), userDTO.getEmail(), SecurityConfig.passwordEncoder().encode(userDTO.getPassword()));
+
+            String emailVerification = System.getenv("EMAIL_VERIFICATION");
+
+            if (emailVerification.equals("on")) {
+                userService.save(user);
+                emailService.sendVerificationEmail(user);
+                result.put("username", user.getUsername());
+                result.put("id", String.valueOf(user.getId()));
+                return ResponseEntity.status(200).body(result);
+            } else if (emailVerification.isEmpty() || emailVerification.equals("off")) {
+                user.setVerified(true);
+                userService.save(user);
+                result.put("username", user.getUsername());
+                result.put("id", String.valueOf(user.getId()));
+                return ResponseEntity.status(200).body(result);
+            }
+            result.put("error", "Invalid value for EMAIL_VERIFICATION (should be 'on' or 'off')");
+            return ResponseEntity.status(400).body(result);
         }
-        return null;
     }
 
     @PostMapping("/login")
@@ -93,8 +92,6 @@ public class UserController {
             response.setMessage("Validation failed.");
             return ResponseEntity.badRequest().body(response);
         }
-
-        // Attempt user authentication
         return authenticationService.authenticateUser(loginRequest);
     }
 
