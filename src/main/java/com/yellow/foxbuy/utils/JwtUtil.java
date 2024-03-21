@@ -2,9 +2,6 @@ package com.yellow.foxbuy.utils;
 
 import com.yellow.foxbuy.models.User;
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.spec.SecretKeySpec;
@@ -12,8 +9,6 @@ import java.security.Key;
 import java.time.Instant;
 
 import java.time.temporal.ChronoUnit;
-import java.util.*;
-import java.util.function.Function;
 
 import java.util.Base64;
 import java.util.Date;

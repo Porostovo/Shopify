@@ -51,16 +51,6 @@ public class SecurityConfig {
     }
 
     @Bean
-    public UserDetailsService userDetailsService() {
-        UserDetails user = User.builder()
-                .username("a")
-                .password(passwordEncoder().encode("b"))
-                .roles("user")
-                .build();
-        return new InMemoryUserDetailsManager(user);
-    }
-
-    @Bean
     public ConfirmationToken confirmationToken() {
         return new ConfirmationToken();
     }
