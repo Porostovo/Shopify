@@ -9,7 +9,6 @@ import com.yellow.foxbuy.services.AuthenticationService;
 import com.yellow.foxbuy.services.ConfirmationTokenService;
 import com.yellow.foxbuy.services.EmailService;
 import com.yellow.foxbuy.services.UserService;
-import com.yellow.foxbuy.utils.JwtUtil;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,6 +97,10 @@ public class UserController {
         return confirmationTokenService.confirmToken(token);
     }
 
+    @GetMapping("/test")
+    public String test() {
+        return "Hello World";
+    }
 }
 
 
