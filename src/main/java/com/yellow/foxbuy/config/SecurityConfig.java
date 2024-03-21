@@ -1,8 +1,6 @@
 package com.yellow.foxbuy.config;
 
 import com.yellow.foxbuy.models.ConfirmationToken;
-import com.yellow.foxbuy.services.UserServiceImp;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -16,19 +14,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
+import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
+
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-
-
-    private final UserServiceImp userServiceImp;
-
-    @Autowired
-    public SecurityConfig(UserServiceImp userServiceImp) {
-
-        this.userServiceImp = userServiceImp;
-    }
 
 
     @Bean
@@ -43,9 +34,9 @@ public class SecurityConfig {
                                 .requestMatchers("/login").permitAll()
                                 .requestMatchers("/confirm").permitAll()
                                 .anyRequest().authenticated())
+                .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
                 .csrf(csrf -> csrf.disable())
                 .httpBasic(Customizer.withDefaults());
-
         return http.build();
     }
 
