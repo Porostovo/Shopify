@@ -1,13 +1,14 @@
 package com.yellow.foxbuy.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yellow.foxbuy.models.ConfirmationToken;
 import com.yellow.foxbuy.models.DTOs.LoginRequest;
 import com.yellow.foxbuy.models.DTOs.UserDTO;
+import com.yellow.foxbuy.models.User;
 import com.yellow.foxbuy.repositories.ConfirmationTokenRepository;
 import com.yellow.foxbuy.repositories.UserRepository;
 import com.yellow.foxbuy.services.ConfirmationTokenService;
 import com.yellow.foxbuy.services.UserService;
-import jdk.swing.interop.SwingInterOpUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,13 +18,11 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import java.sql.*;
 import java.util.UUID;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 
 @ActiveProfiles("test")
@@ -202,7 +201,7 @@ class UserControllerTest {
                         .content(objectMapper.writeValueAsString(loginRequest))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(400))
-                .andExpect(jsonPath("$.message", is("Validation failed.")));
+                .andExpect(jsonPath("$.username", is("Username is required")));
     }
 
     @Test
@@ -219,7 +218,7 @@ class UserControllerTest {
                         .content(objectMapper.writeValueAsString(loginRequest))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(400))
-                .andExpect(jsonPath("$.message", is("Validation failed.")));
+                .andExpect(jsonPath("$.password", is("Password is required")));
     }
 
     @Test
