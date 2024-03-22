@@ -11,7 +11,7 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor
 @Entity
-@Table(name="User_details")
+@Table(name="user_details")
 public class User{
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -19,7 +19,8 @@ public class User{
     private String username;
     private String email;
     private String password;
-    private String token;
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private ConfirmationToken token;
     private Boolean verified;
 
     public User(String username, String email, String password) {

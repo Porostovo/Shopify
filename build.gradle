@@ -37,6 +37,7 @@ dependencies {
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.2'
 
 
+
 }
 
 tasks.named('test') {

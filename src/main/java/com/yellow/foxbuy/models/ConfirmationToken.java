@@ -16,13 +16,13 @@ public class ConfirmationToken {
     @Column(nullable = false)
     private String token;
 
-    @ManyToOne
-    @JoinColumn(nullable = false,name = "user_id")
-    private User User;
+    @OneToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 
     public ConfirmationToken(String token,User user) {
         this.token = token;
-        this.User = user;
+        this.user = user;
     }
 }
 
