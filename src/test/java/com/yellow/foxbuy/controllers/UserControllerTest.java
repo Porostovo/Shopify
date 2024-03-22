@@ -7,6 +7,7 @@ import com.yellow.foxbuy.repositories.ConfirmationTokenRepository;
 import com.yellow.foxbuy.repositories.UserRepository;
 import com.yellow.foxbuy.services.ConfirmationTokenService;
 import com.yellow.foxbuy.services.UserService;
+import jdk.swing.interop.SwingInterOpUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +17,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-
+import java.sql.*;
+import java.util.UUID;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -48,6 +51,7 @@ class UserControllerTest {
     public void setUp() {
         objectMapper = new ObjectMapper();
         userRepository.deleteAll();
+        confirmationTokenRepository.deleteAll();
     }
 
     @Test
@@ -234,6 +238,7 @@ class UserControllerTest {
                 .andExpect(status().is(400))
                 .andExpect(jsonPath("$.message", is("Username or password are incorrect.")));
     }
+
     @Test
     public void loginFailedWrongPassword() throws Exception {
 
@@ -250,19 +255,18 @@ class UserControllerTest {
                 .andExpect(status().is(400))
                 .andExpect(jsonPath("$.message", is("Username or password are incorrect.")));
     }
+    @Test
+    public void testVerificationEmailConfirmEndpoint() throws Exception {
+        User user = new User("user", "emaile@mail.com", "Password1", false);
+        userRepository.save(user);
 
-//        @Test
-//    public void testVerificationEmailConfirmEndpoint() throws Exception {
-//        User user = new User("user", "emaile@mail.com", "Password1", false);
-//        userRepository.save(user);
-//
-//        String token = UUID.randomUUID().toString();
-//        ConfirmationToken confirmationToken = new ConfirmationToken(token, user);
-//        confirmationTokenService.saveConfirmationToken(confirmationToken);
-//
-//        mockMvc.perform(MockMvcRequestBuilders.get("/confirm").param("token", token))
-//                .andExpect(status().isOk())
-//                .andExpect(content().string(containsString("Confirmed")));
-//        assertEquals(true, userRepository.findById(user.getId()).get().getVerified());
-//    }
+        String token = UUID.randomUUID().toString();
+        ConfirmationToken confirmationToken = new ConfirmationToken(token, user);
+        confirmationTokenService.saveConfirmationToken(confirmationToken);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/confirm").param("token", token))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Confirmed")));
+        assertEquals(true, userRepository.findById(user.getId()).get().getVerified());
+    }
 }
