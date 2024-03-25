@@ -19,7 +19,7 @@ public class Ad {
     private String description;
     private Double price;
     private LocalDateTime localDateTime;
-    private Integer zipcode;
+    private String zipcode;
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
@@ -27,7 +27,7 @@ public class Ad {
     @JoinColumn(name = "user_id")
     private User user;
 
-    public Ad(String title, String description, Double price, Integer zipcode){
+    public Ad(String title, String description, Double price, String zipcode){
         this.title = title;
         this.description = description;
         this.price = price;
