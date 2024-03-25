@@ -1,5 +1,6 @@
 package com.yellow.foxbuy.models;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,6 +13,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Entity
 @Table(name="user_details")
+@Schema
 public class User{
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
