@@ -56,14 +56,16 @@ public class UserController {
 
             String emailVerification = System.getenv("EMAIL_VERIFICATION");
 
+            userService.save(user);
+
             if (emailVerification == null || emailVerification.equals("on")) {
                 emailService.sendVerificationEmail(user);
             } else {
                 user.setVerified(true);
             }
+            
             result.put("username", user.getUsername());
             result.put("id", String.valueOf(user.getId()));
-            userService.save(user);
 
             return ResponseEntity.status(200).body(result);
 

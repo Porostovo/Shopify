@@ -38,8 +38,7 @@ public class UserServiceImp implements UserService {
     public void setUserAsVerified(Optional<ConfirmationToken> optionalToken) {
         if (optionalToken.isPresent()) {
             ConfirmationToken confirmationToken = optionalToken.get();
-            UUID userId = confirmationToken.getUser().getId();
-            User user = userRepository.findById(userId).orElseThrow();
+            User user = confirmationToken.getUser();
             user.setVerified(true);
             userRepository.save(user);
         }
