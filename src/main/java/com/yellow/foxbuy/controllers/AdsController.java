@@ -27,6 +27,7 @@ public class AdsController {
     private final JwtUtil jwtUtil;
     private final UserService userService;
 
+
     @Autowired
     public AdsController(AdService adService, JwtUtil jwtUtil, UserService userService) {
         this.adService = adService;
@@ -47,16 +48,14 @@ public class AdsController {
         User user = userService.findByUsername(username).orElse(null);
 
         assert user != null;
-        if (user.getAds().size() > 3) {
+        if (user.getAds().size() >= 3) {
             return new ResponseEntity<>("User has 3 advertisements. Get VIP user or delete some ad: ", HttpStatus.BAD_REQUEST);
         }
 
         //Create Ad from AdDTO
-        Ad ad = new Ad();
-        ad.setTitle(adDTO.getTitle());
-        ad.setDescription(adDTO.getDescription());
-        ad.setPrice(adDTO.getPrice());
-        ad.setZipcode(adDTO.getZipcode());
+        Ad ad = new Ad(adDTO, user);
+
+        //ad.setCategory(category);
 
         //Save ad to repository
         try {
@@ -70,7 +69,14 @@ public class AdsController {
 
         //Return response with ad id
         AdResponseDTO response = new AdResponseDTO();
+
         response.setId(id);
+        response.setTitle(adDTO.getTitle());
+        response.setDescription(adDTO.getDescription());
+        response.setPrice(adDTO.getPrice());
+        response.setZipcode(adDTO.getZipcode());
+        response.setCategoryID(adDTO.getCategoryID());
+
         return ResponseEntity.ok(response);
     }
 }
