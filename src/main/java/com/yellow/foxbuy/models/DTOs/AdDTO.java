@@ -23,5 +23,11 @@ public class AdDTO {
     @NotNull(message = "Category is required!")
     private long categoryID;
 
-
+    public AdDTO(String title, String description, Double price, String zipcode, long categoryID) {
+        this.title = title;
+        this.description = description;
+        this.price = price;
+        this.zipcode = zipcode;
+        this.categoryID = categoryID;
+    }
 }
