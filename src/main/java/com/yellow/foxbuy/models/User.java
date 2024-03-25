@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Setter
@@ -12,7 +14,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Entity
 @Table(name="user_details")
-public class User{
+public class  User{
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -22,6 +24,8 @@ public class User{
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private ConfirmationToken token;
     private Boolean verified;
+    @OneToMany(mappedBy = "user",  cascade = CascadeType.ALL)
+    private List<Ad> ads = new ArrayList<>();
 
     public User(String username, String email, String password) {
         this.username = username;
