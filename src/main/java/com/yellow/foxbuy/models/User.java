@@ -13,7 +13,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @Entity
 @Table(name="user_details")
-@Schema
 public class User{
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
