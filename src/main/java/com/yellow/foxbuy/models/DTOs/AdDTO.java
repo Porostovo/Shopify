@@ -19,7 +19,7 @@ public class AdDTO {
     private Double price;
     @NotBlank(message = "Zipcode is required!")
     @Size(max = 5, message = "Zipcode can have maximum of 5 numbers.")
-    private String zipcode;
+    private Integer zipcode;
     @NotNull(message = "Category is required!")
     private long categoryID;
 
