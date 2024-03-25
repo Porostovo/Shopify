@@ -63,11 +63,9 @@ public class UserController {
             } else {
                 user.setVerified(true);
             }
-
             result.put("username", user.getUsername());
             result.put("id", String.valueOf(user.getId()));
             return ResponseEntity.status(200).body(result);
-
         }
     }
 
