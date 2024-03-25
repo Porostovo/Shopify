@@ -1,8 +1,10 @@
 package com.yellow.foxbuy.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yellow.foxbuy.models.ConfirmationToken;
 import com.yellow.foxbuy.models.DTOs.LoginRequest;
 import com.yellow.foxbuy.models.DTOs.UserDTO;
+import com.yellow.foxbuy.models.User;
 import com.yellow.foxbuy.repositories.ConfirmationTokenRepository;
 import com.yellow.foxbuy.repositories.UserRepository;
 import com.yellow.foxbuy.services.ConfirmationTokenService;
@@ -22,8 +24,7 @@ import java.util.UUID;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 
 @ActiveProfiles("test")
