@@ -28,7 +28,7 @@ public class Ad {
     private User user;
 
     public Ad(String title, String description, Double price, Integer zipcode){
-        this.title=title;
+        this.title = title;
         this.description = description;
         this.price = price;
         this.localDateTime  = LocalDateTime.now();
