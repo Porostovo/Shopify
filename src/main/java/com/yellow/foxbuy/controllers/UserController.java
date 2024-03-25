@@ -64,6 +64,7 @@ public class UserController {
                 user.setVerified(true);
             }
             
+            userService.save(user);
             result.put("username", user.getUsername());
             result.put("id", String.valueOf(user.getId()));
 
