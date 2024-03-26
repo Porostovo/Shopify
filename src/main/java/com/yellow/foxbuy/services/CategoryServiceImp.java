@@ -69,4 +69,10 @@ public class CategoryServiceImp implements CategoryService {
         upDateCat.setDescription(category.getDescription());
         return categoryRepository.save(upDateCat);
     }
+
+    @Override
+    public Category findCategoryById(Long id) {
+        return categoryRepository.findFirstById(id);
+    }
+
 }

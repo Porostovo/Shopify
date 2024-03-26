@@ -1,5 +1,6 @@
 package com.yellow.foxbuy.models;
 
+import com.yellow.foxbuy.models.DTOs.AdDTO;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,7 +20,7 @@ public class Ad {
     private String description;
     private Double price;
     private LocalDateTime localDateTime;
-    private Integer zipcode;
+    private String zipcode;
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
@@ -27,11 +28,24 @@ public class Ad {
     @JoinColumn(name = "user_id")
     private User user;
 
-    public Ad(String title, String description, Double price, Integer zipcode){
-        this.title=title;
+    public Ad(AdDTO adDTO, User user, Category category) {
+        this.title = adDTO.getTitle();
+        this.description = adDTO.getDescription();
+        this.price = adDTO.getPrice();
+        this.zipcode = adDTO.getZipcode();
+        this.user = user;
+        this.localDateTime = LocalDateTime.now();
+        this.category = category;
+
+    }
+    public Ad(String title, String description, double price, String zipcode, User user, Category category) {
+        this.title = title;
         this.description = description;
         this.price = price;
-        this.localDateTime  = LocalDateTime.now();
         this.zipcode = zipcode;
+        this.user = user;
+        this.category = category;
+        this.localDateTime = LocalDateTime.now();
     }
+
 }
