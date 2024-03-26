@@ -34,9 +34,6 @@ class UserControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private UserService userService;
-
-    @Autowired
     private UserRepository userRepository;
     @Autowired
     private ConfirmationTokenRepository confirmationTokenRepository;
@@ -118,7 +115,7 @@ class UserControllerTest {
                         .content(objectMapper.writeValueAsString(userDTO))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(400))
-                .andExpect(jsonPath("$.password", is("Password must have atleast 8 characters.")));
+                .andExpect(jsonPath("$.password", is("Password must have at least 8 characters.")));
 
         assertEquals(initialUserCount, userRepository.findAll().size());
     }

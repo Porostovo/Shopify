@@ -48,4 +48,9 @@ public class Ad {
         this.localDateTime = LocalDateTime.now();
     }
 
+    public Ad(String title, Category category) {
+        this.title = title;
+        this.category = category;
+    }
+
 }
