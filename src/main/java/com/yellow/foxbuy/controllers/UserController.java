@@ -7,6 +7,7 @@ import com.yellow.foxbuy.models.User;
 import com.yellow.foxbuy.services.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,8 @@ public class UserController {
 
     @PostMapping("/registration")
     @Operation(summary = "Register a new user", description = "Register a new user with username, email and password.")
+    @ApiResponse(responseCode = "200", description = "User created successfully.")
+    @ApiResponse(responseCode = "400", description = "Invalid input or user already exists.")
     public ResponseEntity<?> userRegistration(@Valid @RequestBody UserDTO userDTO,
                                               BindingResult bindingResult) throws MessagingException {
         Map<String, String> result = new HashMap<>();
@@ -78,6 +81,8 @@ public class UserController {
 
     @PostMapping("/login")
     @Operation(summary = "User login", description = "User login with username and password.")
+    @ApiResponse(responseCode = "200", description = "User logged successfully.")
+    @ApiResponse(responseCode = "400", description = "Invalid input or user is not verified.")
     public ResponseEntity<?> userLoginAndGenerateJWToken(@Valid @RequestBody LoginRequest loginRequest,
                                                          BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -88,6 +93,7 @@ public class UserController {
 
     @GetMapping(path = "/confirm")
     @Operation(summary = "Token confirmation", description = "Set user as verified if confirmed.")
+    @ApiResponse(responseCode = "200", description = "User set as verified.")
     public String confirm(@RequestParam("token") String token) {
         return confirmationTokenService.confirmToken(token);
     }
