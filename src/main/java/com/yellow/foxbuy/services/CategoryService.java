@@ -1,6 +1,9 @@
 package com.yellow.foxbuy.services;
 
 import com.yellow.foxbuy.models.Category;
+import com.yellow.foxbuy.models.DTOs.CategoryDTO;
+
+import java.util.List;
 
 public interface CategoryService {
     boolean isCategoryNameUnique(String name);
@@ -15,5 +18,12 @@ public interface CategoryService {
 
     Category updateCategory(Long id, Category category);
 
+
     Category findCategoryById (Long id);
+
+    List<Category> getCategories();
+
+    List<CategoryDTO> getAllCategories();
+
+    List<CategoryDTO> getAllCategoriesWithAtleastOneAd();
 }

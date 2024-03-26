@@ -2,11 +2,13 @@ package com.yellow.foxbuy.services;
 
 import com.yellow.foxbuy.models.Ad;
 import com.yellow.foxbuy.models.Category;
+import com.yellow.foxbuy.models.DTOs.CategoryDTO;
 import com.yellow.foxbuy.repositories.AdRepository;
 import com.yellow.foxbuy.repositories.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -75,4 +77,36 @@ public class CategoryServiceImp implements CategoryService {
         return categoryRepository.findFirstById(id);
     }
 
+    @Override
+    public List<Category> getCategories() {
+        return categoryRepository.findAll();
+    }
+
+    @Override
+    public List<CategoryDTO> getAllCategories() {
+        List<CategoryDTO> listOfCategories = new ArrayList<>();
+        for (Category category : getCategories()) {
+            listOfCategories.add(loadCategories(category));
+        }
+        return listOfCategories;
+    }
+
+    @Override
+    public List<CategoryDTO> getAllCategoriesWithAtleastOneAd() {
+        List<CategoryDTO> listOfCategories = new ArrayList<>();
+        for (Category category : getCategories()) {
+            if (!category.getAds().isEmpty()) {
+                listOfCategories.add(loadCategories(category));
+            }
+        }
+        return listOfCategories;
+    }
+
+    private static CategoryDTO loadCategories(Category category) {
+        CategoryDTO categoryDTO = new CategoryDTO();
+        categoryDTO.setName(category.getName());
+        categoryDTO.setDescription(category.getDescription());
+        categoryDTO.setAds(category.getAds().size());
+        return categoryDTO;
+    }
 }
