@@ -10,15 +10,16 @@ import com.yellow.foxbuy.services.CategoryService;
 import com.yellow.foxbuy.services.ErrorsHandling;
 import com.yellow.foxbuy.services.UserService;
 import com.yellow.foxbuy.utils.JwtUtil;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.Optional;
 
 @RestController
@@ -37,16 +38,19 @@ public class AdsController {
         this.categoryService = categoryService;
     }
     @PostMapping("/advertisement")
+    @Operation(summary = "Create Ad", description = "User can create advertisement. Not VIP just 3 ads.")
+    @ApiResponse(responseCode = "200", description = "Ad was sucesfully created.")
+    @ApiResponse(responseCode = "400", description = "Invalid input or user is not verified.")
     public ResponseEntity<?> createAd(@Valid @RequestBody AdDTO adDTO, 
                                       BindingResult bindingResult,
-                                      Principal principal,
-                                      @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader){
+                                      Authentication authentication
+             ){
 
         if (bindingResult.hasErrors()) {
             return ErrorsHandling.handleValidationErrors(bindingResult);
         }
 
-        String username = principal.getName();
+        String username = authentication.getName();
         User user = userService.findByUsername(username).orElse(null);
 
         assert user != null;
@@ -85,12 +89,12 @@ public class AdsController {
     @PutMapping("advertisement/{id}")
     public ResponseEntity<?> updateAd(@Valid @PathVariable Long id, @RequestBody AdDTO adDTO,
                                       BindingResult bindingResult,
-                                      Principal principal){
+                                      Authentication authentication){
         if (bindingResult.hasErrors()) {
             return ErrorsHandling.handleValidationErrors(bindingResult);
         }
 
-        String username = principal.getName();
+        String username = authentication.getName();
         User user = userService.findByUsername(username).orElse(null);
 
         Optional<Ad> existingAdOptional = adService.findAdById(id);
@@ -135,17 +139,28 @@ public class AdsController {
     }
 
     @DeleteMapping("advertisement/{id}")
-    public ResponseEntity<?> deleteAd(@Valid @PathVariable Long id, @RequestBody AdDTO adDTO,
-                                      BindingResult bindingResult,
-                                      Principal principal){if (bindingResult.hasErrors()) {
-        return ErrorsHandling.handleValidationErrors(bindingResult);
-    }
+    public ResponseEntity<?> deleteAd(@PathVariable Long id,
+                                      Authentication authentication){
 
-        String username = principal.getName();
+        String username = authentication.getName();
         User user = userService.findByUsername(username).orElse(null);
+        Optional<Ad> existingAdOptional = adService.findAdById(id);
+        Ad existingAd = existingAdOptional.orElse(null);
 
+        if (existingAd == null) {
+            return new ResponseEntity<>("Advertisement not found", HttpStatus.NOT_FOUND);
+        }
 
-        AdResponseDTO response = new AdResponseDTO();
-        return ResponseEntity.ok(response);
+        if (!existingAd.getUser().equals(user)) {
+            return new ResponseEntity<>("You are not authorized to delete this advertisement", HttpStatus.UNAUTHORIZED);
+        }
+        try {
+            adService.deleteAd(existingAd);
+            return new ResponseEntity<>("Your ad was deleted", HttpStatus.OK);
+
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error deleting previous advertisement: " + e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+
     }
 }
