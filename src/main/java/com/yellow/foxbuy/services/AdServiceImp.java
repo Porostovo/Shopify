@@ -1,22 +1,35 @@
 package com.yellow.foxbuy.services;
 
 import com.yellow.foxbuy.models.Ad;
+import com.yellow.foxbuy.models.Category;
+import com.yellow.foxbuy.models.DTOs.AdDTO;
+import com.yellow.foxbuy.models.DTOs.AdResponseDTO;
+import com.yellow.foxbuy.models.User;
 import com.yellow.foxbuy.repositories.AdRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
-public class AdServiceImp implements AdService{
+public
+class AdServiceImp implements AdService {
 
     private final AdRepository adRepository;
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
+    private final UserService userService;
+    private final AdService adService;
 
     @Autowired
-    public AdServiceImp(AdRepository adRepository, CategoryService categoryService) {
+    public AdServiceImp(AdRepository adRepository, CategoryService categoryService, UserService userService, AdService adService) {
         this.adRepository = adRepository;
         this.categoryService = categoryService;
+        this.userService = userService;
+        this.adService = adService;
     }
 
 
@@ -31,7 +44,148 @@ public class AdServiceImp implements AdService{
     }
 
     @Override
-   public void deleteAd(Ad ad) {
+    public void deleteAd(Ad ad) {
         adRepository.delete(ad);
     }
+
+    public boolean isUserTheOwnerOfAd(User user, Long adId) {
+        Optional<Ad> existingAdOptional = adRepository.findById(adId);
+        if (existingAdOptional.isPresent()) {
+            Ad existingAd = existingAdOptional.get();
+            return existingAd.getUser().equals(user);
+        }
+        return false;
+    }
+
+    @Override
+    public ResponseEntity<?> createAd(AdDTO adDTO, Authentication authentication) {
+        Map<String, String> result = new HashMap<>();
+        String username = authentication.getName();
+        User user = userService.findByUsername(username).orElse(null);
+
+        assert user != null;
+        if (user.getAds().size() >= 3) {
+            result.put("error", "User has 3 advertisements. Get VIP user or delete some ad.");
+            return ResponseEntity.status(400).body(result);
+        }
+
+        Category category = categoryService.findCategoryById(adDTO.getCategoryID());
+
+        //Create Ad from AdDTO
+        Ad ad = new Ad(adDTO, user, category);
+
+        //Save ad to repository
+        try {
+            adService.saveAd(ad);
+        } catch (Exception e) {
+            result.put("error", "Error saving advertisement " + e.getMessage());
+            return ResponseEntity.status(400).body(result);
+
+        }
+
+        //id of the saved ad
+        Long id = ad.getId();
+
+        //Return response with ad id
+        AdResponseDTO response = new AdResponseDTO();
+
+        response.setId(id);
+        response.setTitle(adDTO.getTitle());
+        response.setDescription(adDTO.getDescription());
+        response.setPrice(adDTO.getPrice());
+        response.setZipcode(adDTO.getZipcode());
+        response.setCategoryID(adDTO.getCategoryID());
+
+        return ResponseEntity.status(200).body(result);
+    }
+
+    @Override
+    public ResponseEntity<?> updateAd(Long id, AdDTO adDTO, Authentication authentication) {
+        Map<String, String> result = new HashMap<>();
+
+        String username = authentication.getName();
+        User user = userService.findByUsername(username).orElse(null);
+
+        Optional<Ad> existingAdOptional = adService.findAdById(id);
+        Ad existingAd = existingAdOptional.orElse(null);
+
+        if (existingAd == null) {
+            result.put("error", "Advertisement not found.");
+            return ResponseEntity.status(404).body(result);
+        }
+
+        if (!existingAd.getUser().equals(user)) {
+            result.put("error", "You are not authorized to update this advertisement");
+            return ResponseEntity.status(400).body(result);
+
+        }
+
+        try {
+            adService.deleteAd(existingAd);
+        } catch (Exception e) {
+            result.put("error", "Error deleting previous advertisement: ");
+            return ResponseEntity.status(400).body(result);
+        }
+
+        Category category = categoryService.findCategoryById(adDTO.getCategoryID());
+
+        Ad ad = new Ad(adDTO, user, category);
+
+        try {
+            adService.saveAd(ad);
+
+        } catch (Exception e) {
+            result.put("error", "Error saving advertisement: " + e.getMessage());
+            return ResponseEntity.status(400).body(result);
+        }
+
+        //Return response with ad id
+        AdResponseDTO response = new AdResponseDTO();
+
+        response.setId(id);
+        response.setTitle(adDTO.getTitle());
+        response.setDescription(adDTO.getDescription());
+        response.setPrice(adDTO.getPrice());
+        response.setZipcode(adDTO.getZipcode());
+        response.setCategoryID(adDTO.getCategoryID());
+
+        return ResponseEntity.status(200).body(result);
+    }
+
+    @Override
+    public ResponseEntity<?> deleteAd(Long id, Authentication authentication) {
+        Map<String, String> result = new HashMap<>();
+
+        String username = authentication.getName();
+        User user = userService.findByUsername(username).orElse(null);
+
+        Optional<Ad> existingAdOptional = adService.findAdById(id);
+        Ad existingAd = existingAdOptional.orElse(null);
+
+        if (existingAd == null) {
+            result.put("error", "Advertisement not found");
+            return ResponseEntity.status(404).body(result);
+
+        }
+
+        if (!existingAd.getUser().equals(user)) {
+            result.put("error", "You are not authorized to delete this advertisement");
+            return ResponseEntity.status(400).body(result);
+
+        }
+        try {
+            adService.deleteAd(existingAd);
+            result.put("error", "Your ad was deleted");
+            return ResponseEntity.status(200).body(result);
+
+        } catch (Exception e) {
+            result.put("error", "Error deleting previous advertisement: " + e.getMessage());
+            return ResponseEntity.status(400).body(result);
+
+        }
+
+    }
+
 }
+
+
