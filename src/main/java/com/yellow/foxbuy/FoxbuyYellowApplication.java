@@ -1,7 +1,11 @@
 package com.yellow.foxbuy;
 
+import com.yellow.foxbuy.models.Ad;
 import com.yellow.foxbuy.models.Category;
+import com.yellow.foxbuy.models.User;
+import com.yellow.foxbuy.repositories.AdRepository;
 import com.yellow.foxbuy.repositories.CategoryRepository;
+import com.yellow.foxbuy.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -10,10 +14,14 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class FoxbuyYellowApplication implements CommandLineRunner {
     private final CategoryRepository categoryRepository;
+    private final AdRepository adRepository;
+    private final UserRepository userRepository;
 
     @Autowired
-    public FoxbuyYellowApplication(CategoryRepository categoryRepository) {
+    public FoxbuyYellowApplication(CategoryRepository categoryRepository, AdRepository adRepository, UserRepository userRepository) {
         this.categoryRepository = categoryRepository;
+        this.adRepository = adRepository;
+        this.userRepository = userRepository;
     }
 
     public static void main(String[] args) {
@@ -22,7 +30,17 @@ public class FoxbuyYellowApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        categoryRepository.save(new Category("Beverage", "Buy some good beer."));
-        categoryRepository.save(new Category("Nourishment", "Buy some good beef."));
+
+        Category beverageCategory = new Category("Beverage", "Buy some good beer.");
+        Category nourishmentCategory = new Category("Nourishment", "Buy some good beef.");
+
+        categoryRepository.save(beverageCategory);
+        categoryRepository.save(nourishmentCategory);
+
+        User user = new User();
+        userRepository.save(user);
+
+        Ad ad = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user, beverageCategory);
+        adRepository.save(ad);
     }
 }
