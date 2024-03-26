@@ -20,6 +20,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -170,5 +172,15 @@ public class AdsController {
             return new ResponseEntity<>("Error deleting previous advertisement: " + e.getMessage(), HttpStatus.BAD_REQUEST);
         }
 
+    }
+
+    @GetMapping("/advertisement/{id}")
+    public ResponseEntity<?> getAdvertisement(@PathVariable Long id){
+        if (!adService.existsById(id)) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Ad with this id doesn't exist.");
+            return ResponseEntity.status(400).body(error);
+        }
+        else return ResponseEntity.status(200).body(adService.findById(id));
     }
 }
