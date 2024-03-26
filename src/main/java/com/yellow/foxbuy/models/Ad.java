@@ -35,6 +35,7 @@ public class Ad {
         this.zipcode = adDTO.getZipcode();
         this.user = user;
         this.localDateTime = LocalDateTime.now();
+
     }
     public Ad(String title, String description, double price, String zipcode, User user, Category category) {
         this.title = title;

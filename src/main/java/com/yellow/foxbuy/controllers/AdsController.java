@@ -14,12 +14,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.Optional;
 
 @RestController
 public class AdsController {
@@ -49,13 +47,11 @@ public class AdsController {
 
         assert user != null;
         if (user.getAds().size() >= 3) {
-            return new ResponseEntity<>("User has 3 advertisements. Get VIP user or delete some ad: ", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("User has 3 advertisements. Get VIP user or delete some ad.", HttpStatus.BAD_REQUEST);
         }
 
         //Create Ad from AdDTO
         Ad ad = new Ad(adDTO, user);
-
-        //ad.setCategory(category);
 
         //Save ad to repository
         try {
@@ -77,6 +73,71 @@ public class AdsController {
         response.setZipcode(adDTO.getZipcode());
         response.setCategoryID(adDTO.getCategoryID());
 
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("advertisement/{id}")
+    public ResponseEntity<?> updateAd(@Valid @PathVariable Long id, @RequestBody AdDTO adDTO,
+                                      BindingResult bindingResult,
+                                      Principal principal){
+        if (bindingResult.hasErrors()) {
+            return ErrorsHandling.handleValidationErrors(bindingResult);
+        }
+
+        String username = principal.getName();
+        User user = userService.findByUsername(username).orElse(null);
+
+        Optional<Ad> existingAdOptional = adService.findAdById(id);
+        Ad existingAd = existingAdOptional.orElse(null);
+
+        if (existingAd == null) {
+            return new ResponseEntity<>("Advertisement not found", HttpStatus.NOT_FOUND);
+        }
+
+        if (!existingAd.getUser().equals(user)) {
+            return new ResponseEntity<>("You are not authorized to update this advertisement", HttpStatus.UNAUTHORIZED);
+        }
+
+        try {
+            adService.deleteAd(existingAd);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error deleting previous advertisement: " + e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+
+        Ad ad = new Ad(adDTO, user);
+
+        try {
+            adService.saveAd(ad);
+
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error saving advertisement: " + e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+
+        //Return response with ad id
+        AdResponseDTO response = new AdResponseDTO();
+
+        response.setId(id);
+        response.setTitle(adDTO.getTitle());
+        response.setDescription(adDTO.getDescription());
+        response.setPrice(adDTO.getPrice());
+        response.setZipcode(adDTO.getZipcode());
+        response.setCategoryID(adDTO.getCategoryID());
+
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("advertisement/{id}")
+    public ResponseEntity<?> deleteAd(@Valid @PathVariable Long id, @RequestBody AdDTO adDTO,
+                                      BindingResult bindingResult,
+                                      Principal principal){if (bindingResult.hasErrors()) {
+        return ErrorsHandling.handleValidationErrors(bindingResult);
+    }
+
+        String username = principal.getName();
+        User user = userService.findByUsername(username).orElse(null);
+
+
+        AdResponseDTO response = new AdResponseDTO();
         return ResponseEntity.ok(response);
     }
 }

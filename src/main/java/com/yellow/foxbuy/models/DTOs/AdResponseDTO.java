@@ -14,9 +14,9 @@ public class AdResponseDTO {
     private String description;
     private Double price;
     private String zipcode;
-    private long categoryID;
+    private Long categoryID;
 
-    public AdResponseDTO(Long id, String title, String description, Double price, String zipcode, long categoryID) {
+    public AdResponseDTO(Long id, String title, String description, Double price, String zipcode, Long categoryID) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -24,4 +24,5 @@ public class AdResponseDTO {
         this.zipcode = zipcode;
         this.categoryID = categoryID;
     }
+
 }

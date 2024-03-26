@@ -21,9 +21,9 @@ public class AdDTO {
     @Size(min = 5, max = 5, message = "Zipcode must be 5 digits long")
     private String zipcode;
     @NotNull(message = "Category is required!")
-    private long categoryID;
+    private Long categoryID;
 
-    public AdDTO(String title, String description, Double price, String zipcode, long categoryID) {
+    public AdDTO(String title, String description, Double price, String zipcode, Long categoryID) {
         this.title = title;
         this.description = description;
         this.price = price;
