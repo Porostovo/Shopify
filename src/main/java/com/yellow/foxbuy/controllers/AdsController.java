@@ -39,7 +39,7 @@ public class AdsController {
     }
     @PostMapping("/advertisement")
     @Operation(summary = "Create Ad", description = "User can create advertisement. Not VIP just 3 ads.")
-    @ApiResponse(responseCode = "200", description = "Ad was sucesfully created.")
+    @ApiResponse(responseCode = "200", description = "Advertisement was successfully created.")
     @ApiResponse(responseCode = "400", description = "Invalid input or user is not verified.")
     public ResponseEntity<?> createAd(@Valid @RequestBody AdDTO adDTO, 
                                       BindingResult bindingResult,
@@ -87,6 +87,9 @@ public class AdsController {
     }
 
     @PutMapping("advertisement/{id}")
+    @Operation(summary = "Change Ad", description = "User can update just his advertisement.")
+    @ApiResponse(responseCode = "200", description = "Advertisement was successfully updated.")
+    @ApiResponse(responseCode = "400", description = "Invalid input or user is not verified.")
     public ResponseEntity<?> updateAd(@Valid @PathVariable Long id, @RequestBody AdDTO adDTO,
                                       BindingResult bindingResult,
                                       Authentication authentication){
@@ -139,6 +142,9 @@ public class AdsController {
     }
 
     @DeleteMapping("advertisement/{id}")
+    @Operation(summary = "Delete Ad", description = "User can delete just his advertisement.")
+    @ApiResponse(responseCode = "200", description = "Advertisement was successfully deleted.")
+    @ApiResponse(responseCode = "400", description = "Invalid input or user is not verified.")
     public ResponseEntity<?> deleteAd(@PathVariable Long id,
                                       Authentication authentication){
 
