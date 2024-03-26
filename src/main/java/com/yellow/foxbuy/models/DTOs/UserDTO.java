@@ -25,7 +25,7 @@ public class UserDTO {
     private String email;
 
     @NotBlank(message = "Password is required.")
-    @Size(min = 8, message = "Password must have atleast 8 characters.")
+    @Size(min = 8, message = "Password must have at least 8 characters.")
     @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&.,])[A-Za-z\\d@$!%*?&.,]+$", message = "Password must have at least one uppercase, one lowercase, one number, and one special character (@ $ ! % * ? & . ,).")
     @Schema(description = "required, must have atleast 8 characters, must include special character (@ $ ! % * ? & . ,)", example = "Password123%")
     private String password;

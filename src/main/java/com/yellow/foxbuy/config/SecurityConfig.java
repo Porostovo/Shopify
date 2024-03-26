@@ -42,6 +42,7 @@ public class SecurityConfig {
                         authorize.requestMatchers("/registration").permitAll()
                                 .requestMatchers("/login").permitAll()
                                 .requestMatchers("/confirm").permitAll()
+                                .requestMatchers("/category").permitAll()//Set to role ADMIN
                                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/swagger").permitAll()
                                 .requestMatchers("/test").authenticated()
                                 .anyRequest().authenticated())
