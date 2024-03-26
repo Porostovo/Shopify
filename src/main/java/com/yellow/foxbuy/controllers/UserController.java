@@ -6,7 +6,6 @@ import com.yellow.foxbuy.models.DTOs.UserDTO;
 import com.yellow.foxbuy.models.User;
 import com.yellow.foxbuy.services.*;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
@@ -62,9 +61,10 @@ public class UserController {
 
             String emailVerification = System.getenv("EMAIL_VERIFICATION");
 
-            userService.save(user);
+
 
             if (emailVerification == null || emailVerification.equals("on")) {
+                userService.save(user);
                 emailService.sendVerificationEmail(user);
             } else {
                 user.setVerified(true);
