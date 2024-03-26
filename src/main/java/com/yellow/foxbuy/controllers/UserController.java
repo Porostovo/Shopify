@@ -5,6 +5,8 @@ import com.yellow.foxbuy.models.DTOs.LoginRequest;
 import com.yellow.foxbuy.models.DTOs.UserDTO;
 import com.yellow.foxbuy.models.User;
 import com.yellow.foxbuy.services.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +39,7 @@ public class UserController {
 
 
     @PostMapping("/registration")
+    @Operation(summary = "Register a new user", description = "Register a new user with username, email and password.")
     public ResponseEntity<?> userRegistration(@Valid @RequestBody UserDTO userDTO,
                                               BindingResult bindingResult) throws MessagingException {
         Map<String, String> result = new HashMap<>();
@@ -74,6 +77,7 @@ public class UserController {
     }
 
     @PostMapping("/login")
+    @Operation(summary = "User login", description = "User login with username and password.")
     public ResponseEntity<?> userLoginAndGenerateJWToken(@Valid @RequestBody LoginRequest loginRequest,
                                                          BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -83,11 +87,13 @@ public class UserController {
     }
 
     @GetMapping(path = "/confirm")
+    @Operation(summary = "Token confirmation", description = "Set user as verified if confirmed.")
     public String confirm(@RequestParam("token") String token) {
         return confirmationTokenService.confirmToken(token);
     }
 
     @GetMapping(path = "/test")
+    @Operation(summary = "Endpoint for testing", description = "Testing endpoint.")
     public Authentication confirm(Authentication authentication) {
         return authentication;
     }
