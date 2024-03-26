@@ -46,7 +46,6 @@ public class AdsController {
                                       BindingResult bindingResult,
                                       Authentication authentication) {
 
-
         if (bindingResult.hasErrors()) {
             return ErrorsHandling.handleValidationErrors(bindingResult);
         }
