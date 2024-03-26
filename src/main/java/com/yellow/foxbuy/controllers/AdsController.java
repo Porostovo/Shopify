@@ -1,7 +1,7 @@
 package com.yellow.foxbuy.controllers;
 
 import com.yellow.foxbuy.models.DTOs.AdDTO;
-import com.yellow.foxbuy.services.AdService;
+import com.yellow.foxbuy.services.AdManagementService;
 import com.yellow.foxbuy.services.ErrorsHandling;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -14,12 +14,13 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class AdsController {
-    private final AdService adService;
+
+    private final AdManagementService adManagementService;
 
     @Autowired
-    public AdsController(AdService adService) {
-        this.adService = adService;
+    public AdsController(AdManagementService adManagementService) {
 
+        this.adManagementService = adManagementService;
     }
 
     @PostMapping("/advertisement")
@@ -34,7 +35,7 @@ public class AdsController {
             return ErrorsHandling.handleValidationErrors(bindingResult);
         }
 
-        return adService.createAd(adDTO, authentication);
+        return adManagementService.createAd(adDTO, authentication);
 
     }
 
@@ -50,7 +51,7 @@ public class AdsController {
             return ErrorsHandling.handleValidationErrors(bindingResult);
         }
 
-        return adService.updateAd(id, adDTO, authentication);
+        return adManagementService.updateAd(id, adDTO, authentication);
     }
 
     @DeleteMapping("advertisement/{id}")
@@ -60,6 +61,6 @@ public class AdsController {
 
     public ResponseEntity<?> deleteAd(@PathVariable Long id,
                                       Authentication authentication) {
-        return adService.deleteAd(id, authentication);
+        return adManagementService.deleteAd(id, authentication);
     }
 }

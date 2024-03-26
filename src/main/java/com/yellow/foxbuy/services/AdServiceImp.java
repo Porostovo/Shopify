@@ -34,8 +34,8 @@ class AdServiceImp implements AdService {
 
 
     @Override
-    public Ad saveAd(Ad ad) {
-        return adRepository.save(ad);
+    public void saveAd(Ad ad) {
+        adRepository.save(ad);
     }
 
     @Override
@@ -48,18 +48,10 @@ class AdServiceImp implements AdService {
         adRepository.delete(ad);
     }
 
-    public boolean isUserTheOwnerOfAd(User user, Long adId) {
-        Optional<Ad> existingAdOptional = adRepository.findById(adId);
-        if (existingAdOptional.isPresent()) {
-            Ad existingAd = existingAdOptional.get();
-            return existingAd.getUser().equals(user);
-        }
-        return false;
-    }
-
     @Override
     public ResponseEntity<?> createAd(AdDTO adDTO, Authentication authentication) {
         Map<String, String> result = new HashMap<>();
+
         String username = authentication.getName();
         User user = userService.findByUsername(username).orElse(null);
 
@@ -71,33 +63,30 @@ class AdServiceImp implements AdService {
 
         Category category = categoryService.findCategoryById(adDTO.getCategoryID());
 
-        //Create Ad from AdDTO
+        // Create Ad from AdDTO
         Ad ad = new Ad(adDTO, user, category);
 
-        //Save ad to repository
+        // Save ad to repository
         try {
             adService.saveAd(ad);
         } catch (Exception e) {
             result.put("error", "Error saving advertisement " + e.getMessage());
             return ResponseEntity.status(400).body(result);
-
         }
 
-        //id of the saved ad
-        Long id = ad.getId();
+        // Return response with ad id
+        AdResponseDTO response = new AdResponseDTO(
+                ad.getId(),
+                adDTO.getTitle(),
+                adDTO.getDescription(),
+                adDTO.getPrice(),
+                adDTO.getZipcode(),
+                adDTO.getCategoryID()
+        );
 
-        //Return response with ad id
-        AdResponseDTO response = new AdResponseDTO();
-
-        response.setId(id);
-        response.setTitle(adDTO.getTitle());
-        response.setDescription(adDTO.getDescription());
-        response.setPrice(adDTO.getPrice());
-        response.setZipcode(adDTO.getZipcode());
-        response.setCategoryID(adDTO.getCategoryID());
-
-        return ResponseEntity.status(200).body(result);
+        return ResponseEntity.status(200).body(response);
     }
+
 
     @Override
     public ResponseEntity<?> updateAd(Long id, AdDTO adDTO, Authentication authentication) {
@@ -117,40 +106,31 @@ class AdServiceImp implements AdService {
         if (!existingAd.getUser().equals(user)) {
             result.put("error", "You are not authorized to update this advertisement");
             return ResponseEntity.status(400).body(result);
-
-        }
-
-        try {
-            adService.deleteAd(existingAd);
-        } catch (Exception e) {
-            result.put("error", "Error deleting previous advertisement: ");
-            return ResponseEntity.status(400).body(result);
         }
 
         Category category = categoryService.findCategoryById(adDTO.getCategoryID());
 
         Ad ad = new Ad(adDTO, user, category);
+        ad.setId(id); // Set the ID of the existing advertisement
 
         try {
             adService.saveAd(ad);
-
+            // Return response with ad id
+            AdResponseDTO response = new AdResponseDTO(
+                    id,
+                    adDTO.getTitle(),
+                    adDTO.getDescription(),
+                    adDTO.getPrice(),
+                    adDTO.getZipcode(),
+                    adDTO.getCategoryID()
+            );
+            return ResponseEntity.status(200).body(response);
         } catch (Exception e) {
             result.put("error", "Error saving advertisement: " + e.getMessage());
             return ResponseEntity.status(400).body(result);
         }
-
-        //Return response with ad id
-        AdResponseDTO response = new AdResponseDTO();
-
-        response.setId(id);
-        response.setTitle(adDTO.getTitle());
-        response.setDescription(adDTO.getDescription());
-        response.setPrice(adDTO.getPrice());
-        response.setZipcode(adDTO.getZipcode());
-        response.setCategoryID(adDTO.getCategoryID());
-
-        return ResponseEntity.status(200).body(result);
     }
+
 
     @Override
     public ResponseEntity<?> deleteAd(Long id, Authentication authentication) {
@@ -185,7 +165,6 @@ class AdServiceImp implements AdService {
         }
 
     }
-
 }
 
 
