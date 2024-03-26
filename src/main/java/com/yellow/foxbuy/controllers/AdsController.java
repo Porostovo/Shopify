@@ -1,10 +1,12 @@
 package com.yellow.foxbuy.controllers;
 
 import com.yellow.foxbuy.models.Ad;
+import com.yellow.foxbuy.models.Category;
 import com.yellow.foxbuy.models.DTOs.AdDTO;
 import com.yellow.foxbuy.models.DTOs.AdResponseDTO;
 import com.yellow.foxbuy.models.User;
 import com.yellow.foxbuy.services.AdService;
+import com.yellow.foxbuy.services.CategoryService;
 import com.yellow.foxbuy.services.ErrorsHandling;
 import com.yellow.foxbuy.services.UserService;
 import com.yellow.foxbuy.utils.JwtUtil;
@@ -24,13 +26,15 @@ public class AdsController {
     private final AdService adService;
     private final JwtUtil jwtUtil;
     private final UserService userService;
+    private final CategoryService categoryService;
 
 
     @Autowired
-    public AdsController(AdService adService, JwtUtil jwtUtil, UserService userService) {
+    public AdsController(AdService adService, JwtUtil jwtUtil, UserService userService, CategoryService categoryService) {
         this.adService = adService;
         this.jwtUtil = jwtUtil;
         this.userService = userService;
+        this.categoryService = categoryService;
     }
     @PostMapping("/advertisement")
     public ResponseEntity<?> createAd(@Valid @RequestBody AdDTO adDTO, 
@@ -50,8 +54,10 @@ public class AdsController {
             return new ResponseEntity<>("User has 3 advertisements. Get VIP user or delete some ad.", HttpStatus.BAD_REQUEST);
         }
 
+        Category category = categoryService.findCategoryById(adDTO.getCategoryID());
+
         //Create Ad from AdDTO
-        Ad ad = new Ad(adDTO, user);
+        Ad ad = new Ad(adDTO, user, category);
 
         //Save ad to repository
         try {
@@ -104,7 +110,9 @@ public class AdsController {
             return new ResponseEntity<>("Error deleting previous advertisement: " + e.getMessage(), HttpStatus.BAD_REQUEST);
         }
 
-        Ad ad = new Ad(adDTO, user);
+        Category category = categoryService.findCategoryById(adDTO.getCategoryID());
+
+        Ad ad = new Ad(adDTO, user, category);
 
         try {
             adService.saveAd(ad);

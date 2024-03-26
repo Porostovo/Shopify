@@ -28,13 +28,14 @@ public class Ad {
     @JoinColumn(name = "user_id")
     private User user;
 
-    public Ad(AdDTO adDTO, User user) {
+    public Ad(AdDTO adDTO, User user, Category category) {
         this.title = adDTO.getTitle();
         this.description = adDTO.getDescription();
         this.price = adDTO.getPrice();
         this.zipcode = adDTO.getZipcode();
         this.user = user;
         this.localDateTime = LocalDateTime.now();
+        this.category = category;
 
     }
     public Ad(String title, String description, double price, String zipcode, User user, Category category) {
