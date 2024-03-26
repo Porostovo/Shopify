@@ -41,6 +41,7 @@ public class SecurityConfig {
                         authorize.requestMatchers("/registration").permitAll()
                                 .requestMatchers("/login").permitAll()
                                 .requestMatchers("/confirm").permitAll()
+                                .requestMatchers("/category").permitAll()//Set to role ADMIN
                                 .requestMatchers("/test").authenticated()
                                 .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
