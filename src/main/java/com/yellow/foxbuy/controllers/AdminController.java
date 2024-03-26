@@ -1,19 +1,13 @@
 package com.yellow.foxbuy.controllers;
 
-import com.yellow.foxbuy.config.SecurityConfig;
 import com.yellow.foxbuy.models.Category;
-import com.yellow.foxbuy.models.DTOs.UserDTO;
-import com.yellow.foxbuy.models.User;
 import com.yellow.foxbuy.services.CategoryService;
 import com.yellow.foxbuy.services.ErrorsHandling;
-import jakarta.mail.MessagingException;
-import jakarta.persistence.Access;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.HashMap;
 import java.util.Map;
 
