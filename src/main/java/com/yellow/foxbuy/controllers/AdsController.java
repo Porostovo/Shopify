@@ -38,7 +38,7 @@ public class AdsController {
         this.categoryService = categoryService;
     }
     @PostMapping("/advertisement")
-    @Operation(summary = "Create Ad", description = "User can create advertisement. Not VIP just 3 ads.")
+    @Operation(summary = "Create Ad", description = "User can create advertisement. Not VIP user only 3 ads.")
     @ApiResponse(responseCode = "200", description = "Advertisement was successfully created.")
     @ApiResponse(responseCode = "400", description = "Invalid input or user is not verified.")
     public ResponseEntity<?> createAd(@Valid @RequestBody AdDTO adDTO, 
@@ -145,11 +145,13 @@ public class AdsController {
     @Operation(summary = "Delete Ad", description = "User can delete just his advertisement.")
     @ApiResponse(responseCode = "200", description = "Advertisement was successfully deleted.")
     @ApiResponse(responseCode = "400", description = "Invalid input or user is not verified.")
+
     public ResponseEntity<?> deleteAd(@PathVariable Long id,
                                       Authentication authentication){
 
         String username = authentication.getName();
         User user = userService.findByUsername(username).orElse(null);
+
         Optional<Ad> existingAdOptional = adService.findAdById(id);
         Ad existingAd = existingAdOptional.orElse(null);
 

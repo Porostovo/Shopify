@@ -11,11 +11,14 @@ import java.util.Optional;
 public class AdServiceImp implements AdService{
 
     private final AdRepository adRepository;
+    private CategoryService categoryService;
 
-@Autowired
-    public AdServiceImp(AdRepository adRepository) {
+    @Autowired
+    public AdServiceImp(AdRepository adRepository, CategoryService categoryService) {
         this.adRepository = adRepository;
+        this.categoryService = categoryService;
     }
+
 
     @Override
     public Ad saveAd(Ad ad) {
