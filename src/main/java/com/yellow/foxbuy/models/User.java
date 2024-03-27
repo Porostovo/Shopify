@@ -41,11 +41,10 @@ public class  User implements UserDetails {
         this.password = password;
         this.verified = false;
     }
-    public User(String username, String email, String password, Boolean verified, Set<Role> roles  ) {
+    public User(String username, String email, String password, Set<Role> roles  ) {
         this.username = username;
         this.email = email;
         this.password = password;
-        this.verified = verified;
         this.roles = roles;
     }
 

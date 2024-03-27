@@ -28,8 +28,10 @@ public class FoxbuyYellowApplication implements CommandLineRunner {
     public void run(String... args) throws Exception {
         categoryRepository.save(new Category("Beverage", "Buy some good beer."));
         categoryRepository.save(new Category("Nourishment", "Buy some good beef."));
-        roleRepository.save(new Role("USER"));
-        roleRepository.save(new Role("ADMIN"));
+        roleRepository.save(new Role("ROLE_USER"));
+        roleRepository.save(new Role("ROLE_VIP_USER"));
+        roleRepository.save(new Role("ROLE_ADMIN"));
+
 
     }
 }

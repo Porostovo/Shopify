@@ -27,20 +27,15 @@ public class JwtUtil {
     public String createToken(User user) {
         Instant now = Instant.now();
         Collection<? extends GrantedAuthority> authorities = user.getAuthorities();
-        System.out.println("/////////////");
-        System.out.println(authorities);
 
         StringBuilder authorityString = new StringBuilder();
         for (GrantedAuthority authority : authorities) {
             authorityString.append(authority.getAuthority()).append(",");
         }
-        System.out.println(authorityString);
 
         if (authorityString.length() > 0) {
             authorityString.deleteCharAt(authorityString.length() - 1);
         }
-        System.out.println(authorityString);
-        System.out.println(authorityString.toString());
 
         String jwtToken = Jwts.builder()
                 .claim("username", user.getUsername())
@@ -77,5 +72,13 @@ public class JwtUtil {
                 .parseClaimsJws(token)
                 .getBody();
         return claims.getExpiration();
+    }
+    public String getAuthoritiesFromJWT(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(hmacKey)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        return (String) claims.get("authorities").toString();
     }
 }

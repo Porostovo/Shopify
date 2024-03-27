@@ -26,19 +26,20 @@ public class UserController {
     private final AuthenticationService authenticationService;
     private final EmailService emailService;
     private final ConfirmationTokenService confirmationTokenService;
-    private final RoleRepository roleRepository;
+    private final RoleService roleService;
 
     @Autowired
 
     public UserController(UserService userService,
                           EmailService emailService,
                           ConfirmationTokenService confirmationTokenService,
-                          AuthenticationService authenticationService, RoleRepository roleRepository) {
+                          AuthenticationService authenticationService,
+                          RoleService roleService) {
         this.userService = userService;
         this.emailService = emailService;
         this.confirmationTokenService = confirmationTokenService;
         this.authenticationService = authenticationService;
-        this.roleRepository = roleRepository;
+        this.roleService = roleService;
     }
 
 
@@ -62,19 +63,19 @@ public class UserController {
             return ResponseEntity.status(400).body(result);
         } else {
 
-            Set<Role> set = new HashSet<>();
-            set.add(roleRepository.getReferenceById(1L));
-            System.out.println(set);
+            Set<Role> userRole = new HashSet<>();
+            System.out.println(userService.userRepositoryIsEmpty());
+            if (userService.userRepositoryIsEmpty()) {
+                userRole.add(roleService.getReferenceById(3L));
+            } else {
+                userRole.add(roleService.getReferenceById(1L));
+            }
 
             User user = new User(userDTO.getUsername(),
                     userDTO.getEmail(),
-                    SecurityConfig.passwordEncoder().encode(userDTO.getPassword()),
-                    true,
-                    set
-            );
+                    SecurityConfig.passwordEncoder().encode(userDTO.getPassword()), userRole);
 
             String emailVerification = System.getenv("EMAIL_VERIFICATION");
-
 
             if (emailVerification == null || emailVerification.equals("on")) {
                 userService.save(user);
@@ -111,17 +112,8 @@ public class UserController {
     @GetMapping(path = "/test")
     @Operation(summary = "Endpoint for testing", description = "Testing endpoint.")
     public Authentication confirm(Authentication authentication) {
-        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-        System.out.println("Authorities: " + authorities);
         return authentication;
     }
-
-    @GetMapping(path = "/atest")
-    @Operation(summary = "Endpoint for testing", description = "Testing endpoint.")
-    public Authentication confirm2(Authentication authentication) {
-        return authentication;
-    }
-
 }
 
 
