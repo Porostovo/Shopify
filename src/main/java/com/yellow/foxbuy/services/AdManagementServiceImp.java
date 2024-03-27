@@ -8,16 +8,19 @@ import com.yellow.foxbuy.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+
 @Service
 public class AdManagementServiceImp implements AdManagementService {
     private final CategoryService categoryService;
     private final UserService userService;
     private final AdService adService;
+
     @Autowired
     public AdManagementServiceImp(CategoryService categoryService, UserService userService, AdService adService) {
         this.categoryService = categoryService;
@@ -28,18 +31,21 @@ public class AdManagementServiceImp implements AdManagementService {
     @Override
     public ResponseEntity<?> createAd(AdDTO adDTO, Authentication authentication) {
         Map<String, String> result = new HashMap<>();
+        User user = userService.findByUsername(authentication.getName()).orElse(null);
 
-        String username = authentication.getName();
-        User user = userService.findByUsername(username).orElse(null);
+        boolean isVipUser = hasRole(authentication, "ROLE_VIP");
 
-        assert user != null;
-        if (user.getAds().size() >= 3) {
+        if (!isVipUser && user != null && user.getAds().size() >= 3) {
             result.put("error", "User has 3 advertisements. Get VIP user or delete some ad.");
             return ResponseEntity.status(400).body(result);
         }
-
+        // Find the category in repository
         Category category = categoryService.findCategoryById(adDTO.getCategoryID());
 
+        if (category == null) {
+            result.put("error", "Category not found.");
+            return ResponseEntity.status(400).body(result);
+        }
         // Create Ad from AdDTO
         Ad ad = new Ad(adDTO, user, category);
 
@@ -85,6 +91,10 @@ public class AdManagementServiceImp implements AdManagementService {
         }
 
         Category category = categoryService.findCategoryById(adDTO.getCategoryID());
+        if (category == null) {
+            result.put("error", "Category not found.");
+            return ResponseEntity.status(400).body(result);
+        }
 
         Ad ad = new Ad(adDTO, user, category);
         ad.setId(id); // Set the ID of the existing advertisement
@@ -122,10 +132,14 @@ public class AdManagementServiceImp implements AdManagementService {
             return ResponseEntity.status(404).body(result);
 
         }
+        boolean isAdmin = hasRole(authentication, "ADMIN");
 
-        if (!existingAd.getUser().equals(user)) {
-            result.put("error", "You are not authorized to delete this advertisement");
-            return ResponseEntity.status(400).body(result);
+        if (!isAdmin) {
+
+            if (!existingAd.getUser().equals(user)) {
+                result.put("error", "You are not authorized to delete this advertisement");
+                return ResponseEntity.status(400).body(result);
+            }
 
         }
         try {
@@ -139,6 +153,15 @@ public class AdManagementServiceImp implements AdManagementService {
 
         }
 
+    }
+
+    private boolean hasRole(Authentication authentication, String roleName) {
+        for (GrantedAuthority authority : authentication.getAuthorities()) {
+            if (authority.getAuthority().equals(roleName)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

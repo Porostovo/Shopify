@@ -53,4 +53,10 @@ public class Ad {
         this.category = category;
     }
 
+    public Ad(String title, String description, double price, String zipcode) {
+        this.title = title;
+        this.description = description;
+        this.price = price;
+        this.zipcode = zipcode;
+    }
 }
