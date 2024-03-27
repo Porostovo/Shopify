@@ -14,21 +14,21 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-public class AdServiceImp implements AdService{
+public
+class AdServiceImp implements AdService {
 
     private final AdRepository adRepository;
-    private CategoryService categoryService;
+
 
     @Autowired
-    public AdServiceImp(AdRepository adRepository, CategoryService categoryService) {
+    public AdServiceImp(AdRepository adRepository) {
         this.adRepository = adRepository;
-        this.categoryService = categoryService;
+
     }
 
-
     @Override
-    public Ad saveAd(Ad ad) {
-        return adRepository.save(ad);
+    public void saveAd(Ad ad) {
+        adRepository.save(ad);
     }
 
     @Override
@@ -37,7 +37,7 @@ public class AdServiceImp implements AdService{
     }
 
     @Override
-   public void deleteAd(Ad ad) {
+    public void deleteAd(Ad ad) {
         adRepository.delete(ad);
     }
 
@@ -111,3 +111,5 @@ public class AdServiceImp implements AdService{
         return adDTO;
     }
 }
+
+

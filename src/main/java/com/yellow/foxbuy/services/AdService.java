@@ -7,10 +7,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface AdService {
-    Ad saveAd (Ad ad);
-
+    void saveAd (Ad ad);
     Optional<Ad> findAdById(Long id);
-
     void deleteAd (Ad ad);
 
     AdResponseDTO findById(Long id);
@@ -24,4 +22,5 @@ public interface AdService {
     List<AdResponseDTO> listAdsByPageAndCategory(Integer page, Long id);
 
     int getTotalPages(List<AdResponseDTO> adResponseDTOList);
+
 }
