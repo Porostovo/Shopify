@@ -44,6 +44,7 @@ public class JwtUtil {
                 .setIssuedAt(Date.from(now))
                 .setExpiration(Date.from(now.plus(3000, ChronoUnit.MINUTES)))
                 .signWith(hmacKey)
+                .setHeaderParam("typ", "JWT")
                 .compact();
         return jwtToken;
     }

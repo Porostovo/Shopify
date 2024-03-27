@@ -82,8 +82,11 @@ public class UserController {
                 emailService.sendVerificationEmail(user);
             } else {
                 user.setVerified(true);
+
                 userService.save(user);
+
             }
+
             result.put("username", user.getUsername());
             result.put("id", String.valueOf(user.getId()));
             return ResponseEntity.status(200).body(result);

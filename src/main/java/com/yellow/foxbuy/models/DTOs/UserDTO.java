@@ -1,6 +1,5 @@
 package com.yellow.foxbuy.models.DTOs;
 
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -27,7 +26,7 @@ public class UserDTO {
     @NotBlank(message = "Password is required.")
     @Size(min = 8, message = "Password must have at least 8 characters.")
     @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&.,])[A-Za-z\\d@$!%*?&.,]+$", message = "Password must have at least one uppercase, one lowercase, one number, and one special character (@ $ ! % * ? & . ,).")
-    @Schema(description = "required, must have atleast 8 characters, must include special character (@ $ ! % * ? & . ,)", example = "Password123%")
+    @Schema(description = "required, must have at least 8 characters, must include special character (@ $ ! % * ? & . ,)", example = "Password123%")
     private String password;
 
     public UserDTO(String username, String email, String password) {
