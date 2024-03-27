@@ -50,8 +50,30 @@ public class FoxbuyYellowApplication implements CommandLineRunner {
 
         User user = new User();
         userRepository.save(user);
+        User user1 = new User("user", "email@email.com", "Password123%");
+        userRepository.save(user1);
 
-        Ad ad = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user, beverageCategory);
+        Ad ad = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user1, beverageCategory);
+        Ad ad1 = new Ad("Budweiser", "Good beer.", 2000.00, "23456", user1, beverageCategory);
         adRepository.save(ad);
+        adRepository.save(ad1);
+
+        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, nourishmentCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
     }
 }
