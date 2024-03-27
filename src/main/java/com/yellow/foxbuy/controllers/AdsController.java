@@ -1,8 +1,7 @@
 package com.yellow.foxbuy.controllers;
 
 import com.yellow.foxbuy.models.DTOs.AdDTO;
-import com.yellow.foxbuy.services.AdManagementService;
-import com.yellow.foxbuy.services.ErrorsHandling;
+import com.yellow.foxbuy.services.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
@@ -21,10 +20,16 @@ import java.util.Optional;
 public class AdsController {
 
     private final AdManagementService adManagementService;
+    private final AdService adService;
+    private final CategoryService categoryService;
+    private final UserService userService;
 
     @Autowired
-    public AdsController(AdManagementService adManagementService) {
+    public AdsController(AdManagementService adManagementService, AdService adService, CategoryService categoryService, UserService userService) {
         this.adManagementService = adManagementService;
+        this.adService = adService;
+        this.categoryService = categoryService;
+        this.userService = userService;
     }
 
     @PostMapping("/advertisement")
