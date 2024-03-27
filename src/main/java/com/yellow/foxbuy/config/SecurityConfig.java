@@ -2,10 +2,12 @@ package com.yellow.foxbuy.config;
 
 import com.yellow.foxbuy.filters.JwtAuthorisationFilter;
 import com.yellow.foxbuy.models.ConfirmationToken;
+import com.yellow.foxbuy.services.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
@@ -25,10 +27,16 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 @EnableWebSecurity
 public class SecurityConfig {
    private final JwtAuthorisationFilter jwtAuthorisationFilter;
+    @Autowired
+    private UserDetailsServiceImpl userDetailsService;
 
     @Autowired
     public SecurityConfig(JwtAuthorisationFilter jwtAuthorisationFilter) {
         this.jwtAuthorisationFilter = jwtAuthorisationFilter;
+    }
+
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
     }
 
     @Bean
@@ -44,7 +52,10 @@ public class SecurityConfig {
                                 .requestMatchers("/confirm").permitAll()
                                 .requestMatchers("/category").permitAll()//Set to role ADMIN
                                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/swagger").permitAll()
+                                //.requestMatchers("/test").hasAnyAuthority("ROLE_USER")
+                               // .requestMatchers("/atest").hasAnyAuthority("ROLE_ADMIN")
                                 .requestMatchers("/test").authenticated()
+                               .requestMatchers("/atest").authenticated()
                                 .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
                 .addFilterBefore(jwtAuthorisationFilter, UsernamePasswordAuthenticationFilter.class)

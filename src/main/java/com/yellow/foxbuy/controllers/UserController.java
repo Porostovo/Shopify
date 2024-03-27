@@ -3,7 +3,9 @@ package com.yellow.foxbuy.controllers;
 import com.yellow.foxbuy.config.SecurityConfig;
 import com.yellow.foxbuy.models.DTOs.LoginRequest;
 import com.yellow.foxbuy.models.DTOs.UserDTO;
+import com.yellow.foxbuy.models.Role;
 import com.yellow.foxbuy.models.User;
+import com.yellow.foxbuy.repositories.RoleRepository;
 import com.yellow.foxbuy.services.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -12,11 +14,11 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 public class UserController {
@@ -24,17 +26,19 @@ public class UserController {
     private final AuthenticationService authenticationService;
     private final EmailService emailService;
     private final ConfirmationTokenService confirmationTokenService;
+    private final RoleRepository roleRepository;
 
     @Autowired
 
     public UserController(UserService userService,
                           EmailService emailService,
                           ConfirmationTokenService confirmationTokenService,
-                          AuthenticationService authenticationService) {
+                          AuthenticationService authenticationService, RoleRepository roleRepository) {
         this.userService = userService;
         this.emailService = emailService;
         this.confirmationTokenService = confirmationTokenService;
         this.authenticationService = authenticationService;
+        this.roleRepository = roleRepository;
     }
 
 
@@ -57,10 +61,19 @@ public class UserController {
             result.put("error", "Email is already used.");
             return ResponseEntity.status(400).body(result);
         } else {
-            User user = new User(userDTO.getUsername(), userDTO.getEmail(), SecurityConfig.passwordEncoder().encode(userDTO.getPassword()));
+
+            Set<Role> set = new HashSet<>();
+            set.add(roleRepository.getReferenceById(1L));
+            System.out.println(set);
+
+            User user = new User(userDTO.getUsername(),
+                    userDTO.getEmail(),
+                    SecurityConfig.passwordEncoder().encode(userDTO.getPassword()),
+                    true,
+                    set
+            );
 
             String emailVerification = System.getenv("EMAIL_VERIFICATION");
-
 
 
             if (emailVerification == null || emailVerification.equals("on")) {
@@ -98,8 +111,17 @@ public class UserController {
     @GetMapping(path = "/test")
     @Operation(summary = "Endpoint for testing", description = "Testing endpoint.")
     public Authentication confirm(Authentication authentication) {
+        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+        System.out.println("Authorities: " + authorities);
         return authentication;
     }
+
+    @GetMapping(path = "/atest")
+    @Operation(summary = "Endpoint for testing", description = "Testing endpoint.")
+    public Authentication confirm2(Authentication authentication) {
+        return authentication;
+    }
+
 }
 
 
