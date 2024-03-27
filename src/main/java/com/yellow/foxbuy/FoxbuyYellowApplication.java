@@ -55,12 +55,13 @@ public class FoxbuyYellowApplication implements CommandLineRunner {
         categoryRepository.save(beverageCategory);
         categoryRepository.save(nourishmentCategory);
 
-        User user = new User("JohnUSER",
+        User user1 = new User("JohnUSER",
                 "email@email.com",
                 SecurityConfig.passwordEncoder().encode("password"),
                 new HashSet<>(Collections.singletonList(roleUser)));
-        user.setVerified(true);
-        userRepository.save(user);
+        user1.setVerified(true);
+        userRepository.save(user1);
+
         User user2 = new User("JohnADMIN",
                 "emailA@email.com",
                 SecurityConfig.passwordEncoder().encode("password"),
@@ -68,7 +69,27 @@ public class FoxbuyYellowApplication implements CommandLineRunner {
         user2.setVerified(true);
         userRepository.save(user2);
 
-        Ad ad = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user, beverageCategory);
+        Ad ad = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user1, beverageCategory);
+        Ad ad1 = new Ad("Budweiser", "Good beer.", 2000.00, "23456", user1, beverageCategory);
         adRepository.save(ad);
+        adRepository.save(ad1);
+
+        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, nourishmentCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
     }
 }
