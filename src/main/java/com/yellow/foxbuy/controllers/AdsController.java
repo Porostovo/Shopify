@@ -19,7 +19,6 @@ public class AdsController {
 
     @Autowired
     public AdsController(AdManagementService adManagementService) {
-
         this.adManagementService = adManagementService;
     }
 
