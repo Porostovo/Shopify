@@ -16,4 +16,12 @@ public interface AdService {
     AdResponseDTO findById(Long id);
 
     boolean existsById(Long id);
+
+    List<AdResponseDTO> findAllByUser(String username);
+
+    List<AdResponseDTO> findAllByCategoryId(Long id);
+
+    List<AdResponseDTO> listAdsByPageAndCategory(Integer page, Long id);
+
+    int getTotalPages(List<AdResponseDTO> adResponseDTOList);
 }

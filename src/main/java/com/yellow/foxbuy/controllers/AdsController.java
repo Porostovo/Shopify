@@ -183,4 +183,30 @@ public class AdsController {
         }
         else return ResponseEntity.status(200).body(adService.findById(id));
     }
+
+    @GetMapping("/advertisement")
+    public ResponseEntity<?> listAds(@RequestParam (required = false) String user,
+                                     @RequestParam (required = false) Long category,
+                                     @RequestParam (required = false) Integer page){
+        Map<String, String> error = new HashMap<>();
+        if (user != null && userService.existsByUsername(user)) {
+            return ResponseEntity.status(200).body(adService.findAllByUser(user));
+        } else if (user != null && !userService.existsByUsername(user)) {
+            error.put("error", "User with this name doesn't exist.");
+            return ResponseEntity.status(400).body(error);
+        }
+        if (page != null && category != null) {
+            Map<String, Object> result = new HashMap<>();
+            result.put("page", page);
+            result.put("total_pages", adService.getTotalPages(adService.findAllByCategoryId(category)));
+            result.put("ads", adService.listAdsByPageAndCategory(page, category));
+            return ResponseEntity.status(200).body(result);
+        }
+
+        if (category != null && categoryService.categoryIdExists(category)) {
+            return ResponseEntity.status(200).body(adService.findAllByCategoryId(category));
+        }
+        error.put("error", "Wrong parameter");
+        return ResponseEntity.status(400).body(error);
+    }
 }
