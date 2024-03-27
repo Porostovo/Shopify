@@ -2,6 +2,7 @@ package com.yellow.foxbuy.models;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,7 +22,10 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @NotBlank (message = "Category name is required.")
+    @NotNull (message = "Category name is required.")
     private String name;
+    @NotBlank (message = "Description name is required.")
+    @NotNull (message = "Description name is required.")
     private String description;
     private Timestamp created_at;
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
