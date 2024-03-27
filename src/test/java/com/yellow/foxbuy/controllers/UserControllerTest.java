@@ -253,7 +253,7 @@ class UserControllerTest {
     }
     @Test
     public void testVerificationEmailConfirmEndpoint() throws Exception {
-        User user = new User("user", "emaile@mail.com", "Password1", false);
+        User user = new User("user", "emaile@mail.com", "Password1");
         userRepository.save(user);
 
         String token = UUID.randomUUID().toString();

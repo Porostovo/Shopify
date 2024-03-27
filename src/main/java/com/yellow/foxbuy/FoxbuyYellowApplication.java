@@ -1,5 +1,6 @@
 package com.yellow.foxbuy;
 
+import com.yellow.foxbuy.config.SecurityConfig;
 import com.yellow.foxbuy.models.Ad;
 import com.yellow.foxbuy.models.Category;
 
@@ -17,18 +18,24 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 @SpringBootApplication
 public class FoxbuyYellowApplication implements CommandLineRunner {
     private final CategoryRepository categoryRepository;
     private final AdRepository adRepository;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+
     @Autowired
     public FoxbuyYellowApplication(CategoryRepository categoryRepository, AdRepository adRepository, UserRepository userRepository, RoleRepository roleRepository) {
         this.categoryRepository = categoryRepository;
         this.adRepository = adRepository;
         this.userRepository = userRepository;
-      this.roleRepository = roleRepository;
+        this.roleRepository = roleRepository;
     }
 
     public static void main(String[] args) {
@@ -38,9 +45,9 @@ public class FoxbuyYellowApplication implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
 
-        roleRepository.save(new Role("ROLE_USER"));
-        roleRepository.save(new Role("ROLE_VIP_USER"));
-        roleRepository.save(new Role("ROLE_ADMIN"));
+        Role roleUser = roleRepository.save(new Role("ROLE_USER"));
+        Role roleVipUser = roleRepository.save(new Role("ROLE_VIP_USER"));
+        Role roleAdmin = roleRepository.save(new Role("ROLE_ADMIN"));
 
         Category beverageCategory = new Category("Beverage", "Buy some good beer.");
         Category nourishmentCategory = new Category("Nourishment", "Buy some good beef.");
@@ -48,8 +55,18 @@ public class FoxbuyYellowApplication implements CommandLineRunner {
         categoryRepository.save(beverageCategory);
         categoryRepository.save(nourishmentCategory);
 
-        User user = new User();
+        User user = new User("JohnUSER",
+                "email@email.com",
+                SecurityConfig.passwordEncoder().encode("password"),
+                new HashSet<>(Collections.singletonList(roleUser)));
+        user.setVerified(true);
         userRepository.save(user);
+        User user2 = new User("JohnADMIN",
+                "emailA@email.com",
+                SecurityConfig.passwordEncoder().encode("password"),
+                new HashSet<>(Collections.singletonList(roleAdmin)));
+        user2.setVerified(true);
+        userRepository.save(user2);
 
         Ad ad = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user, beverageCategory);
         adRepository.save(ad);
