@@ -2,17 +2,12 @@ package com.yellow.foxbuy.config;
 
 import com.yellow.foxbuy.filters.JwtAuthorisationFilter;
 import com.yellow.foxbuy.models.ConfirmationToken;
-
-
 import com.yellow.foxbuy.services.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -59,7 +54,7 @@ public class SecurityConfig {
                                 .requestMatchers("/category").hasAnyAuthority("ROLE_ADMIN")
                                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/swagger").permitAll()
                                 .requestMatchers("/test").hasRole("ADMIN")//.hasAnyAuthority("ROLE_USER")
-                                .requestMatchers("/advertisement").authenticated()
+                                .requestMatchers("/advertisement").hasAnyRole("ADMIN", "VIP_USER", "USER")
                                 .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
