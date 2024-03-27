@@ -2,15 +2,18 @@ package com.yellow.foxbuy.utils;
 
 import com.yellow.foxbuy.models.User;
 import io.jsonwebtoken.*;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.spec.SecretKeySpec;
 import java.security.Key;
+import java.sql.SQLOutput;
 import java.time.Instant;
 
 import java.time.temporal.ChronoUnit;
 
 import java.util.Base64;
+import java.util.Collection;
 import java.util.Date;
 
 
@@ -23,9 +26,21 @@ public class JwtUtil {
 
     public String createToken(User user) {
         Instant now = Instant.now();
+        Collection<? extends GrantedAuthority> authorities = user.getAuthorities();
+
+        StringBuilder authorityString = new StringBuilder();
+        for (GrantedAuthority authority : authorities) {
+            authorityString.append(authority.getAuthority()).append(",");
+        }
+
+        if (authorityString.length() > 0) {
+            authorityString.deleteCharAt(authorityString.length() - 1);
+        }
+
         String jwtToken = Jwts.builder()
                 .claim("username", user.getUsername())
                 .claim("email", user.getEmail())
+                .claim("authorities", authorityString.toString())
                 .setIssuedAt(Date.from(now))
                 .setExpiration(Date.from(now.plus(3000, ChronoUnit.MINUTES)))
                 .signWith(hmacKey)
@@ -58,5 +73,13 @@ public class JwtUtil {
                 .parseClaimsJws(token)
                 .getBody();
         return claims.getExpiration();
+    }
+    public String getAuthoritiesFromJWT(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(hmacKey)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        return (String) claims.get("authorities").toString();
     }
 }

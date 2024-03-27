@@ -12,8 +12,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-//@AccessControl({ Roles.ADMIN })
-//@Access()
 public class AdminController {
     private final CategoryService categoryService;
 
