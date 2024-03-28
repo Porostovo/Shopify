@@ -1,6 +1,7 @@
 package com.yellow.foxbuy.services;
 
 import com.yellow.foxbuy.models.Category;
+import com.yellow.foxbuy.models.DTOs.CategDTO;
 import com.yellow.foxbuy.models.DTOs.CategoryDTO;
 
 import java.util.List;
@@ -8,7 +9,7 @@ import java.util.List;
 public interface CategoryService {
     boolean isCategoryNameUnique(String name);
 
-    Category save(Category category);
+    CategDTO save(CategDTO categDTO);
 
     boolean categoryIdExists(Long id);
 
@@ -16,7 +17,7 @@ public interface CategoryService {
 
     String findNameById(Long id);
 
-    Category updateCategory(Long id, Category category);
+    CategDTO updateCategory(Long id, CategDTO categDTO);
 
 
     Category findCategoryById (Long id);

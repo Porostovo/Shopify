@@ -2,6 +2,7 @@ package com.yellow.foxbuy.services;
 
 import com.yellow.foxbuy.models.Ad;
 import com.yellow.foxbuy.models.Category;
+import com.yellow.foxbuy.models.DTOs.CategDTO;
 import com.yellow.foxbuy.models.DTOs.CategoryDTO;
 import com.yellow.foxbuy.repositories.AdRepository;
 import com.yellow.foxbuy.repositories.CategoryRepository;
@@ -27,13 +28,11 @@ public class CategoryServiceImp implements CategoryService {
         return (categoryRepository.findFirstByName(name) == null);
     }
 
-    @Override
-    public Category save(Category category) {
-        if(category.getId()==null) {
-            return categoryRepository.save(new Category(category.getName(), category.getDescription()));
-        }else {
-            return categoryRepository.save(category);
-        }
+
+    public CategDTO save(CategDTO categDTO) {
+        Category category = categoryRepository.save(new Category(categDTO.getName(), categDTO.getDescription()));
+        categDTO.setId(category.getId());
+        return categDTO;
     }
 
     @Override
@@ -55,7 +54,7 @@ public class CategoryServiceImp implements CategoryService {
             ad.setCategory(category);
             adRepository.save(ad);
         });
-       Category category1 =  categoryRepository.findFirstById(id);
+        Category category1 = categoryRepository.findFirstById(id);
         categoryRepository.delete(category1);
     }
 
@@ -65,11 +64,13 @@ public class CategoryServiceImp implements CategoryService {
     }
 
     @Override
-    public Category updateCategory(Long id, Category category) {
+    public CategDTO updateCategory(Long id, CategDTO categDTO) {
         Category upDateCat = categoryRepository.findFirstById(id);
-        upDateCat.setName(category.getName());
-        upDateCat.setDescription(category.getDescription());
-        return categoryRepository.save(upDateCat);
+        upDateCat.setName(categDTO.getName());
+        upDateCat.setDescription(categDTO.getDescription());
+        Category category = categoryRepository.save(upDateCat);
+        categDTO.setId(category.getId());
+        return categDTO;
     }
 
     @Override
