@@ -42,9 +42,9 @@ public class AdsController {
     @Operation(summary = "Change Ad", description = "User can update just his advertisement.")
     @ApiResponse(responseCode = "200", description = "Advertisement was successfully updated.")
     @ApiResponse(responseCode = "400", description = "Invalid input or user is not verified.")
-    public ResponseEntity<?> updateAd(@Valid @PathVariable Long id, @RequestBody AdDTO adDTO,
+    public ResponseEntity<?> updateAd(@Valid @RequestBody AdDTO adDTO,
                                       BindingResult bindingResult,
-                                      Authentication authentication) {
+                                      Authentication authentication,@PathVariable Long id) {
 
         if (bindingResult.hasErrors()) {
             return ErrorsHandling.handleValidationErrors(bindingResult);
