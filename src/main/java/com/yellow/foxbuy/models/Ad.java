@@ -1,5 +1,6 @@
 package com.yellow.foxbuy.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yellow.foxbuy.models.DTOs.AdDTO;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -19,6 +20,7 @@ public class Ad {
     private String title;
     private String description;
     private Double price;
+    @JsonIgnore
     private LocalDateTime localDateTime;
     private String zipcode;
     @ManyToOne

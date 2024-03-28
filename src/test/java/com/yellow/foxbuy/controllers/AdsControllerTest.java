@@ -1,8 +1,10 @@
 package com.yellow.foxbuy.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yellow.foxbuy.models.Ad;
 import com.yellow.foxbuy.models.Category;
+import com.yellow.foxbuy.models.DTOs.AdDTO;
 import com.yellow.foxbuy.models.User;
 import com.yellow.foxbuy.repositories.AdRepository;
 import com.yellow.foxbuy.repositories.CategoryRepository;
@@ -71,5 +73,131 @@ public class AdsControllerTest {
                 .andExpect(jsonPath("$.categoryID", is(2L)));
 
         assertEquals(initialAdCount + 1, adRepository.findAll().size());
+    }
+
+    @Test
+    @WithMockUser(username = "user", roles = "USER")
+    void getAdvertisementSuccess() throws Exception {
+        int initialAdCount = adRepository.findAll().size();
+
+        Category beverageCategory = new Category("Beverage", "Buy some good beer.");
+        categoryRepository.save(beverageCategory);
+
+        User user = new User("user", "user@email.cz","Password1*");
+        userRepository.save(user);
+
+        Ad ad = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user, beverageCategory);
+        adRepository.save(ad);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/advertisement/{id}", ad.getId()))
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.title", is("Pilsner urquell")))
+                .andExpect(jsonPath("$.description", is("Tasty beer.")))
+                .andExpect(jsonPath("$.price", is(3000.00)))
+                .andExpect(jsonPath("$.zipcode", is("12345")));
+
+        assertEquals(initialAdCount + 1, adRepository.findAll().size());
+    }
+
+    @Test
+    @WithMockUser(username = "user", roles = "USER")
+    void getAdvertisementError() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get("/advertisement/50"))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.error", is("Ad with this id doesn't exist.")));
+
+    }
+
+    @Test
+    @WithMockUser(username = "user", roles = "USER")
+    void listAdsUserSuccess() throws Exception {
+
+        Category beverageCategory = new Category("Beverage", "Buy some good beer.");
+        categoryRepository.save(beverageCategory);
+
+        User user = new User("user1", "user@email.cz","Password1*");
+        userRepository.save(user);
+
+        Ad ad1 = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user, beverageCategory);
+        Ad ad2 = new Ad("Pilsner urquell2", "Tasty beer2.", 1000.00, "67890", user, beverageCategory);
+        adRepository.save(ad1);
+        adRepository.save(ad2);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/advertisement")
+                .param("user", "user1"))
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$[0].title", is("Pilsner urquell")))
+                .andExpect(jsonPath("$[0].description", is("Tasty beer.")))
+                .andExpect(jsonPath("$[0].price", is(3000.00)))
+                .andExpect(jsonPath("$[0].zipcode", is("12345")))
+                .andExpect(jsonPath("$[1].title", is("Pilsner urquell2")))
+                .andExpect(jsonPath("$[1].description", is("Tasty beer2.")))
+                .andExpect(jsonPath("$[1].price", is(1000.00)))
+                .andExpect(jsonPath("$[1].zipcode", is("67890")));
+    }
+
+    @Test
+    @WithMockUser(username = "user", roles = "USER")
+    void listAdsUserFailed() throws Exception {
+
+        Category beverageCategory = new Category("Beverage", "Buy some good beer.");
+        categoryRepository.save(beverageCategory);
+
+        User user = new User("user1", "user@email.cz","Password1*");
+        userRepository.save(user);
+
+        Ad ad1 = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user, beverageCategory);
+        adRepository.save(ad1);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/advertisement")
+                        .param("user", "user2"))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.error", is("User with this name doesn't exist.")));
+    }
+
+    @Test
+    @WithMockUser(username = "user", roles = "USER")
+    void listAdsEmptyPage() throws Exception {
+        Category category = new Category("Beverage", "Buy some good beer.");
+        categoryRepository.save(category);
+        Long categoryId = category.getId();
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/advertisement")
+                        .param("page", "20")
+                        .param("category", String.valueOf(categoryId)))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.error", is("This page is empty.")));
+    }
+
+    @Test
+    @WithMockUser(username = "user", roles = "USER")
+    void listAdsCategoryDoesntExist() throws Exception {
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/advertisement")
+                        .param("category", "50"))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.error", is("Category with this ID doesn't exist.")));
+    }
+
+    @Test
+    @WithMockUser(username = "user", roles = "USER")
+    void listAdsByPageAndCategory() throws Exception {
+        Category category = new Category("Beverage", "Buy some good beer.");
+        categoryRepository.save(category);
+        Long categoryId = category.getId();
+
+        User user = new User("user1", "user@email.cz","Password1*");
+        userRepository.save(user);
+
+        for (int i = 0; i < 12; i++) {
+            adRepository.save(new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user, category));
+        }
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/advertisement")
+                        .param("category", String.valueOf(categoryId))
+                        .param("page", "1"))
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.page", is(1)))
+                .andExpect(jsonPath("$.total_pages", is(2)));
     }
 }
