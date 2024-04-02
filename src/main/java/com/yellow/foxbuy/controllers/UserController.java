@@ -117,6 +117,19 @@ public class UserController {
     public Authentication confirm(Authentication authentication) {
         return authentication;
     }
+
+    @GetMapping("/user/{id}")
+    @Operation(summary = "Get user details by ID", description = "Get username, email, role and list of ads by user UUID.")
+    @ApiResponse(responseCode = "200", description = "User details received.")
+    @ApiResponse(responseCode = "400", description = "User with this ID doesn't exist.")
+    public ResponseEntity<?> getUserDetails(@PathVariable UUID id) throws Exception {
+        Map<String, String> error = new HashMap<>();
+        if (!userService.existsById(id)) {
+            error.put("error", "User doesn't exist.");
+            return ResponseEntity.status(400).body(error);
+        }
+        return ResponseEntity.status(200).body(userService.getDetailsById(id));
+    }
 }
 
 

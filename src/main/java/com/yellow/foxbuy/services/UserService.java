@@ -1,9 +1,12 @@
 package com.yellow.foxbuy.services;
 
 import com.yellow.foxbuy.models.ConfirmationToken;
+import com.yellow.foxbuy.models.DTOs.UserDetailsResponseDTO;
 import com.yellow.foxbuy.models.User;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface UserService {
     User save(User user);
@@ -14,4 +17,7 @@ public interface UserService {
     Optional<User> findByUsername(String username);
 
     boolean userRepositoryIsEmpty();
+
+    UserDetailsResponseDTO getDetailsById (UUID id) throws Exception;
+    boolean existsById (UUID id);
 }
