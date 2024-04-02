@@ -92,6 +92,16 @@ public class FoxbuyYellowApplication implements CommandLineRunner {
         adRepository.save(new Ad("Ad1","Description1", 1016, "12345", user1, beverageCategory));
         adRepository.save(new Ad("Ad1","Description1", 1017, "12345", user1, beverageCategory));
 
+        for (int i = 0; i < 10; i++) {
+            User user = new User("test_user",
+                    "email@email.com",
+                    SecurityConfig.passwordEncoder().encode("password"),
+                    new HashSet<>(Collections.singletonList(roleUser)));
+            user1.setVerified(true);
+            userRepository.save(user);
+        }
+
+
         System.out.println(user1.getId());
     }
 }

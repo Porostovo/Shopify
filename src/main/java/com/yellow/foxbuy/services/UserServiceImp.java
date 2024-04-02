@@ -4,6 +4,7 @@ import com.yellow.foxbuy.models.Ad;
 import com.yellow.foxbuy.models.ConfirmationToken;
 import com.yellow.foxbuy.models.DTOs.AdResponseDTO;
 import com.yellow.foxbuy.models.DTOs.UserDetailsResponseDTO;
+import com.yellow.foxbuy.models.DTOs.UserListResponseDTO;
 import com.yellow.foxbuy.models.Role;
 import com.yellow.foxbuy.models.User;
 import com.yellow.foxbuy.repositories.AdRepository;
@@ -91,5 +92,35 @@ public class UserServiceImp implements UserService {
     @Override
     public boolean existsById(UUID id) {
         return userRepository.findAll().stream().anyMatch(user -> user.getId().equals(id));
+    }
+
+    @Override
+    public List<UserListResponseDTO> listUsersByPage(Integer page) {
+        int pageSize = 10;
+        int offset = (page - 1) * pageSize;
+        List<UserListResponseDTO> userListDTO = new ArrayList<>();
+        List<User> userList = userRepository.findAll().stream()
+                .skip(offset)
+                .limit(pageSize)
+                .toList();
+        for (User user : userList) {
+            UserListResponseDTO userDetailDTO = new UserListResponseDTO();
+            userDetailDTO.setUsername(user.getUsername());
+            userDetailDTO.setEmail(user.getEmail());
+            userDetailDTO.setRole(user.getRole());
+            userDetailDTO.setAds(user.getAds().size());
+            userListDTO.add(userDetailDTO);
+        }
+        return userListDTO;
+    }
+
+    @Override
+    public int getTotalPages(List<User> users) {
+        return (int) Math.ceil((double) users.size() / 10.0);
+    }
+
+    @Override
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
     }
 }

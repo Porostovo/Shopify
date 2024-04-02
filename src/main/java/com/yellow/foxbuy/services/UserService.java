@@ -2,6 +2,7 @@ package com.yellow.foxbuy.services;
 
 import com.yellow.foxbuy.models.ConfirmationToken;
 import com.yellow.foxbuy.models.DTOs.UserDetailsResponseDTO;
+import com.yellow.foxbuy.models.DTOs.UserListResponseDTO;
 import com.yellow.foxbuy.models.User;
 
 import java.util.List;
@@ -20,4 +21,7 @@ public interface UserService {
 
     UserDetailsResponseDTO getDetailsById (UUID id) throws Exception;
     boolean existsById (UUID id);
+    List<UserListResponseDTO> listUsersByPage(Integer page);
+    int getTotalPages (List<User> users);
+    List<User> getAllUsers();
 }

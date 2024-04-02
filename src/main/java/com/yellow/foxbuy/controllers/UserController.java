@@ -130,6 +130,25 @@ public class UserController {
         }
         return ResponseEntity.status(200).body(userService.getDetailsById(id));
     }
+
+    @GetMapping("/user")
+    @Operation(summary = "Get list of users", description = "Get username, email, role and number of ads of all the users. Also shows actual page and total pages. Can be used with page parameter.")
+    @ApiResponse(responseCode = "200", description = "User list received.")
+    @ApiResponse(responseCode = "400", description = "Chosen page is empty.")
+    public ResponseEntity<?> listUsers(@RequestParam (required = false, defaultValue = "1") Integer page) {
+        int totalPages = userService.getTotalPages(userService.getAllUsers());
+        if (page > totalPages) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "This page is empty.");
+            return ResponseEntity.status(400).body(error);
+        } else {
+            Map<String, Object> result = new HashMap<>();
+            result.put("page", page);
+            result.put("total_pages", totalPages);
+            result.put("users", userService.listUsersByPage(page));
+            return ResponseEntity.status(200).body(result);
+        }
+    }
 }
 
 
