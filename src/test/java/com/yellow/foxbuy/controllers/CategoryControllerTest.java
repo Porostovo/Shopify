@@ -3,6 +3,7 @@ package com.yellow.foxbuy.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yellow.foxbuy.models.Ad;
 import com.yellow.foxbuy.models.Category;
+import com.yellow.foxbuy.models.User;
 import com.yellow.foxbuy.repositories.AdRepository;
 import com.yellow.foxbuy.repositories.CategoryRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
@@ -18,8 +20,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
@@ -44,7 +45,7 @@ class CategoryControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "user", roles = { "ADMIN" })
+    @WithMockUser(username = "user", roles = {"ADMIN"})
     public void listNotEmptyCategories() throws Exception {
         int initialCategoryCount = categoryRepository.findAll().size();
         Category category1 = new Category("name1", "description1");
@@ -57,9 +58,9 @@ class CategoryControllerTest {
         adRepository.save(ad2);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/category")
-                .content(objectMapper.writeValueAsString(category1))
-                .content(objectMapper.writeValueAsString(category2))
-                .contentType(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(category1))
+                        .content(objectMapper.writeValueAsString(category2))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(200))
                 .andExpect(jsonPath("$[0].name", is("name1")))
                 .andExpect(jsonPath("$[0].description", is("description1")))
@@ -72,7 +73,7 @@ class CategoryControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "user", roles = { "ADMIN" })
+    @WithMockUser(username = "user", roles = {"ADMIN"})
     public void listNotEmptyCategories2() throws Exception {
         int initialCategoryCount = categoryRepository.findAll().size();
         Category category1 = new Category("name1", "description1");
@@ -95,7 +96,7 @@ class CategoryControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "user", roles = { "ADMIN" })
+    @WithMockUser(username = "user", roles = {"ADMIN"})
     public void listEmptyCategory() throws Exception {
         int initialCategoryCount = categoryRepository.findAll().size();
         Category category1 = new Category("name1", "description1");
@@ -114,7 +115,7 @@ class CategoryControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "user", roles = { "ADMIN" })
+    @WithMockUser(username = "user", roles = {"ADMIN"})
     public void noCategories() throws Exception {
         int initialCategoryCount = categoryRepository.findAll().size();
 
@@ -125,7 +126,7 @@ class CategoryControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "user", roles = { "ADMIN" })
+    @WithMockUser(username = "user", roles = {"ADMIN"})
     public void invalidParameter() throws Exception {
         int initialCategoryCount = categoryRepository.findAll().size();
         Category category1 = new Category("name1", "description1");
@@ -140,4 +141,140 @@ class CategoryControllerTest {
 
         assertEquals(initialCategoryCount + 1, categoryRepository.findAll().size());
     }
+
+    @Test
+    @WithMockUser(username = "user", roles = {"ADMIN"})
+    public void createNewCategory1() throws Exception {
+        int initialAdCount = categoryRepository.findAll().size();
+
+        Category beverageCategory = new Category("Beverage", "Buy some good beer.");
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/category")
+                        .content(objectMapper.writeValueAsString(beverageCategory))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.name", is("Beverage")))
+                .andExpect(jsonPath("$.description", is("Buy some good beer.")));
+
+        assertEquals(initialAdCount + 1, categoryRepository.findAll().size());
+    }
+
+    @Test
+    @WithMockUser(username = "user", roles = {"ADMIN"})
+    public void createNewCategory2() throws Exception {
+        int initialAdCount = categoryRepository.findAll().size();
+
+        Category beverageCategory = new Category("Beverage", "Buy some good beer.");
+        categoryRepository.save(beverageCategory);
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/category")
+                        .content(objectMapper.writeValueAsString(beverageCategory))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.error", is("This category name is already taken.")));
+
+        assertEquals(initialAdCount + 1, categoryRepository.findAll().size());
+    }
+
+    @Test
+    @WithMockUser(username = "user", roles = {"ADMIN"})
+    public void createNewCategory3() throws Exception {
+        int initialAdCount = categoryRepository.findAll().size();
+
+        Category beverageCategory = new Category("Beverage", "");
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/category")
+                        .content(objectMapper.writeValueAsString(beverageCategory))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.description", is("Description is required.")));
+
+        assertEquals(initialAdCount, categoryRepository.findAll().size());
+    }
+
+    @Test
+    @WithMockUser(username = "user", roles = {"ADMIN"})
+    public void updateCategory1() throws Exception {
+        int initialAdCount = categoryRepository.findAll().size();
+
+        Category beverageCategory1 = new Category("Beverage", "Buy some good beer.");
+        categoryRepository.save(beverageCategory1);
+
+        Category beverageCategory = new Category("ggg", "fgg");
+        long idtemp = categoryRepository.findFirstByName("Beverage").getId();
+        int id = (int) idtemp;
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/category/" + id)
+                        .content(objectMapper.writeValueAsString(beverageCategory))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.name", is("ggg")))
+                .andExpect(jsonPath("$.description", is("fgg")))
+                .andExpect(jsonPath("$.id", is(id)));
+
+        assertEquals(initialAdCount + 1, categoryRepository.findAll().size());
+    }
+
+    @Test
+    @WithMockUser(username = "user", roles = {"ADMIN"})
+    public void updateCategory2() throws Exception {
+        int initialAdCount = categoryRepository.findAll().size();
+
+        Category beverageCategory1 = new Category("Beverage", "Buy some good beer.");
+        categoryRepository.save(beverageCategory1);
+        Category beverageCategory2 = new Category("Beverage2", "Buy some good beer2.");
+        categoryRepository.save(beverageCategory2);
+
+        long idtemp = categoryRepository.findFirstByName("Beverage2").getId();
+        int id = (int) idtemp;
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/category/" + id)
+                        .content(objectMapper.writeValueAsString(beverageCategory1))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.error", is("This category name is already taken.")));
+
+        assertEquals(initialAdCount + 2, categoryRepository.findAll().size());
+    }
+
+    @Test
+    @WithMockUser(username = "user", roles = {"ADMIN"})
+    public void deleteCategory1() throws Exception {
+        int initialAdCount = categoryRepository.findAll().size();
+
+        Category beverageCategory1 = new Category("Beverage", "Buy some good beer.");
+        categoryRepository.save(beverageCategory1);
+        Long id = categoryRepository.findFirstByName("Beverage").getId();
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/category/" + id))
+                .andExpect(status().is(200))
+                .andExpect(content().string("Category was deleted."));
+
+        assertEquals(initialAdCount + 1, categoryRepository.findAll().size());
+        assertEquals(categoryRepository.findFirstByOrderByIdDesc().getName(), "Uncategorized");
+    }
+
+    @Test
+    @WithMockUser(username = "user", roles = {"ADMIN"})
+    public void deleteCategory2() throws Exception {
+        int initialAdCount = categoryRepository.findAll().size();
+
+        Category beverageCategory1 = new Category("Beverage", "Buy some good beer.");
+        categoryRepository.save(beverageCategory1);
+        Long id = categoryRepository.findFirstByName("Beverage").getId();
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/category/" + (id)));
+        mockMvc.perform(MockMvcRequestBuilders.delete("/category/" + (id)))
+                .andExpect(jsonPath("$.error", is("This category id doesn't exist.")));
+
+        assertEquals(initialAdCount + 1, categoryRepository.findAll().size());
+        assertEquals(categoryRepository.findFirstByOrderByIdDesc().getName(), "Uncategorized");
+
+        Long id2 = categoryRepository.findFirstByName("Uncategorized").getId();
+        mockMvc.perform(MockMvcRequestBuilders.delete("/category/" + (id2)))
+                .andExpect(jsonPath("$.error", is("This category is not possible to delete")));
+    }
 }
+
+
+
