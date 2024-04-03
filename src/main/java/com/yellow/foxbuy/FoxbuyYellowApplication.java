@@ -3,25 +3,21 @@ package com.yellow.foxbuy;
 import com.yellow.foxbuy.config.SecurityConfig;
 import com.yellow.foxbuy.models.Ad;
 import com.yellow.foxbuy.models.Category;
-
 import com.yellow.foxbuy.models.Role;
-
-import com.yellow.foxbuy.repositories.RoleRepository;
-
 import com.yellow.foxbuy.models.User;
 import com.yellow.foxbuy.repositories.AdRepository;
 import com.yellow.foxbuy.repositories.CategoryRepository;
+import com.yellow.foxbuy.repositories.RoleRepository;
 import com.yellow.foxbuy.repositories.UserRepository;
-
+import com.yellow.foxbuy.utils.GeneratePdfInvoice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import java.util.Collection;
+import java.io.FileNotFoundException;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Set;
 
 @SpringBootApplication
 public class FoxbuyYellowApplication implements CommandLineRunner {
@@ -31,7 +27,7 @@ public class FoxbuyYellowApplication implements CommandLineRunner {
     private final RoleRepository roleRepository;
 
     @Autowired
-    public FoxbuyYellowApplication(CategoryRepository categoryRepository, AdRepository adRepository, UserRepository userRepository, RoleRepository roleRepository) {
+    public FoxbuyYellowApplication(CategoryRepository categoryRepository, AdRepository adRepository, UserRepository userRepository, RoleRepository roleRepository) throws FileNotFoundException {
         this.categoryRepository = categoryRepository;
         this.adRepository = adRepository;
         this.userRepository = userRepository;
@@ -74,22 +70,31 @@ public class FoxbuyYellowApplication implements CommandLineRunner {
         adRepository.save(ad);
         adRepository.save(ad1);
 
-        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, nourishmentCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1", "Description1", 1000, "12345", user1, nourishmentCategory));
+        adRepository.save(new Ad("Ad1", "Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1", "Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1", "Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1", "Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1", "Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1", "Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1", "Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1", "Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1", "Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1", "Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1", "Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1", "Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1", "Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1", "Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1", "Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1", "Description1", 1000, "12345", user1, beverageCategory));
+
+
+        GeneratePdfInvoice generatePdfInvoice = new GeneratePdfInvoice("1", "John User", "Street 1, City, 12345", "03.04.2024");
+
+        try {
+            generatePdfInvoice.generateAndClose();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 }
