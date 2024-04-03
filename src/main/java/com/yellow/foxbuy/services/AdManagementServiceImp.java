@@ -144,7 +144,7 @@ public class AdManagementServiceImp implements AdManagementService {
         }
         try {
             adService.deleteAd(existingAd);
-            result.put("error", "Your ad was deleted");
+            result.put("message", "Your ad was deleted");
             return ResponseEntity.status(200).body(result);
 
         } catch (Exception e) {
