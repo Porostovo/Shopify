@@ -29,6 +29,7 @@ public class UserDTO {
     @Schema(description = "required, must have at least 8 characters, must include special character (@ $ ! % * ? & . ,)", example = "Password123%")
     private String password;
 
+
     public UserDTO(String username, String email, String password) {
         this.username = username;
         this.email = email;

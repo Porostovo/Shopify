@@ -3,7 +3,6 @@ package com.yellow.foxbuy.config;
 import com.yellow.foxbuy.filters.JwtAuthorisationFilter;
 import com.yellow.foxbuy.models.ConfirmationToken;
 import com.yellow.foxbuy.services.UserDetailsServiceImpl;
-import jakarta.servlet.DispatcherType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -58,7 +57,7 @@ public class SecurityConfig {
                                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/swagger").permitAll()
                                 .requestMatchers("/advertisement/**").hasAnyRole("ADMIN", "VIP_USER", "USER")
                                 .requestMatchers("/test").hasAnyRole("USER","VIP_USER","ADMIN")
-
+                                .requestMatchers("/identity").authenticated()
                                 .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
