@@ -1,8 +1,27 @@
+//buildscript {
+//    repositories {
+//        mavenCentral()
+//    }
+//    dependencies {
+//        classpath 'org.flywaydb:flyway-mysql:10.11.0'
+//    }
+//}
+
 plugins {
     id 'java'
     id 'org.springframework.boot' version '3.2.3'
     id 'io.spring.dependency-management' version '1.1.4'
+//    id "org.flywaydb.flyway" version "10.11.0"
 }
+//
+//flyway {
+//    url = 'jdbc:mysql://localhost:3306/foxbuy'
+//    user = 'root'
+//    password = 'password'
+//    locations = ['classpath:db/migration']
+//}
+//
+// flywayMigrate.dependsOn classes
 
 group = 'com.yellow'
 version = '0.0.1-SNAPSHOT'
@@ -14,6 +33,7 @@ java {
 repositories {
     mavenCentral()
 }
+
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -38,6 +58,8 @@ dependencies {
 //    implementation 'io.springfox:springfox-swagger2:3.0.0'
 //    implementation 'org.webjars:swagger-ui:5.12.0'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.4.0'
+    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-mysql'
 }
 
 tasks.named('test') {
