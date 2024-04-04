@@ -24,23 +24,26 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 @EnableWebSecurity
 public class SecurityConfig {
     @Autowired
-   private JwtAuthorisationFilter jwtAuthorisationFilter;
+    private JwtAuthorisationFilter jwtAuthorisationFilter;
 
     @Bean
     public static PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
     @Bean
-    UserDetailsServiceImpl userDetailsService(){
+    UserDetailsServiceImpl userDetailsService() {
         return new UserDetailsServiceImpl();
     }
+
     @Bean
-    DaoAuthenticationProvider authenticationProvider(){
+    DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
         daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
         daoAuthenticationProvider.setUserDetailsService(userDetailsService());
         return daoAuthenticationProvider;
     }
+
     @Bean
     AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
@@ -49,23 +52,24 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(authorize -> authorize
-                                //.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
-                                .requestMatchers("/registration").permitAll()
-                                .requestMatchers("/login").permitAll()
-                                .requestMatchers("/confirm").permitAll()
-                                .requestMatchers("/category/**").hasAnyAuthority("ROLE_ADMIN")
-                                //.requestMatchers("/category**").hasAnyAuthority("ROLE_ADMIN")
-                                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/swagger").permitAll()
-                                .requestMatchers("/advertisement/**").hasAnyRole("ADMIN", "VIP_USER", "USER")
-                                .requestMatchers("/test").hasAnyRole("USER","VIP_USER","ADMIN")
-
-                                .anyRequest().authenticated())
+                        //.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
+                        .requestMatchers("/registration").permitAll()
+                        .requestMatchers("/login").permitAll()
+                        .requestMatchers("/confirm").permitAll()
+                        .requestMatchers("/category/**").hasAnyAuthority("ROLE_ADMIN")
+                        //.requestMatchers("/category**").hasAnyAuthority("ROLE_ADMIN")
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/swagger").permitAll()
+                        .requestMatchers("/advertisement/**").hasAnyRole("ADMIN", "VIP_USER", "USER")
+                        .requestMatchers("/test").hasAnyRole("USER", "VIP_USER", "ADMIN")
+                        .requestMatchers("/createCustomer").permitAll()
+                        .requestMatchers("/vip").permitAll()
+                        .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
                 .addFilterBefore(jwtAuthorisationFilter, UsernamePasswordAuthenticationFilter.class)
                 //.csrf(AbstractHttpConfigurer::disable);
                 .csrf(csrf -> csrf.disable());
-                //.exceptionHandling((exceptions) -> exceptions.authenticationEntryPoint(new CustomAuthenticationEntryPoint()));
+        //.exceptionHandling((exceptions) -> exceptions.authenticationEntryPoint(new CustomAuthenticationEntryPoint()));
         return http.build();
     }
 

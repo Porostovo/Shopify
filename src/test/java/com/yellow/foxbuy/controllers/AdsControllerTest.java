@@ -47,33 +47,39 @@ public class AdsControllerTest {
         adRepository.deleteAll();
     }
 
-//  @Test
-//  @WithMockUser(username = "user", roles = "USER")
-//    public void adCreatedSuccess() throws Exception {
-//        int initialAdCount = adRepository.findAll().size();
-//
-//        Category beverageCategory = new Category("Beverage", "Buy some good beer.");
-//        categoryRepository.save(beverageCategory);
-//
-//        User user = new User("user", "user@email.cz","Password1*");
-//        userRepository.save(user);
-//
-//        Ad ad= new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345");
-//        adRepository.save(ad);
-//
-//        mockMvc.perform(MockMvcRequestBuilders.post("/advertisement")
-//                        .content(objectMapper.writeValueAsString(ad))
-//                        .contentType(MediaType.APPLICATION_JSON))
-//                .andExpect(status().is(200))
-//                .andExpect(jsonPath("$.id", is(1)))
-//                .andExpect(jsonPath("$.title", is("Pilsner urquell")))
-//                .andExpect(jsonPath("$.description", is("Tasty beer.")))
-//                .andExpect(jsonPath("$.price", is(3000.00)))
-//                .andExpect(jsonPath("$.zipcode", is(12345)))
-//                .andExpect(jsonPath("$.categoryID", is(2L)));
-//
-//        assertEquals(initialAdCount + 1, adRepository.findAll().size());
-//    }
+  @Test
+  @WithMockUser(username = "user", roles = "USER")
+    public void adCreatedSuccess() throws Exception {
+        int initialAdCount = adRepository.findAll().size();
+
+        Category beverageCategory = new Category("Beverage", "Buy some good beer.");
+        categoryRepository.save(beverageCategory);
+        long id = beverageCategory.getId();
+        int catId = (int) id;
+
+       // User user = new User("user", "user@email.cz","Password1*");
+       // userRepository.save(user);
+
+        AdDTO addto = new AdDTO("Pilsner urquell", "Tasty beer.", 3000.00, "12345",id);
+
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/advertisement")
+                        .content(objectMapper.writeValueAsString(addto))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(200))
+               //.andExpect(jsonPath("$.id", is(1)))
+                .andExpect(jsonPath("$.title", is("Pilsner urquell")))
+                .andExpect(jsonPath("$.description", is("Tasty beer.")))
+                .andExpect(jsonPath("$.price", is(3000.00)))
+                .andExpect(jsonPath("$.zipcode", is("12345")))
+               .andExpect(jsonPath("$.categoryID", is(catId)));
+
+        Ad ad = adRepository.findById(20L).orElseThrow();
+      System.out.println(ad.getTitle() + ad.getId());
+      System.out.println("XXXXXXX"+ad.getUser());
+
+        assertEquals(initialAdCount + 1, adRepository.findAll().size());
+    }
 
     @Test
     @WithMockUser(username = "user", roles = "USER")

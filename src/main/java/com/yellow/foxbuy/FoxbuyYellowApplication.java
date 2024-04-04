@@ -46,7 +46,7 @@ public class FoxbuyYellowApplication implements CommandLineRunner {
     public void run(String... args) throws Exception {
 
         Role roleUser = roleRepository.save(new Role("ROLE_USER"));
-        Role roleVipUser = roleRepository.save(new Role("ROLE_VIP_USER"));
+        Role roleVipUser = roleRepository.save(new Role("ROLE_VIP"));
         Role roleAdmin = roleRepository.save(new Role("ROLE_ADMIN"));
 
         Category beverageCategory = new Category("Beverage", "Buy some good beer.");

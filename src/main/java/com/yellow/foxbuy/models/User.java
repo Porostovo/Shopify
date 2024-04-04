@@ -34,6 +34,8 @@ public class  User implements UserDetails {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
+    private String fullName;
+    private String address;
 
     public User(String username, String email, String password) {
         this.username = username;
