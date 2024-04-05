@@ -15,5 +15,6 @@ public interface AdRepository extends JpaRepository<Ad,Long> {
     List<Ad> findAllByCategoryId(Long id);
     List<Ad> findAllByUserUsername(String username);
     Page<Ad> findByCategoryId(Long categoryId, Pageable pageable);
+    long countByCategoryId (Long id);
 }
 

@@ -93,8 +93,9 @@ public class AdServiceImp implements AdService {
     }
 
     @Override
-    public int getTotalPages(List<AdResponseDTO> adResponseDTOList) {
-        return (int) Math.ceil((double) adResponseDTOList.size() / 10.0);
+    public int getTotalPages(Long categoryId) {
+        long totalAds = adRepository.countByCategoryId(categoryId);
+        return (int) Math.ceil((double) totalAds / 10.0);
     }
 
     private static AdResponseDTO loadAdResponseDTO (Ad ad){
