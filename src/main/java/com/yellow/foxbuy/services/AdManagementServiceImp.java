@@ -132,7 +132,7 @@ public class AdManagementServiceImp implements AdManagementService {
             return ResponseEntity.status(404).body(result);
 
         }
-        boolean isAdmin = hasRole(authentication, "ADMIN");
+        boolean isAdmin = hasRole(authentication, "ROLE_ADMIN");
 
         if (!isAdmin) {
 
