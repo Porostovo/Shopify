@@ -1,4 +1,4 @@
-package com.yellow.foxbuy.services;
+package com.yellow.foxbuy.services.implementations;
 
 import com.yellow.foxbuy.models.Ad;
 import com.yellow.foxbuy.models.Category;
@@ -6,6 +6,7 @@ import com.yellow.foxbuy.models.DTOs.CategDTO;
 import com.yellow.foxbuy.models.DTOs.CategoryDTO;
 import com.yellow.foxbuy.repositories.AdRepository;
 import com.yellow.foxbuy.repositories.CategoryRepository;
+import com.yellow.foxbuy.services.interfaces.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

@@ -1,7 +1,9 @@
-package com.yellow.foxbuy.services;
+package com.yellow.foxbuy.services.implementations;
 
 import com.yellow.foxbuy.models.ConfirmationToken;
 import com.yellow.foxbuy.models.User;
+import com.yellow.foxbuy.services.interfaces.ConfirmationTokenService;
+import com.yellow.foxbuy.services.interfaces.EmailService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;

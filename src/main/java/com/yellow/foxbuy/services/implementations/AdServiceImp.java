@@ -1,8 +1,9 @@
-package com.yellow.foxbuy.services;
+package com.yellow.foxbuy.services.implementations;
 
 import com.yellow.foxbuy.models.Ad;
 import com.yellow.foxbuy.models.DTOs.AdResponseDTO;
 import com.yellow.foxbuy.repositories.AdRepository;
+import com.yellow.foxbuy.services.interfaces.AdService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

@@ -1,10 +1,14 @@
-package com.yellow.foxbuy.services;
+package com.yellow.foxbuy.services.implementations;
 
 import com.yellow.foxbuy.models.Ad;
 import com.yellow.foxbuy.models.Category;
 import com.yellow.foxbuy.models.DTOs.AdDTO;
 import com.yellow.foxbuy.models.DTOs.AdResponseDTO;
 import com.yellow.foxbuy.models.User;
+import com.yellow.foxbuy.services.interfaces.AdManagementService;
+import com.yellow.foxbuy.services.interfaces.AdService;
+import com.yellow.foxbuy.services.interfaces.CategoryService;
+import com.yellow.foxbuy.services.interfaces.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -132,7 +136,7 @@ public class AdManagementServiceImp implements AdManagementService {
             return ResponseEntity.status(404).body(result);
 
         }
-        boolean isAdmin = hasRole(authentication, "ADMIN");
+        boolean isAdmin = hasRole(authentication, "ROLE_ADMIN");
 
         if (!isAdmin) {
 

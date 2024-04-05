@@ -1,13 +1,13 @@
-package com.yellow.foxbuy.services;
+package com.yellow.foxbuy.services.implementations;
 
 import com.yellow.foxbuy.models.ConfirmationToken;
 import com.yellow.foxbuy.models.User;
 import com.yellow.foxbuy.repositories.UserRepository;
+import com.yellow.foxbuy.services.interfaces.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 public class UserServiceImp implements UserService {

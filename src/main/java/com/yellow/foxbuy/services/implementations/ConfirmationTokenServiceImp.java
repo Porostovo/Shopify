@@ -1,14 +1,16 @@
-package com.yellow.foxbuy.services;
+package com.yellow.foxbuy.services.implementations;
 
 import com.yellow.foxbuy.models.ConfirmationToken;
 import com.yellow.foxbuy.repositories.ConfirmationTokenRepository;
+import com.yellow.foxbuy.services.interfaces.ConfirmationTokenService;
+import com.yellow.foxbuy.services.interfaces.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
 @Service
-public class ConfirmationTokenServiceImp implements ConfirmationTokenService{
+public class ConfirmationTokenServiceImp implements ConfirmationTokenService {
 
     private final ConfirmationTokenRepository confirmationTokenRepository;
     private final UserService userService;

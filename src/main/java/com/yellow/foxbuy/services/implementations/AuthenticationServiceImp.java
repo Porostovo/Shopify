@@ -1,4 +1,4 @@
-package com.yellow.foxbuy.services;
+package com.yellow.foxbuy.services.implementations;
 
 import com.yellow.foxbuy.config.SecurityConfig;
 import com.yellow.foxbuy.models.DTOs.AuthResponseDTO;
@@ -6,6 +6,10 @@ import com.yellow.foxbuy.models.DTOs.LoginRequest;
 import com.yellow.foxbuy.models.DTOs.UserDTO;
 import com.yellow.foxbuy.models.Role;
 import com.yellow.foxbuy.models.User;
+import com.yellow.foxbuy.services.interfaces.AuthenticationService;
+import com.yellow.foxbuy.services.interfaces.EmailService;
+import com.yellow.foxbuy.services.interfaces.RoleService;
+import com.yellow.foxbuy.services.interfaces.UserService;
 import com.yellow.foxbuy.utils.JwtUtil;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;

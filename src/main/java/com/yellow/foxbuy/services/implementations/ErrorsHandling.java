@@ -1,4 +1,4 @@
-package com.yellow.foxbuy.services;
+package com.yellow.foxbuy.services.implementations;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;

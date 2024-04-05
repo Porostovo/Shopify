@@ -1,4 +1,4 @@
-package com.yellow.foxbuy.services;
+package com.yellow.foxbuy.services.implementations;
 
 import com.yellow.foxbuy.models.Role;
 import com.yellow.foxbuy.models.User;

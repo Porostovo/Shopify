@@ -1,4 +1,4 @@
-package com.yellow.foxbuy.services;
+package com.yellow.foxbuy.services.interfaces;
 
 import com.yellow.foxbuy.models.DTOs.AdDTO;
 import org.springframework.http.ResponseEntity;
