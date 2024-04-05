@@ -91,7 +91,7 @@ public class AdsController {
     @ApiResponse(responseCode = "400", description = "User or category doesn't exist or unexpected error.")
     public ResponseEntity<?> listAds(@RequestParam (required = false) String user,
                                      @RequestParam (required = false) Long category,
-                                     @RequestParam (required = false) Integer page){
+                                     @RequestParam (required = false, defaultValue = "1") Integer page){
         Map<String, String> error = new HashMap<>();
         if (user != null && userService.existsByUsername(user)) {
             return ResponseEntity.status(200).body(adService.findAllByUser(user));
