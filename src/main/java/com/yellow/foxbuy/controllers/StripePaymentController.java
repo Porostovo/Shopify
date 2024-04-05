@@ -2,96 +2,81 @@ package com.yellow.foxbuy.controllers;
 
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
-import com.stripe.model.Customer;
-import com.stripe.model.PaymentIntent;
-import com.stripe.model.PaymentMethod;
-import com.stripe.model.PaymentSource;
-import com.stripe.param.*;
-import com.yellow.foxbuy.models.DTOs.CustomerData;
+import com.stripe.model.*;
+
+import com.yellow.foxbuy.models.DTOs.CustomerDTO;
+
+import com.yellow.foxbuy.models.Role;
+import com.yellow.foxbuy.models.User;
+import com.yellow.foxbuy.services.AdManagementServiceImp;
+import com.yellow.foxbuy.services.ErrorsHandling;
+import com.yellow.foxbuy.services.RoleService;
+import com.yellow.foxbuy.services.UserService;
+import com.yellow.foxbuy.utils.StripeUtil;
+import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+
 @RestController
 public class StripePaymentController {
-//    @Autowired
-//    private PaymentService paymentService;
 
-    @Value("${stripe.apikey}")
-    String stripeKey;
+    @Autowired
+    private final UserService userService;
+    @Autowired
+    private final RoleService roleService;
+    private final StripeUtil stripeUtil;
+    private static final Long vipPrice = 2000L;//20$
+    private static final String currency = "usd";
 
-    @PostMapping("/createCustomer")
-    public ResponseEntity<CustomerData> index(@RequestBody CustomerData data) throws StripeException {
-        Stripe.apiKey=stripeKey;
-        CustomerCreateParams params = CustomerCreateParams.builder()
-                        .setName(data.getName())
-                        .setEmail(data.getEmail())
-                        .build();
-        Customer customer = Customer.create(params);
-        data.setCustromerId(customer.getId());
 
-//        Customer customer1 = Customer.retrieve(customer.getId());
-//        PaymentSourceCollectionCreateParams params1 =
-//                PaymentSourceCollectionCreateParams.builder().setSource("tok_visa").build();
-//        PaymentSource paymentSource = customer1.getPaymentSources().create(params1);
-//
-//        System.out.println(paymentSource.getLastResponse());
-
-        return ResponseEntity.status(200).body(data);
+    public StripePaymentController(UserService userService, RoleService roleService, StripeUtil stripeUtil) {
+        this.userService = userService;
+        this.roleService = roleService;
+        this.stripeUtil = stripeUtil;
     }
 
     @PostMapping("/vip")
-    public ResponseEntity<String> processVipPayment() throws StripeException {
-        Stripe.apiKey=stripeKey;
+    public ResponseEntity<?> processVipPayment(@Valid @RequestBody CustomerDTO customerDTO,
+                                               BindingResult bindingResult,
+                                               Authentication authentication) throws StripeException {
+        if (bindingResult.hasErrors()) {
+            return ErrorsHandling.handleValidationErrors(bindingResult);
+        }
 
-        PaymentMethodCreateParams paramsC =
-                PaymentMethodCreateParams.builder()
-                        .setType(PaymentMethodCreateParams.Type.CARD)
-                        .setCard(
-                                PaymentMethodCreateParams.CardDetails.builder()
-                                        .setNumber("4242424242424242")
-                                        .setExpMonth(8L)
-                                        .setExpYear(2026L)
-                                        .setCvc("314")
-                                        .build()
-                        )
-                        .build();
-        PaymentMethod paymentMethod = PaymentMethod.create(paramsC);
-        System.out.println(paymentMethod.getId());
+        User user = userService.findByUsername(authentication.getName()).orElseThrow();
 
-//        PaymentIntentCreateParams params =PaymentIntentCreateParams.builder()
-//                        .setAmount(2000L)
-//                        .setCurrency("usd")
-//                        //.setPaymentMethod("card")
-//                        .setAutomaticPaymentMethods(
-//                                PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
-//                                        .setEnabled(true)
-//                                        .build()
-//                        )
-//                        .build();
-//        PaymentIntent paymentIntent = PaymentIntent.create(params);
-//
-//        //System.out.println(paymentIntent.);
-//        PaymentIntent resource = PaymentIntent.retrieve(paymentIntent.getId());
-//
-//        PaymentIntentConfirmParams params2 = PaymentIntentConfirmParams.builder()
-//                        .setPaymentMethod("pm_card_visa")
-//                        .setReturnUrl("https://www.example.com")
-//                        .build();
-//        PaymentIntent paymentIntent2 = resource.confirm(params2);
-//        System.out.println(paymentIntent2.getStatus());
+        if (!AdManagementServiceImp.hasRole(authentication, "ROLE_USER") ||
+                !user.getAuthorities().stream().findAny().get().getAuthority().equals("ROLE_USER")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Payment failed. You are already  VIP member.");
+        }
+        //zneplatnit jwttoken?
 
+        final String customerId;
 
-            boolean paymentSuccessful = true; //   paymentService.processPayment(paymentRequest.getName(),
-//                paymentRequest.getNumber(),
-//                paymentRequest.getValid(),
-//                paymentRequest.getCvv());
-        if (paymentSuccessful) {
+        if (user.getCustomerId() == null) {
+            customerId = stripeUtil.createCustomerInStripe(customerDTO, user);
+            userService.saveCustomerIdFullNameAndAddress(customerId, customerDTO, user);
+        } else {
+            customerId = user.getCustomerId();
+        }
+
+        PaymentIntent paymentIntent = stripeUtil.createPaymentIntentAndConfirm(vipPrice,
+                currency, customerId, customerDTO.getPaymentMethod());
+
+        roleService.setVIPRoleToUser(user);
+
+        if (paymentIntent.getStatus().equals("succeeded")) {
+            //SEND INVOICE
             return ResponseEntity.ok("Payment successful. You are now a VIP member!");
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Payment failed. Please try again.");

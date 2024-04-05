@@ -36,6 +36,7 @@ public class  User implements UserDetails {
     private Set<Role> roles = new HashSet<>();
     private String fullName;
     private String address;
+    private String customerId;
 
     public User(String username, String email, String password) {
         this.username = username;
