@@ -5,6 +5,8 @@ import com.yellow.foxbuy.repositories.RoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class RoleServiceImp implements RoleService{
 @Autowired
@@ -17,5 +19,13 @@ public class RoleServiceImp implements RoleService{
     @Override
     public Role getReferenceById(long l) {
         return roleRepository.getReferenceById(l);
+    }
+
+    @Override
+    public Role findRoleByName(String name) {
+        Optional<Role> optRole = roleRepository.findRoleByName(name);
+        if (optRole.isPresent()){
+            return optRole.get();
+        } else return null;
     }
 }
