@@ -73,9 +73,10 @@ public class StripePaymentController {
         PaymentIntent paymentIntent = stripeUtil.createPaymentIntentAndConfirm(vipPrice,
                 currency, customerId, customerDTO.getPaymentMethod());
 
-        roleService.setVIPRoleToUser(user);
+
 
         if (paymentIntent.getStatus().equals("succeeded")) {
+            roleService.setVIPRoleToUser(user);
             //SEND INVOICE
             return ResponseEntity.ok("Payment successful. You are now a VIP member!");
         } else {

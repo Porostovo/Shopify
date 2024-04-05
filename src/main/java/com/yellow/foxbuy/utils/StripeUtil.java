@@ -49,8 +49,6 @@ public class StripeUtil {
                 .setPaymentMethod(paymentMethod)//"pm_card_visa"
                 .setReturnUrl("https://www.example.com")
                 .build();
-        PaymentIntent paymentIntent2 = paymentIntent.confirm(params2);
-        System.out.println(paymentIntent2.getStatus());
-        return paymentIntent2;
+        return paymentIntent.confirm(params2);
     }
 }
