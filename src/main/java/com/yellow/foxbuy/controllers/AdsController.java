@@ -1,7 +1,11 @@
 package com.yellow.foxbuy.controllers;
 
 import com.yellow.foxbuy.models.DTOs.AdDTO;
-import com.yellow.foxbuy.services.*;
+import com.yellow.foxbuy.services.implementations.ErrorsHandling;
+import com.yellow.foxbuy.services.interfaces.AdManagementService;
+import com.yellow.foxbuy.services.interfaces.AdService;
+import com.yellow.foxbuy.services.interfaces.CategoryService;
+import com.yellow.foxbuy.services.interfaces.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
@@ -13,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 
 @RestController

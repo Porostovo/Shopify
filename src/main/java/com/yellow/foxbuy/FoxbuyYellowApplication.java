@@ -9,7 +9,7 @@ import com.yellow.foxbuy.repositories.AdRepository;
 import com.yellow.foxbuy.repositories.CategoryRepository;
 import com.yellow.foxbuy.repositories.RoleRepository;
 import com.yellow.foxbuy.repositories.UserRepository;
-import com.yellow.foxbuy.utils.GeneratePdfInvoice;
+import com.yellow.foxbuy.utils.GeneratePdfUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -89,10 +89,10 @@ public class FoxbuyYellowApplication implements CommandLineRunner {
         adRepository.save(new Ad("Ad1", "Description1", 1000, "12345", user1, beverageCategory));
 
 
-        GeneratePdfInvoice generatePdfInvoice = new GeneratePdfInvoice("1", "John User", "Street 1, City, 12345", "03.04.2024");
+        GeneratePdfUtil generatePdfUtil = new GeneratePdfUtil(userRepository);
 
         try {
-            generatePdfInvoice.generateAndClose();
+            generatePdfUtil.generateAndCloseInvoice(user1.getUsername());
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }

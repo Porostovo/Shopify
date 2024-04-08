@@ -49,7 +49,6 @@ public class  User implements UserDetails {
         this.roles = roles;
     }
 
-
     //private Set<String> roles;
 
     // Other fields, constructor, and getter/setter methods

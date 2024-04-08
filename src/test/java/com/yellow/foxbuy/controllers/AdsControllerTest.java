@@ -87,7 +87,7 @@ public class AdsControllerTest {
         Category beverageCategory = new Category("Beverage", "Buy some good beer." );
         categoryRepository.save(beverageCategory);
 
-        AdDTO adDTO= new AdDTO("Pilsner urquell", "Tasty beer.", 3000.00, "12345",12355L);
+        AdDTO adDTO= new AdDTO("Pilsner urquell", "Tasty beer.", 3000.00, "12345",1255L);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/advertisement")
                         .content(objectMapper.writeValueAsString(adDTO))
@@ -151,7 +151,7 @@ public class AdsControllerTest {
                 "email@email.com",
                 SecurityConfig.passwordEncoder().encode("password"),
                 new HashSet<>(Collections.singletonList(roleUser)));
-        user1.setVerified(true);
+        user1.setVerified(Boolean.TRUE);
         userRepository.save(user1);
 
          Category beverageCategory = new Category("Beverage", "Buy some good beer." );

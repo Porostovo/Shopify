@@ -21,16 +21,16 @@ public class AdDTO {
     private String description;
     @NotNull(message ="Price is required!")
     @Schema(description = "required", example = "3000.00")
-    private Double price;
+    private double price;
     @NotBlank(message = "Zipcode is required!")
     @Size(min = 5, max = 5, message = "Zipcode must be 5 digits long")
     @Schema(description = "required must have maximum 5 characters", example = "12345")
     private String zipcode;
     @NotNull(message = "Category is required!")
     @Schema(description = "required", example = "3")
-    private Long categoryID;
+    private long categoryID;
 
-    public AdDTO(String title, String description, Double price, String zipcode, Long categoryID) {
+    public AdDTO(String title, String description, double price, String zipcode, long categoryID) {
         this.title = title;
         this.description = description;
         this.price = price;

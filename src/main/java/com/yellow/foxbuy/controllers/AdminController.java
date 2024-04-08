@@ -3,8 +3,8 @@ package com.yellow.foxbuy.controllers;
 
 import com.yellow.foxbuy.models.Category;
 import com.yellow.foxbuy.models.DTOs.CategDTO;
-import com.yellow.foxbuy.services.CategoryService;
-import com.yellow.foxbuy.services.ErrorsHandling;
+import com.yellow.foxbuy.services.interfaces.CategoryService;
+import com.yellow.foxbuy.services.implementations.ErrorsHandling;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;

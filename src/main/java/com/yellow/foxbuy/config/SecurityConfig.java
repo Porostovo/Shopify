@@ -2,7 +2,7 @@ package com.yellow.foxbuy.config;
 
 import com.yellow.foxbuy.filters.JwtAuthorisationFilter;
 import com.yellow.foxbuy.models.ConfirmationToken;
-import com.yellow.foxbuy.services.UserDetailsServiceImpl;
+import com.yellow.foxbuy.services.implementations.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

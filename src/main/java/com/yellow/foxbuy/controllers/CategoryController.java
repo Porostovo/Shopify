@@ -1,6 +1,6 @@
 package com.yellow.foxbuy.controllers;
 
-import com.yellow.foxbuy.services.CategoryService;
+import com.yellow.foxbuy.services.interfaces.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
