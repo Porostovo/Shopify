@@ -14,6 +14,10 @@ INSERT INTO user_details (id, username, email, password, verified) VALUES
                      (@johnUserId, "JohnUSER", "email@email.com", "password", TRUE),
                      (@johnAdminId, "JohnADMIN", "emailA@email.com", "password", TRUE);
 
+INSERT INTO user_roles (role_id, user_id) VALUES
+                    (1, @johnUserId),
+                    (3, @johnAdminId);
+
 INSERT INTO ad (title, description, price, zipcode, category_id, user_id, local_date_time) VALUES
             ("Pilsner Urquell", "Tasty Beer", "3000", "12345", 1, @johnUserId, CURRENT_TIMESTAMP),
             ("Pilsner Urquell", "Tasty Beer", "3000", "12345", 1, @johnUserId, CURRENT_TIMESTAMP),
