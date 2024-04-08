@@ -1,6 +1,8 @@
 package com.yellow.foxbuy.models.DTOs;
 
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,6 +13,9 @@ import lombok.Setter;
 @NoArgsConstructor
 public class AuthResponseDTO {
     private String message;
+
+    @NotNull(message = "missing token")
+    @NotBlank(message = "missing token")
     private String token;
 
 }
