@@ -11,8 +11,9 @@ SET @johnUserId = UUID();
 SET @johnAdminId = UUID();
 
 INSERT INTO user_details (id, username, email, password, verified) VALUES
-                     (@johnUserId, "JohnUSER", "email@email.com", "password", TRUE),
-                     (@johnAdminId, "JohnADMIN", "emailA@email.com", "password", TRUE);
+                     (@johnUserId, "JohnUSER", "email@email.com", "$2a$10$4KueE1A/G7JgU8WbwcFYVeW/umcKcx6ccgmeMBsI4uidRlEYvEVJ.", TRUE),
+                     (@johnAdminId, "JohnADMIN", "emailA@email.com", "$2a$10$4KueE1A/G7JgU8WbwcFYVeW/umcKcx6ccgmeMBsI4uidRlEYvEVJ.", TRUE);
+-- password: Password123%
 
 INSERT INTO user_roles (role_id, user_id) VALUES
                     (1, @johnUserId),
