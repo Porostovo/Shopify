@@ -2,10 +2,38 @@ INSERT INTO role VALUES
                      (1, "ROLE_USER"),
                      (2, "ROLE_VIP_USER"),
                      (3, "ROLE_ADMIN");
+
 INSERT INTO category (name, description) VALUES
                      ("Beverage", "Buy some good beer."),
                      ("Nourishment", "Buy some good beef.");
-# INSERT INTO user_details (id, username, email, password, verified) VALUES
-#                      (UUID(), "JohnUSER", "email@email.com", "password", TRUE),
-#                      (UUID(), "JohnADMIN", "emailA@email.com", "password", TRUE);
--- INSERT INTO ad (title, description, price, zipcode, category_id, user_id)
+
+SET @johnUserId = UUID();
+SET @johnAdminId = UUID();
+
+INSERT INTO user_details (id, username, email, password, verified) VALUES
+                     (@johnUserId, "JohnUSER", "email@email.com", "password", TRUE),
+                     (@johnAdminId, "JohnADMIN", "emailA@email.com", "password", TRUE);
+
+INSERT INTO ad (title, description, price, zipcode, category_id, user_id, local_date_time) VALUES
+            ("Pilsner Urquell", "Tasty Beer", "3000", "12345", 1, @johnUserId, CURRENT_TIMESTAMP),
+            ("Pilsner Urquell", "Tasty Beer", "3000", "12345", 1, @johnUserId, CURRENT_TIMESTAMP),
+            ("Pilsner Urquell", "Tasty Beer", "3000", "12345", 1, @johnUserId, CURRENT_TIMESTAMP),
+            ("Pilsner Urquell", "Tasty Beer", "3000", "12345", 1, @johnUserId, CURRENT_TIMESTAMP),
+            ("Pilsner Urquell", "Tasty Beer", "3000", "12345", 1, @johnUserId, CURRENT_TIMESTAMP),
+            ("Pilsner Urquell", "Tasty Beer", "3000", "12345", 1, @johnUserId, CURRENT_TIMESTAMP),
+            ("Pilsner Urquell", "Tasty Beer", "3000", "12345", 1, @johnUserId, CURRENT_TIMESTAMP),
+            ("Pilsner Urquell", "Tasty Beer", "3000", "12345", 1, @johnUserId, CURRENT_TIMESTAMP),
+            ("Pilsner Urquell", "Tasty Beer", "3000", "12345", 1, @johnUserId, CURRENT_TIMESTAMP),
+            ("Pilsner Urquell", "Tasty Beer", "3000", "12345", 1, @johnUserId, CURRENT_TIMESTAMP),
+            ("Pilsner Urquell", "Tasty Beer", "3000", "12345", 1, @johnUserId, CURRENT_TIMESTAMP),
+            ("Pilsner Urquell", "Tasty Beer", "3000", "12345", 1, @johnUserId, CURRENT_TIMESTAMP),
+            ("Pilsner Urquell", "Tasty Beer", "3000", "12345", 1, @johnUserId, CURRENT_TIMESTAMP),
+            ("Pilsner Urquell", "Tasty Beer", "3000", "12345", 1, @johnUserId, CURRENT_TIMESTAMP),
+            ("Budweiser", "Tasty Beer too", "4000", "67890", 1, @johnAdminId, CURRENT_TIMESTAMP),
+            ("Budweiser", "Tasty Beer too", "4000", "67890", 1, @johnAdminId, CURRENT_TIMESTAMP),
+            ("Budweiser", "Tasty Beer too", "4000", "67890", 1, @johnAdminId, CURRENT_TIMESTAMP),
+            ("Budweiser", "Tasty Beer too", "4000", "67890", 1, @johnAdminId, CURRENT_TIMESTAMP),
+            ("Budweiser", "Tasty Beer too", "4000", "67890", 1, @johnAdminId, CURRENT_TIMESTAMP),
+            ("Scotch Steak", "Some good steak.", "6000", "11111", 2, @johnUserId, CURRENT_TIMESTAMP),
+            ("Scotch Steak", "Some good steak.", "6000", "11111", 2, @johnUserId, CURRENT_TIMESTAMP),
+            ("Scotch Steak", "Some good steak.", "6000", "11111", 2, @johnAdminId, CURRENT_TIMESTAMP);

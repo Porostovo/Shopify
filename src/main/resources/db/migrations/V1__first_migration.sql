@@ -7,7 +7,7 @@ CREATE TABLE ad
     local_date_time datetime              NULL,
     zipcode         VARCHAR(255)          NULL,
     category_id     BIGINT                NULL,
-    user_id         BINARY(16)            NULL,
+    user_id         BINARY(36)            NULL,
     CONSTRAINT pk_ad PRIMARY KEY (id)
 );
 
@@ -24,7 +24,7 @@ CREATE TABLE confirmation_token
 (
     id      BIGINT AUTO_INCREMENT NOT NULL,
     token   VARCHAR(255)          NOT NULL,
-    user_id BINARY(16)            NULL,
+    user_id BINARY(36)            NULL,
     CONSTRAINT pk_confirmationtoken PRIMARY KEY (id)
 );
 
@@ -37,7 +37,7 @@ CREATE TABLE `role`
 
 CREATE TABLE user_details
 (
-    id       BINARY(16)   NOT NULL,
+    id       BINARY(36)   NOT NULL,
     username VARCHAR(255) NULL,
     email    VARCHAR(255) NULL,
     password VARCHAR(255) NULL,
@@ -48,7 +48,7 @@ CREATE TABLE user_details
 CREATE TABLE user_roles
 (
     role_id BIGINT     NOT NULL,
-    user_id BINARY(16) NOT NULL,
+    user_id BINARY(36) NOT NULL,
     CONSTRAINT pk_user_roles PRIMARY KEY (role_id, user_id)
 );
 
