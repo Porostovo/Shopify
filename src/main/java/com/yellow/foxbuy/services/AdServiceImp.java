@@ -4,6 +4,8 @@ import com.yellow.foxbuy.models.Ad;
 import com.yellow.foxbuy.models.DTOs.AdResponseDTO;
 import com.yellow.foxbuy.repositories.AdRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -53,7 +55,7 @@ public class AdServiceImp implements AdService {
 
     @Override
     public boolean existsById(Long id) {
-        return adRepository.findAll().stream().anyMatch(ad -> Objects.equals(ad.getId(), id));
+        return adRepository.findById(id).isPresent();
     }
 
     @Override
@@ -81,10 +83,8 @@ public class AdServiceImp implements AdService {
         int pageSize = 10;
         int offset = (page - 1) * pageSize;
         List<AdResponseDTO> userAds = new ArrayList<>();
-        List<Ad> adList = adRepository.findAllByCategoryId(id).stream()
-                .skip(offset)
-                .limit(pageSize)
-                .toList();
+        Pageable pageable = PageRequest.of(page - 1, pageSize);
+        List<Ad> adList = adRepository.findByCategoryId(id, pageable).getContent();
 
         for (Ad ad : adList) {
             userAds.add(loadAdResponseDTO(ad));
@@ -93,8 +93,9 @@ public class AdServiceImp implements AdService {
     }
 
     @Override
-    public int getTotalPages(List<AdResponseDTO> adResponseDTOList) {
-        return (int) Math.ceil((double) adResponseDTOList.size() / 10.0);
+    public int getTotalPages(Long categoryId) {
+        long totalAds = adRepository.countByCategoryId(categoryId);
+        return (int) Math.ceil((double) totalAds / 10.0);
     }
 
     private static AdResponseDTO loadAdResponseDTO (Ad ad){

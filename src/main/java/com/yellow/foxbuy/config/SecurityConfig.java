@@ -6,6 +6,7 @@ import com.yellow.foxbuy.services.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -23,23 +24,26 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 @EnableWebSecurity
 public class SecurityConfig {
     @Autowired
-   private JwtAuthorisationFilter jwtAuthorisationFilter;
+    private JwtAuthorisationFilter jwtAuthorisationFilter;
 
     @Bean
     public static PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
     @Bean
-    UserDetailsServiceImpl userDetailsService(){
+    UserDetailsServiceImpl userDetailsService() {
         return new UserDetailsServiceImpl();
     }
+
     @Bean
-    DaoAuthenticationProvider authenticationProvider(){
+    DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
         daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
         daoAuthenticationProvider.setUserDetailsService(userDetailsService());
         return daoAuthenticationProvider;
     }
+
     @Bean
     AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
@@ -48,23 +52,29 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(authorize -> authorize
-                                //.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
-                                .requestMatchers("/registration").permitAll()
-                                .requestMatchers("/login").permitAll()
-                                .requestMatchers("/confirm").permitAll()
-                                .requestMatchers("/category/**").hasAnyAuthority("ROLE_ADMIN")
-                                //.requestMatchers("/category**").hasAnyAuthority("ROLE_ADMIN")
-                                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/swagger").permitAll()
-                                .requestMatchers("/advertisement/**").hasAnyRole("ADMIN", "VIP_USER", "USER")
-                                .requestMatchers("/test").hasAnyRole("USER","VIP_USER","ADMIN")
-                                .requestMatchers("/identity").authenticated()
-                                .anyRequest().authenticated())
+                        //.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
+                        .requestMatchers("/registration").permitAll()
+                        .requestMatchers("/login").permitAll()
+                        .requestMatchers("/confirm").permitAll()
+                        .requestMatchers("/category/**").hasAnyAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/category/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/category/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/category/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/category/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/swagger").permitAll()
+                        .requestMatchers("/advertisement/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/advertisement/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/advertisement/**").hasAnyRole("USER", "VIP", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/advertisement/**").hasAnyRole("USER", "VIP", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/advertisement/**").hasAnyRole("USER", "VIP", "ADMIN")
+                        .requestMatchers("/test").hasAnyRole("USER", "VIP", "ADMIN")
+                        .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
                 .addFilterBefore(jwtAuthorisationFilter, UsernamePasswordAuthenticationFilter.class)
                 //.csrf(AbstractHttpConfigurer::disable);
                 .csrf(csrf -> csrf.disable());
-                //.exceptionHandling((exceptions) -> exceptions.authenticationEntryPoint(new CustomAuthenticationEntryPoint()));
+        //.exceptionHandling((exceptions) -> exceptions.authenticationEntryPoint(new CustomAuthenticationEntryPoint()));
         return http.build();
     }
 

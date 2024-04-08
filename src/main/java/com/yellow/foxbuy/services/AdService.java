@@ -21,6 +21,6 @@ public interface AdService {
 
     List<AdResponseDTO> listAdsByPageAndCategory(Integer page, Long id);
 
-    int getTotalPages(List<AdResponseDTO> adResponseDTOList);
+    int getTotalPages(Long categoryId);
 
 }
