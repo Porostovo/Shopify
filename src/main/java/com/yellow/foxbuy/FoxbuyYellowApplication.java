@@ -89,10 +89,10 @@ public class FoxbuyYellowApplication implements CommandLineRunner {
         adRepository.save(new Ad("Ad1", "Description1", 1000, "12345", user1, beverageCategory));
 
 
-        GeneratePdfUtil generatePdfUtil = new GeneratePdfUtil(userRepository);
+        GeneratePdfUtil generatePdfUtil = new GeneratePdfUtil();
 
         try {
-            generatePdfUtil.generateAndCloseInvoice(user1.getUsername());
+            generatePdfUtil.generateAndSendInvoiceByEmail(user1.getUsername(),userRepository);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
