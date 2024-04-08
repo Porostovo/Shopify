@@ -7,4 +7,6 @@ public interface EmailService {
     void sendSimpleMessage(String to, String subject, String text) throws MessagingException;
 
     void sendVerificationEmail(User user) throws MessagingException;
+
+    void sendEmailWithAttachment(String to, String attachmentPath) throws MessagingException;
 }
