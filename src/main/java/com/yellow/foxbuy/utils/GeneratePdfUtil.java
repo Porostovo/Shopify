@@ -10,15 +10,12 @@ import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.Style;
-import com.itextpdf.layout.borders.Border;
 import com.itextpdf.layout.element.Image;
 import com.itextpdf.layout.element.Paragraph;
-import com.itextpdf.layout.element.Table;
 import com.itextpdf.layout.element.Text;
 import com.itextpdf.layout.properties.TextAlignment;
-import com.itextpdf.layout.properties.UnitValue;
 import com.yellow.foxbuy.models.User;
-import com.yellow.foxbuy.repositories.UserRepository;
+import com.yellow.foxbuy.services.interfaces.UserService;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -32,14 +29,16 @@ public class GeneratePdfUtil {
     private final String formattedDate;
     private final String invoiceNumber;
     private static int invoiceCounter = 0;
+    private final UserService userService;
 
-    public GeneratePdfUtil() {
+    public GeneratePdfUtil(UserService userService) {
+        this.userService = userService;
         LocalDate today = LocalDate.now();
         this.formattedDate = today.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
         this.invoiceNumber = generateInvoiceNumber();
     }
 
-    public void generateAndSendInvoiceByEmail(String username, UserRepository userRepository) throws IOException {
+    public void generateInvoice(String username) throws IOException {
         String path = "invoice_vip_" + invoiceNumber + ".pdf";
 
         try {
@@ -59,7 +58,7 @@ public class GeneratePdfUtil {
                     .setFont(font)
                     .setFontSize(20)
                     .setFontColor(ColorConstants.WHITE)
-                    .setBackgroundColor(ColorConstants.BLACK);
+                    .setBackgroundColor(ColorConstants.DARK_GRAY);
 
             // Title
             Paragraph title = new Paragraph()
@@ -77,13 +76,13 @@ public class GeneratePdfUtil {
             document.add(number);
 
             //Image
-            String imagePath = "C:\\Users\\Thinkpad\\Sarka\\FoxBuy\\badius-foxbuy-yellow\\src\\main\\resources\\fox.png";
+            String imagePath = "src/main/resources/fox.png";
             ImageData imageData = ImageDataFactory.create(imagePath);
             Image image = new Image(imageData);
 
             float width = 80f;
             float height = 80f;
-            image.scaleAbsolute(width,height);  // Resize the image
+            image.scaleAbsolute(width, height);  // Resize the image
             image.setFixedPosition(50, 700);
             document.add(image);
 
@@ -96,38 +95,32 @@ public class GeneratePdfUtil {
 
             // Company address
             Paragraph companyInfo = new Paragraph()
-                    .add("FOX BUY YELLOW team company CZ s.r.o.\nAddress: Václavské námestí 837/11, Nové Mesto, 110 00 Praha\nICO: 07513666")
+                    .add("Company: \nFOX BUY YELLOW team company CZ s.r.o.\nAddress: Vaclavske namesti 837/11, Nove Mesto, 110 00 Praha\nICO: 07513666")
                     .setTextAlignment(TextAlignment.LEFT)
-                    .setMarginBottom(20);
+                    .setFontSize(14)                    .setMarginBottom(20);
             document.add(companyInfo);
 
             document.add(emptyLine);
-            Optional<User> userOptional = userRepository.findByUsername(username);
+            Optional<User> userOptional = userService.findByUsername(username);
+
             if (userOptional.isPresent()) {
                 User user = userOptional.get();
                 Paragraph userInfo = new Paragraph()
                         .add("Billing to: \nCustomer: " + user.getFullName() + "\nAddress: " + user.getAddress() + "\nEmail: " + user.getEmail())
                         .setTextAlignment(TextAlignment.LEFT)
+                        .setFontSize(14)
                         .setMarginBottom(20);
                 document.add(userInfo);
 
                 document.add(emptyLine);
 
-                // User information table
-                Table userTable = new Table(UnitValue.createPercentArray(new float[]{50, 50}))
-                        .setWidth(UnitValue.createPercentValue(100))
-                        .setTextAlignment(TextAlignment.LEFT)
-                        .setMarginBottom(20)
-                        .setBorder(Border.NO_BORDER);
-
-                document.add(userTable);
-
                 // VIP benefits
                 Paragraph vipBenefits = new Paragraph()
-                        .add("Payment for VIP User account")
+                        .add("Payment for VIP User account for one year.................................................20 USD")
                         .setFontSize(14)
                         .setBold()
                         .setMarginBottom(20)
+                        .setMarginRight(10)
                         .setBackgroundColor(ColorConstants.LIGHT_GRAY);
                 document.add(vipBenefits);
 
@@ -137,7 +130,8 @@ public class GeneratePdfUtil {
                         .add("Total Payment: $20")
                         .setFontSize(20)
                         .setTextAlignment(TextAlignment.RIGHT)
-                        .setMarginBottom(20);
+                        .setMarginBottom(20)
+                        .setMarginRight(10);
                 document.add(totalPayment);
 
                 // Close the document

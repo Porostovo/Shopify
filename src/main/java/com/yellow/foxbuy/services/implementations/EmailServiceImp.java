@@ -72,12 +72,12 @@ public class EmailServiceImp implements EmailService {
         helper.setText(text, true);
 
         // Add Attachment
-        attachmentPath = "C:\\Users\\Thinkpad\\Sarka\\FoxBuy\\badius-foxbuy-yellow\\invoice_vip_INV-08-04-2024-001.pdf";
         FileSystemResource file = new FileSystemResource(new File(attachmentPath));
         helper.addAttachment(Objects.requireNonNull(file.getFilename()), file);
 
         emailSender.send(message);
     }
+
 
 }
 
