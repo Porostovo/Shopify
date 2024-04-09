@@ -101,9 +101,9 @@ public class AuthenticationServiceImp implements AuthenticationService {
 
         Set<Role> userRole = new HashSet<>();
         if (userService.userRepositoryIsEmpty()) {
-            userRole.add(roleService.getReferenceById(3L));
+            userRole.add(roleService.findRoleByName("ROLE_ADMIN"));
         } else {
-            userRole.add(roleService.getReferenceById(1L));
+            userRole.add(roleService.findRoleByName("ROLE_USER"));
         }
 
         User user = new User(userDTO.getUsername(),

@@ -38,10 +38,7 @@ public class AdminController {
             return ResponseEntity.status(400).body(result);
         }
         CategDTO categDTO1 = categoryService.save(categDTO);
-        result.put("name", categDTO1.getName());
-        result.put("description", categDTO1.getDescription());
-        result.put("id", categDTO1.getId());
-        return ResponseEntity.status(200).body(result);
+        return ResponseEntity.status(200).body(categDTO1);
     }
     @Operation(summary = "Update Category", description = "Update Category {id} with name and description.")
     @ApiResponse(responseCode = "200", description = "Category Updated.")
@@ -67,10 +64,7 @@ public class AdminController {
             return ResponseEntity.status(400).body(result);
         }
         CategDTO categDTO1 = categoryService.updateCategory(id, categDTO);
-        result.put("name", categDTO1.getName());
-        result.put("description", categDTO1.getDescription());
-        result.put("id", categDTO1.getId());
-        return ResponseEntity.status(200).body(result);
+        return ResponseEntity.status(200).body(categDTO1);
     }
     @Operation(summary = "Delete Category", description = "Delete Category {id}.")
     @ApiResponse(responseCode = "200", description = "Category Deleted")
