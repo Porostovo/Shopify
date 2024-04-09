@@ -103,7 +103,7 @@ public class AuthenticationServiceImp implements AuthenticationService {
         if (userService.userRepositoryIsEmpty()) {
             userRole.add(roleService.findRoleByName("ROLE_ADMIN"));
         } else {
-            userRole.add(roleService.findRoleByName("ROLE_VIP"));
+            userRole.add(roleService.findRoleByName("ROLE_USER"));
         }
 
         User user = new User(userDTO.getUsername(),
