@@ -9,10 +9,6 @@ import com.yellow.foxbuy.repositories.AdRepository;
 import com.yellow.foxbuy.repositories.CategoryRepository;
 import com.yellow.foxbuy.repositories.RoleRepository;
 import com.yellow.foxbuy.repositories.UserRepository;
-import com.yellow.foxbuy.services.implementations.EmailServiceImp;
-import com.yellow.foxbuy.services.interfaces.ConfirmationTokenService;
-import com.yellow.foxbuy.services.interfaces.UserService;
-import com.yellow.foxbuy.utils.GeneratePdfUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -28,20 +24,15 @@ public class FoxbuyYellowApplication implements CommandLineRunner {
     private final AdRepository adRepository;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-    private final UserService userService;
-    private final EmailServiceImp emailServiceImp;
-    private final ConfirmationTokenService confirmationTokenService;
+
 
     @Autowired
-    public FoxbuyYellowApplication(CategoryRepository categoryRepository, AdRepository adRepository, UserRepository userRepository, RoleRepository roleRepository, UserService userService, EmailServiceImp emailServiceImp, ConfirmationTokenService confirmationTokenService) throws FileNotFoundException {
+    public FoxbuyYellowApplication(CategoryRepository categoryRepository, AdRepository adRepository, UserRepository userRepository, RoleRepository roleRepository) throws FileNotFoundException {
         this.categoryRepository = categoryRepository;
         this.adRepository = adRepository;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
-        this.userService = userService;
-        this.emailServiceImp = emailServiceImp;
 
-        this.confirmationTokenService = confirmationTokenService;
     }
 
     public static void main(String[] args) {
@@ -98,13 +89,6 @@ public class FoxbuyYellowApplication implements CommandLineRunner {
         adRepository.save(new Ad("Ad1", "Description1", 1000, "12345", user1, beverageCategory));
         adRepository.save(new Ad("Ad1", "Description1", 1000, "12345", user1, beverageCategory));
 
-        GeneratePdfUtil generatePdfUtil = new GeneratePdfUtil(userService);
-
-        try {
-            generatePdfUtil.generateInvoice(user1);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
 
     }
 }
