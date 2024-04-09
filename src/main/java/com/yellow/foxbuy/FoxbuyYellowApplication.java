@@ -102,7 +102,7 @@ public class FoxbuyYellowApplication implements CommandLineRunner {
         GeneratePdfUtil generatePdfUtil = new GeneratePdfUtil(userService);
 
         try {
-            generatePdfUtil.generateInvoice(user1.getUsername());
+            generatePdfUtil.generateInvoice(user1);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -111,7 +111,7 @@ public class FoxbuyYellowApplication implements CommandLineRunner {
 
        String attachmentPath = "src/main/resources/invoice_vip_INV-09-04-2024-001.pdf";
 
-        emailServiceImp1.sendEmailWithAttachment(user1.getEmail(), attachmentPath);
+      emailServiceImp1.sendEmailWithAttachment(user1.getEmail(), attachmentPath);
 
     }
 }
