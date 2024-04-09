@@ -19,14 +19,16 @@ public class UserController {
     private final UserService userService;
     private final AuthenticationService authenticationService;
     private final ConfirmationTokenService confirmationTokenService;
+    private final LogService logService;
 
     @Autowired
     public UserController(UserService userService,
                           ConfirmationTokenService confirmationTokenService,
-                          AuthenticationService authenticationService) {
+                          AuthenticationService authenticationService, LogService logService) {
         this.userService = userService;
         this.confirmationTokenService = confirmationTokenService;
         this.authenticationService = authenticationService;
+        this.logService = logService;
     }
 
 
@@ -37,12 +39,15 @@ public class UserController {
     public ResponseEntity<?> userRegistration(@Valid @RequestBody UserDTO userDTO,
                                               BindingResult bindingResult) throws MessagingException {
         if (bindingResult.hasErrors()) {
+            logService.addLog("POST /registration", "ERROR", userDTO.toString());
             return ErrorsHandling.handleValidationErrors(bindingResult);
         }
 
         if (userService.existsByUsername(userDTO.getUsername())|| userService.existsByEmail(userDTO.getEmail())) {
+            logService.addLog("POST /registration", "ERROR", userDTO.toString());
             return ResponseEntity.status(400).body(authenticationService.badRegisterUser(userDTO));
         } else {
+            logService.addLog("POST /registration", "INFO", userDTO.toString());
             return ResponseEntity.status(200).body(authenticationService.goodRegisterUser(userDTO));
         }
     }
@@ -55,8 +60,10 @@ public class UserController {
                                                          BindingResult bindingResult) {
 
         if (bindingResult.hasErrors()) {
+            logService.addLog("POST /login", "ERROR", loginRequest.toString());
             return ErrorsHandling.handleValidationErrors(bindingResult);
         }
+        logService.addLog("POST /login", "INFO", loginRequest.toString());
         return authenticationService.authenticateUser(loginRequest);
     }
 
@@ -64,6 +71,7 @@ public class UserController {
     @Operation(summary = "Token confirmation", description = "Set user as verified if confirmed.")
     @ApiResponse(responseCode = "200", description = "User set as verified.")
     public String confirm(@RequestParam("token") String token) {
+        logService.addLog("GET /confirm", "INFO", "token = " + token);
         return confirmationTokenService.confirmToken(token);
     }
 
@@ -75,8 +83,10 @@ public class UserController {
     public ResponseEntity<?> userIdentity(@Valid @RequestBody AuthResponseDTO authResponseDTO,
                                           BindingResult bindingResult){
         if (bindingResult.hasErrors()) {
+            logService.addLog("POST /indentity", "ERROR", authResponseDTO.toString());
             return ErrorsHandling.handleValidationErrors(bindingResult);
         }
+        logService.addLog("POST /indentity", "INFO", authResponseDTO.toString());
         return authenticationService.verifyJwtToken(authResponseDTO.getToken());
     }
 

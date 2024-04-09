@@ -5,6 +5,7 @@ import com.yellow.foxbuy.models.Category;
 import com.yellow.foxbuy.models.DTOs.CategDTO;
 import com.yellow.foxbuy.services.CategoryService;
 import com.yellow.foxbuy.services.ErrorsHandling;
+import com.yellow.foxbuy.services.LogService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
@@ -18,10 +19,12 @@ import java.util.Map;
 @RestController
 public class AdminController {
     private final CategoryService categoryService;
+    private final LogService logService;
 
     @Autowired
-    public AdminController(CategoryService categoryService) {
+    public AdminController(CategoryService categoryService, LogService logService) {
         this.categoryService = categoryService;
+        this.logService = logService;
     }
     @Operation(summary = "Create new Category", description = "Create new Category with name and description.")
     @ApiResponse(responseCode = "200", description = "Category created.")
@@ -31,13 +34,16 @@ public class AdminController {
         Map<String, Object> result = new HashMap<>();
 
         if (bindingResult.hasErrors()) {
+            logService.addLog("POST /category", "ERROR", categDTO.toString());
             return ErrorsHandling.handleValidationErrors(bindingResult);
         }
         if(!categoryService.isCategoryNameUnique(categDTO.getName())){
             result.put("error", "This category name is already taken.");
+            logService.addLog("POST /category", "ERROR", categDTO.toString());
             return ResponseEntity.status(400).body(result);
         }
         CategDTO categDTO1 = categoryService.save(categDTO);
+        logService.addLog("POST /category", "INFO", categDTO.toString());
         return ResponseEntity.status(200).body(categDTO1);
     }
     @Operation(summary = "Update Category", description = "Update Category {id} with name and description.")
@@ -50,10 +56,12 @@ public class AdminController {
         Map<String, Object> result = new HashMap<>();
 
         if (bindingResult.hasErrors()) {
+            logService.addLog("PUT /category/{id}", "ERROR", categDTO.toString());
             return ErrorsHandling.handleValidationErrors(bindingResult);
         }
         if(!categoryService.categoryIdExists(id)){
             result.put("error", "This category id doesn't exist.");
+            logService.addLog("PUT /category/{id}", "ERROR", categDTO.toString());
             return ResponseEntity.status(400).body(result);
         }
         String name = categoryService.findNameById(id);
@@ -61,9 +69,11 @@ public class AdminController {
         System.out.println(categDTO.getName());
         if(!categoryService.isCategoryNameUnique(categDTO.getName()) && !name.equals(categDTO.getName()) ){
             result.put("error", "This category name is already taken.");
+            logService.addLog("PUT /category/{id}", "ERROR", categDTO.toString());
             return ResponseEntity.status(400).body(result);
         }
         CategDTO categDTO1 = categoryService.updateCategory(id, categDTO);
+        logService.addLog("PUT /category/{id}", "INFO", categDTO.toString());
         return ResponseEntity.status(200).body(categDTO1);
     }
     @Operation(summary = "Delete Category", description = "Delete Category {id}.")
@@ -74,15 +84,19 @@ public class AdminController {
         Map<String, Object> result = new HashMap<>();
         if(!categoryService.categoryIdExists(id)){
             result.put("error", "This category id doesn't exist.");
+            logService.addLog("DELETE /category/{id}", "ERROR", "id = " + id);
             return ResponseEntity.status(400).body(result);
         }
         Category category = categoryService.findCategoryById(id);
         if(category.getName().equals("Uncategorized")){
             result.put("error", "This category is not possible to delete");
+            logService.addLog("DELETE /category/{id}", "ERROR", "id = " + id);
             return ResponseEntity.status(400).body(result);
         }
         categoryService.deleteCategory(id);
-        return ResponseEntity.status(200).body("Category was deleted.");
+        result.put("message", "Category was deleted.");
+        logService.addLog("DELETE /category/{id}", "INFO", "id = " + id);
+        return ResponseEntity.status(200).body(result);
     }
 }
 
