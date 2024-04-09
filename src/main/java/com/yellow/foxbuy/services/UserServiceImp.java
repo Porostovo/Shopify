@@ -1,6 +1,7 @@
 package com.yellow.foxbuy.services;
 
 import com.yellow.foxbuy.models.ConfirmationToken;
+import com.yellow.foxbuy.models.DTOs.CustomerDTO;
 import com.yellow.foxbuy.models.User;
 import com.yellow.foxbuy.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,5 +53,13 @@ public class UserServiceImp implements UserService {
     @Override
     public boolean userRepositoryIsEmpty() {
         return !userRepository.existsBy();
+    }
+
+    @Override
+    public void saveCustomerIdFullNameAndAddress(String customerId, CustomerDTO customerDTO, User user) {
+        user.setAddress(customerDTO.getAddress());
+        user.setCustomerId(customerId);
+        user.setFullName(customerDTO.getFullName());
+        userRepository.save(user);
     }
 }

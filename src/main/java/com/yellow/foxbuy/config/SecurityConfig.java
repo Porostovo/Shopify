@@ -57,6 +57,7 @@ public class SecurityConfig {
                         .requestMatchers("/login").permitAll()
                         .requestMatchers("/confirm").permitAll()
                         .requestMatchers("/category/**").hasAnyAuthority("ROLE_ADMIN")
+                        .requestMatchers("/vip").hasAnyRole("USER", "VIP_USER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/category/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/category/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/category/**").hasAuthority("ROLE_ADMIN")

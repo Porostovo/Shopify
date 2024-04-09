@@ -20,6 +20,9 @@ public class Role {
     @ManyToMany (mappedBy = "roles")
     List<User> users = new ArrayList<>();
 
+    @ManyToMany(mappedBy = "roles")
+    List<User> user = new ArrayList<>();
+
     public Role(String name) {
         this.name = name;
     }
