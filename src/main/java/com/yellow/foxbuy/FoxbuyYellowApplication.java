@@ -18,10 +18,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @SpringBootApplication
 public class FoxbuyYellowApplication implements CommandLineRunner {
@@ -46,7 +43,7 @@ public class FoxbuyYellowApplication implements CommandLineRunner {
     public void run(String... args) throws Exception {
 
         Role roleUser = roleRepository.save(new Role("ROLE_USER"));
-        Role roleVipUser = roleRepository.save(new Role("ROLE_VIP_USER"));
+        Role roleVipUser = roleRepository.save(new Role("ROLE_VIP"));
         Role roleAdmin = roleRepository.save(new Role("ROLE_ADMIN"));
 
         Category beverageCategory = new Category("Beverage", "Buy some good beer.");

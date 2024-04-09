@@ -132,7 +132,7 @@ public class AdManagementServiceImp implements AdManagementService {
             return ResponseEntity.status(404).body(result);
 
         }
-        boolean isAdmin = hasRole(authentication, "ADMIN");
+        boolean isAdmin = hasRole(authentication, "ROLE_ADMIN");
 
         if (!isAdmin) {
 
@@ -155,7 +155,7 @@ public class AdManagementServiceImp implements AdManagementService {
 
     }
 
-    private boolean hasRole(Authentication authentication, String roleName) {
+    public static boolean hasRole(Authentication authentication, String roleName) {
         for (GrantedAuthority authority : authentication.getAuthorities()) {
             if (authority.getAuthority().equals(roleName)) {
                 return true;

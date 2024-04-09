@@ -6,6 +6,7 @@ import com.yellow.foxbuy.models.DTOs.AdResponseDTO;
 import com.yellow.foxbuy.models.DTOs.UserDetailsResponseDTO;
 import com.yellow.foxbuy.models.DTOs.UserListResponseDTO;
 import com.yellow.foxbuy.models.Role;
+import com.yellow.foxbuy.models.DTOs.CustomerDTO;
 import com.yellow.foxbuy.models.User;
 import com.yellow.foxbuy.repositories.AdRepository;
 import com.yellow.foxbuy.repositories.UserRepository;
@@ -123,5 +124,12 @@ public class UserServiceImp implements UserService {
     @Override
     public List<User> getAllUsers() {
         return userRepository.findAll();
+    }
+
+    public void saveCustomerIdFullNameAndAddress(String customerId, CustomerDTO customerDTO, User user) {
+        user.setAddress(customerDTO.getAddress());
+        user.setCustomerId(customerId);
+        user.setFullName(customerDTO.getFullName());
+        userRepository.save(user);
     }
 }

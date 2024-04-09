@@ -24,7 +24,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Optional;
+import java.util.Set;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -53,6 +53,8 @@ public class AdsControllerTest {
         objectMapper = new ObjectMapper();
         categoryRepository.deleteAll();
         adRepository.deleteAll();
+        userRepository.deleteAll();
+        roleRepository.deleteAll();
     }
 
   @Test
@@ -110,16 +112,26 @@ public class AdsControllerTest {
     }
     @Test
     @WithMockUser(username = "user", roles = "USER")
-    public void adUpdateSuccess1() throws Exception {
+    public void adUpdateSuccess() throws Exception {
+
+        User user = new User("user", "email@email.com", "Password1");
+        userRepository.save(user);
+        Set<Role> roles = new HashSet<>();
+        Role role = new Role("ROLE_USER");
+        roles.add(role);
+        roleRepository.save(role);
+        user.setRoles(roles);
+        userRepository.save(user);
 
         Category beverageCategory = new Category("Beverage", "Buy some good beer." );
         categoryRepository.save(beverageCategory);
 
-        AdDTO adDTO= new AdDTO("Pilsner urquell", "Tasty beer.", 3000.00, "12345", beverageCategory.getId());
+        Ad ad = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user, beverageCategory);
+        adRepository.save(ad);
 
         AdDTO adDTO2 = new AdDTO("Budweiser", "Less tasty beer.", 2000.00, "54321", beverageCategory.getId());
 
-        mockMvc.perform(MockMvcRequestBuilders.put("/advertisement")
+        mockMvc.perform(MockMvcRequestBuilders.put("/advertisement/{id}", ad.getId())
                         .content(objectMapper.writeValueAsString(adDTO2))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(200))
@@ -129,43 +141,6 @@ public class AdsControllerTest {
                 .andExpect(jsonPath("$.zipcode", is("54321")))
                 .andExpect(jsonPath("$.categoryID", is(beverageCategory.getId().intValue())));
     }
-    @Test
-    @WithMockUser(username = "user", roles = "USER")
-    public void adUpdatedSuccess() throws Exception {
-        int initialAdCount = adRepository.findAll().size();
-
-        Role roleUser = roleRepository.save(new Role("ROLE_USER"));
-        User user1 = new User("JohnUSER",
-                "email@email.com",
-                SecurityConfig.passwordEncoder().encode("password"),
-                new HashSet<>(Collections.singletonList(roleUser)));
-        user1.setVerified(true);
-        userRepository.save(user1);
-
-        Category beverageCategory = new Category("Beverage", "Buy some good beer." );
-        categoryRepository.save(beverageCategory);
-
-        Ad ad = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user1, beverageCategory);
-        adRepository.save(ad);
-        Optional<Ad> optionalAd = adRepository.findById(ad.getId());
-
-        Ad ad2 = new Ad("Budweiser", "Less tasty beer.", 2000.00, "54321", user1, beverageCategory);
-        adRepository.save(ad2);
-
-
-        mockMvc.perform(MockMvcRequestBuilders.put("/advertisement/" + optionalAd.get().getId())
-                        .content(objectMapper.writeValueAsString(ad2))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().is(200))
-                .andExpect(jsonPath("$.title", is("Budweiser")))
-                .andExpect(jsonPath("$.description", is("Less tasty beer.")))
-                .andExpect(jsonPath("$.price", is(2000.00)))
-                .andExpect(jsonPath("$.zipcode", is("54321")))
-                .andExpect(jsonPath("$.categoryID", is(beverageCategory.getId().intValue())));
-
-        assertEquals(initialAdCount + 1, adRepository.findAll().size());
-    }
-
 
     @Test
     @WithMockUser(username = "user", roles = "USER")
@@ -179,13 +154,13 @@ public class AdsControllerTest {
         user1.setVerified(true);
         userRepository.save(user1);
 
-        Category beverageCategory = new Category("Beverage", "Buy some good beer." );
+         Category beverageCategory = new Category("Beverage", "Buy some good beer." );
         categoryRepository.save(beverageCategory);
 
-        Ad ad = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user1, beverageCategory);
+        Ad ad = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345",user1, beverageCategory);
         adRepository.save(ad);
 
-        mockMvc.perform(MockMvcRequestBuilders.put("/advertisement/" + + ad.getId())
+        mockMvc.perform(MockMvcRequestBuilders.put("/advertisement/{id}", ad.getId())
                         .content(objectMapper.writeValueAsString(ad))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(400))
@@ -196,48 +171,49 @@ public class AdsControllerTest {
     @WithMockUser(username = "user", roles = "USER")
     public void adDeleteSuccess() throws Exception {
 
-        int initialAdCount = adRepository.findAll().size();
-
-        Role roleUser = roleRepository.save(new Role("ROLE_USER"));
-
-        User user1 = new User("JohnUSER",
-                "email@email.com",
-                SecurityConfig.passwordEncoder().encode("password"),
-                new HashSet<>(Collections.singletonList(roleUser)));
-        user1.setVerified(true);
-        userRepository.save(user1);
+        User user = new User("user", "email@email.com", "Password1");
+        userRepository.save(user);
+        Set<Role> roles = new HashSet<>();
+        Role role = new Role("ROLE_USER");
+        roles.add(role);
+        roleRepository.save(role);
+        user.setRoles(roles);
+        userRepository.save(user);
 
         Category beverageCategory = new Category("Beverage", "Buy some good beer." );
         categoryRepository.save(beverageCategory);
 
-        Ad ad = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user1, beverageCategory);
+        Ad ad = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user, beverageCategory);
+        adRepository.save(ad);
+        int initialAdCount = adRepository.findAll().size();
 
-        Optional<Ad> id = adRepository.findById(ad.getId());
-        mockMvc.perform(MockMvcRequestBuilders.delete("/advertisement/" + + ad.getId())
+        mockMvc.perform(MockMvcRequestBuilders.delete("/advertisement/{id}", ad.getId())
                      .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(200))
          .andExpect(jsonPath("$.message", is("Your ad was deleted")));
-        assertEquals(initialAdCount + 1, adRepository.findAll().size());
+
+        assertEquals(initialAdCount - 1, adRepository.findAll().size());
+
     }
     @Test
-    @WithMockUser(username = "user", roles = "USER")
+    @WithMockUser(username = "user1", roles = "USER")
     public void adDeleteError() throws Exception {
 
-        Role roleUser = roleRepository.save(new Role("ROLE_USER"));
-        User user1 = new User("JohnUSER",
-                "email@email.com",
-                SecurityConfig.passwordEncoder().encode("password"),
-                new HashSet<>(Collections.singletonList(roleUser)));
-        user1.setVerified(true);
-        userRepository.save(user1);
+        User user = new User("user", "email@email.com", "Password1");
+        userRepository.save(user);
+        Set<Role> roles = new HashSet<>();
+        Role role = new Role("ROLE_USER");
+        roles.add(role);
+        roleRepository.save(role);
+        user.setRoles(roles);
+        userRepository.save(user);
 
         Category beverageCategory = new Category("Beverage", "Buy some good beer." );
         categoryRepository.save(beverageCategory);
 
-        Ad ad = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user1, beverageCategory);
+        Ad ad = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user, beverageCategory);
         adRepository.save(ad);
-
-              mockMvc.perform(MockMvcRequestBuilders.delete("/advertisement/"+ ad.getId())
+                mockMvc.perform(MockMvcRequestBuilders.delete("/advertisement/{id}", ad.getId())
                         .content(objectMapper.writeValueAsString(ad))
                         .contentType(MediaType.APPLICATION_JSON))
                       .andExpect(status().is(400))
