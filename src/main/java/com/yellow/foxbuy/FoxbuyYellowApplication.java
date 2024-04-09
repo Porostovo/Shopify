@@ -98,7 +98,6 @@ public class FoxbuyYellowApplication implements CommandLineRunner {
         adRepository.save(new Ad("Ad1", "Description1", 1000, "12345", user1, beverageCategory));
         adRepository.save(new Ad("Ad1", "Description1", 1000, "12345", user1, beverageCategory));
 
-
         GeneratePdfUtil generatePdfUtil = new GeneratePdfUtil(userService);
 
         try {
@@ -106,12 +105,6 @@ public class FoxbuyYellowApplication implements CommandLineRunner {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-
-        EmailServiceImp emailServiceImp1 = new EmailServiceImp(confirmationTokenService);
-
-       String attachmentPath = "src/main/resources/invoice_vip_INV-09-04-2024-001.pdf";
-
-      emailServiceImp1.sendEmailWithAttachment(user1.getEmail(), attachmentPath);
 
     }
 }
