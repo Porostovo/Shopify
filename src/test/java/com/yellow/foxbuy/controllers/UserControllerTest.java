@@ -2,6 +2,7 @@ package com.yellow.foxbuy.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yellow.foxbuy.models.ConfirmationToken;
+import com.yellow.foxbuy.models.DTOs.AuthResponseDTO;
 import com.yellow.foxbuy.models.DTOs.LoginRequest;
 import com.yellow.foxbuy.models.DTOs.UserDTO;
 import com.yellow.foxbuy.models.User;
@@ -14,14 +15,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.util.UUID;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -265,5 +267,98 @@ class UserControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Confirmed")));
         assertEquals(true, userRepository.findById(user.getId()).get().getVerified());
+    }
+
+
+    @Test
+    public void identitySuccess() throws Exception {
+        UserDTO userDTO = new UserDTO("user", "email@email.com", "Password123%");
+        LoginRequest loginRequest = new LoginRequest("user", "Password123%");
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/registration")
+                .content(objectMapper.writeValueAsString(userDTO))
+                .contentType(MediaType.APPLICATION_JSON));
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/login")
+                .content(objectMapper.writeValueAsString(loginRequest))
+                .contentType(MediaType.APPLICATION_JSON));
+
+
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post("/login")
+                .content(objectMapper.writeValueAsString(loginRequest))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        String content = result.getResponse().getContentAsString();
+        AuthResponseDTO response = objectMapper.readValue(content, AuthResponseDTO.class);
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/identity")
+                    .header("Authorization", "Bearer " + response.getToken())
+                    .content(objectMapper.writeValueAsString(response))
+                    .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.username", is("user")));
+    }
+
+    @Test
+    @WithMockUser(username = "user", roles = {"ADMIN"})
+    public void identityFailedNotValidToken() throws Exception {
+        UserDTO userDTO = new UserDTO("user", "email@email.com", "Password123%");
+        LoginRequest loginRequest = new LoginRequest("user", "Password123%");
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/registration")
+                .content(objectMapper.writeValueAsString(userDTO))
+                .contentType(MediaType.APPLICATION_JSON));
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/login")
+                .content(objectMapper.writeValueAsString(loginRequest))
+                .contentType(MediaType.APPLICATION_JSON));
+
+
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post("/login")
+                        .content(objectMapper.writeValueAsString(loginRequest))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        String content = result.getResponse().getContentAsString();
+        AuthResponseDTO response = objectMapper.readValue(content, AuthResponseDTO.class);
+        response.setToken("Wrong_Token");       //setting to invalid token
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/identity")
+                        .content(objectMapper.writeValueAsString(response))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.error", is("token is not valid")));
+    }
+
+    @Test
+    @WithMockUser(username = "user", roles = {"ADMIN"})
+    public void identityFailedNotUserInCurrentDatabase() throws Exception {
+        UserDTO userDTO = new UserDTO("user", "email@email.com", "Password123%");
+        LoginRequest loginRequest = new LoginRequest("user", "Password123%");
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/registration")
+                .content(objectMapper.writeValueAsString(userDTO))
+                .contentType(MediaType.APPLICATION_JSON));
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/login")
+                .content(objectMapper.writeValueAsString(loginRequest))
+                .contentType(MediaType.APPLICATION_JSON));
+
+
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post("/login")
+                        .content(objectMapper.writeValueAsString(loginRequest))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        String content = result.getResponse().getContentAsString();
+        AuthResponseDTO response = objectMapper.readValue(content, AuthResponseDTO.class);
+        userRepository.deleteAll();         //deletes user from repository so should not be able to find him
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/identity")
+                        .content(objectMapper.writeValueAsString(response))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.error", is("token does not match any user")));
     }
 }

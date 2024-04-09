@@ -7,8 +7,11 @@ import com.yellow.foxbuy.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Optional;
+
 
 @Service
 public class RoleServiceImp implements RoleService{
@@ -32,5 +35,13 @@ public class RoleServiceImp implements RoleService{
         Role roleUser = roleRepository.findFirstByName("ROLE_VIP");
         user.setRoles(new HashSet<>(Collections.singletonList(roleUser)));
         userRepository.save(user);
+    }
+
+    public Role findRoleByName(String name) {
+        Optional<Role> optRole = roleRepository.findRoleByName(name);
+        if (optRole.isPresent()){
+            return optRole.get();
+        } else return null;
+
     }
 }

@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.spec.SecretKeySpec;
 import java.security.Key;
-import java.sql.SQLOutput;
 import java.time.Instant;
 
 import java.time.temporal.ChronoUnit;
@@ -50,15 +49,33 @@ public class JwtUtil {
     }
 
 
-    public Jws<Claims> validateJwt(String jwtString) {
+    public Jws<Claims> validateJwt(String jwtString) throws SecurityException{
         Jws<Claims> jwt = Jwts.parserBuilder()
                 .setSigningKey(hmacKey)
                 .build()
                 .parseClaimsJws(jwtString);
         return jwt;
     }
-
-    public String getUsernameFromJWT(String token) {
+    public boolean validateToken(String token) {
+        try {
+            Jwts.parser()
+                    .setSigningKey(hmacKey)
+                    .parseClaimsJws(token);
+            return true;
+        } catch (SignatureException ex) {
+            // Invalid signature/claims
+        } catch (ExpiredJwtException ex) {
+            // Expired token
+        } catch (UnsupportedJwtException ex) {
+            // Unsupported JWT token
+        } catch (MalformedJwtException ex) {
+            // Malformed JWT token
+        } catch (IllegalArgumentException ex) {
+            // JWT token is empty
+        }
+        return false;
+    }
+    public String getUsernameFromJWT(String token) throws SecurityException {
             Claims claims = Jwts.parserBuilder()
                 .setSigningKey(hmacKey)
                 .build()
