@@ -10,6 +10,9 @@ import com.yellow.foxbuy.models.User;
 import com.yellow.foxbuy.repositories.AdRepository;
 import com.yellow.foxbuy.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -97,12 +100,10 @@ public class UserServiceImp implements UserService {
     @Override
     public List<UserListResponseDTO> listUsersByPage(Integer page) {
         int pageSize = 10;
-        int offset = (page - 1) * pageSize;
         List<UserListResponseDTO> userListDTO = new ArrayList<>();
-        List<User> userList = userRepository.findAll().stream()
-                .skip(offset)
-                .limit(pageSize)
-                .toList();
+
+        Pageable pageable = PageRequest.of(page - 1, pageSize);
+        List<User> userList = userRepository.findAll(pageable).getContent();
         for (User user : userList) {
             UserListResponseDTO userDetailDTO = new UserListResponseDTO();
             userDetailDTO.setUsername(user.getUsername());
