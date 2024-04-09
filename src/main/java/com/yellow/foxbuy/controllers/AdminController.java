@@ -10,9 +10,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -97,6 +101,11 @@ public class AdminController {
         result.put("message", "Category was deleted.");
         logService.addLog("DELETE /category/{id}", "INFO", "id = " + id);
         return ResponseEntity.status(200).body(result);
+    }
+
+    @GetMapping("/logs")
+    public ResponseEntity<?> getLogs(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date){
+        return ResponseEntity.status(200).body(logService.findAllByDate(date.atStartOfDay()));
     }
 }
 
