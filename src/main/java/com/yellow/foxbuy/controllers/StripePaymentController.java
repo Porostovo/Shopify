@@ -7,6 +7,8 @@ import com.yellow.foxbuy.models.User;
 import com.yellow.foxbuy.services.*;
 import com.yellow.foxbuy.utils.GeneratePdfUtil;
 import com.yellow.foxbuy.utils.StripeUtil;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +44,11 @@ public class StripePaymentController {
         this.generatePdfUtil = generatePdfUtil;
         this.emailService = emailService;
     }
-
+    @Operation(summary = "User pay for VIP account.", description = "User can pay for VIP account. " +
+            "Application need to contact 3rd party API (Stripe) with payment details and wait for response, " +
+            "if payment was successful or not. If yes, give user VIP Role and send invoice to contact email.")
+    @ApiResponse(responseCode = "200", description = "Payment successful. You are now a VIP member!")
+    @ApiResponse(responseCode = "400", description = "Payment failed. Please try again.")
     @PostMapping("/vip")
     public ResponseEntity<?> processVipPayment(@Valid @RequestBody CustomerDTO customerDTO,
                                                BindingResult bindingResult,
@@ -58,6 +64,11 @@ public class StripePaymentController {
         }
 
         User user = userService.findByUsername(authentication.getName()).orElseThrow();
+
+        if (user.getAuthorities().stream().findAny().get().getAuthority().equals("ROLE_ADMIN")) {
+            response.put("error", "Payment failed. You know, as administrator you cannot buy VIP membership.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
 
         if (!AdManagementServiceImp.hasRole(authentication, "ROLE_USER") ||
                 !user.getAuthorities().stream().findAny().get().getAuthority().equals("ROLE_USER")) {

@@ -75,6 +75,5 @@ public class EmailServiceImp implements EmailService {
 
         emailSender.send(message);
     }
-
 }
 

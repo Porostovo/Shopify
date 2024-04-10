@@ -93,6 +93,4 @@ public class  User implements UserDetails {
         }
         return userRole.substring(5);
     }
-
-
 }

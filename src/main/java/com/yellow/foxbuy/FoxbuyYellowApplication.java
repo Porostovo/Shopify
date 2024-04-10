@@ -97,8 +97,5 @@ public class FoxbuyYellowApplication implements CommandLineRunner {
             user1.setVerified(true);
             userRepository.save(user);
         }
-
-
-        System.out.println(user1.getId());
     }
 }
