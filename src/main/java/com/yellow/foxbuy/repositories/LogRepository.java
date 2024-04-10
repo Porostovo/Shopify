@@ -9,5 +9,5 @@ import java.util.List;
 
 @Repository
 public interface LogRepository extends JpaRepository<Log, Long> {
-    List<Log> findAllByTimestamp (LocalDateTime timestamp);
+    List<Log> findAllByTimestampBetween (LocalDateTime startOfTheDay, LocalDateTime endOfTheDay);
 }

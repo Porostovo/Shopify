@@ -105,7 +105,17 @@ public class AdminController {
 
     @GetMapping("/logs")
     public ResponseEntity<?> getLogs(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date){
-        return ResponseEntity.status(200).body(logService.findAllByDate(date.atStartOfDay()));
+        LocalDateTime startOfTheDay = date.atStartOfDay();
+        LocalDateTime endOfTheDay = date.atTime(23, 59, 59);
+        if (logService.findAllByDate(startOfTheDay, endOfTheDay).isEmpty()) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "No logs on this day.");
+            logService.addLog("GET /logs", "ERROR", "date = " + date);
+            return ResponseEntity.status(400).body(error);
+        } else {
+            logService.addLog("GET /logs", "INFO", "date = " + date);
+            return ResponseEntity.status(200).body(logService.findAllByDate(startOfTheDay, endOfTheDay));
+        }
     }
 }
 

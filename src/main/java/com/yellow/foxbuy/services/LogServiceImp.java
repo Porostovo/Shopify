@@ -22,7 +22,7 @@ public class LogServiceImp implements LogService{
     }
 
     @Override
-    public List<Log> findAllByDate(LocalDateTime timestamp) {
-        return logRepository.findAllByTimestamp(timestamp);
+    public List<Log> findAllByDate(LocalDateTime startOfTheDay, LocalDateTime endOfTheDay) {
+        return logRepository.findAllByTimestampBetween(startOfTheDay, endOfTheDay);
     }
 }
