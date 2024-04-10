@@ -41,3 +41,5 @@ out/
 *.artifact
 report.html
 report.json
+
+*.pdf

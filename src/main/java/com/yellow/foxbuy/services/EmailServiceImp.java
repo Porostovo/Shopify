@@ -1,17 +1,22 @@
 package com.yellow.foxbuy.services;
 
+import com.yellow.foxbuy.models.Ad;
 import com.yellow.foxbuy.models.ConfirmationToken;
 import com.yellow.foxbuy.models.User;
+import com.yellow.foxbuy.repositories.AdRepository;
+import com.yellow.foxbuy.repositories.UserRepository;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -20,9 +25,14 @@ public class EmailServiceImp implements EmailService {
     @Autowired
     private JavaMailSender emailSender;
     private final ConfirmationTokenService confirmationTokenService;
+    private final AdRepository adRepository;
+    private final UserRepository userRepository;
 
-    public EmailServiceImp(ConfirmationTokenService confirmationTokenService) {
+    public EmailServiceImp(ConfirmationTokenService confirmationTokenService, AdRepository adRepository, UserRepository userRepository) {
         this.confirmationTokenService = confirmationTokenService;
+        this.adRepository = adRepository;
+
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -74,6 +84,14 @@ public class EmailServiceImp implements EmailService {
         helper.addAttachment(Objects.requireNonNull(file.getFilename()), file);
 
         emailSender.send(message);
+    }
+
+    @Override
+    public void sendMessageToSeller(Authentication authentication, Long id, String message) throws MessagingException {
+        User user = userRepository.findByUsername(authentication.getName()).get();
+        Ad ad = adRepository.findById(id).get();
+        String message1 = message + "<br/><br/>" + "You can reply to Sender at: " + user.getEmail();
+        sendSimpleMessage(ad.getUser().getEmail(), ad.getTitle(), message1);
     }
 }
 
