@@ -139,4 +139,27 @@ public class AdsController {
         error.put("error", "Unexpected error");
         return ResponseEntity.status(400).body(error);
     }
+
+    @PostMapping("/advertisement/{id}/message")
+    //@Operation(summary = "Get Ad by ID", description = "User can get information about ad by ID.")
+    //@ApiResponse(responseCode = "200", description = "Ad was found and info is shown.")
+    //@ApiResponse(responseCode = "400", description = "Ad with this ID doesn't exist.")
+    public ResponseEntity<?> sendMessageToSeller(@PathVariable(required = false) Long id, @RequestBody String message,
+                                                 Authentication authentication) {
+        System.out.println(id);
+        System.out.println(message);
+        //System.out.println(authentication.getName());
+
+        //if(id == null || id)
+
+        Map<String, String> response = new HashMap<>();
+
+
+
+        response.put("status", "200");
+        response.put("message", "Thank you for your message.");
+        return ResponseEntity.status(200).body(response);
+    }
+
+
 }
