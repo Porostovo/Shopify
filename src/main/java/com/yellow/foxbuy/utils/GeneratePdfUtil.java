@@ -17,6 +17,7 @@ import com.itextpdf.layout.properties.TextAlignment;
 import com.yellow.foxbuy.models.User;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -36,11 +37,19 @@ public class GeneratePdfUtil {
     }
 
     public String generateInvoice(User user) throws IOException {
-        // String path = "resources" + File.separator + "generated-PDF" + File.separator + "invoice_vip_" + invoiceNumber + ".pdf";
-        String path = "invoice_vip_" + invoiceNumber + ".pdf";
+
+        String directoryPath = "resources" + File.separator + "generated-PDF";
+        String fileName = "invoice_vip_" + invoiceNumber + ".pdf";
+        String filePath = directoryPath + File.separator + fileName;
+        File directory = new File(directoryPath);
+
+        if (!directory.exists()) {
+            directory.mkdirs(); //
+        }
+       // String filePath = "invoice_vip_" + invoiceNumber + ".pdf";
 
        try {
-            PdfWriter pdfWriter = new PdfWriter(path);
+            PdfWriter pdfWriter = new PdfWriter(filePath);
             PdfDocument pdfDocument = new PdfDocument(pdfWriter);
             Document document = new Document(pdfDocument, PageSize.A4);
 
