@@ -169,7 +169,7 @@ public class AdManagementServiceImp implements AdManagementService {
 
     }
 
-    private boolean hasRole(Authentication authentication, String roleName) {
+    public static boolean hasRole(Authentication authentication, String roleName) {
         for (GrantedAuthority authority : authentication.getAuthorities()) {
             if (authority.getAuthority().equals(roleName)) {
                 return true;

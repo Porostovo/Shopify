@@ -1,13 +1,12 @@
 package com.yellow.foxbuy.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yellow.foxbuy.models.*;
 import com.yellow.foxbuy.models.ConfirmationToken;
 import com.yellow.foxbuy.models.DTOs.AuthResponseDTO;
 import com.yellow.foxbuy.models.DTOs.LoginRequest;
 import com.yellow.foxbuy.models.DTOs.UserDTO;
-import com.yellow.foxbuy.models.User;
-import com.yellow.foxbuy.repositories.ConfirmationTokenRepository;
-import com.yellow.foxbuy.repositories.UserRepository;
+import com.yellow.foxbuy.repositories.*;
 import com.yellow.foxbuy.services.ConfirmationTokenService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,6 +20,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.*;
@@ -42,6 +43,12 @@ class UserControllerTest {
     private ConfirmationTokenRepository confirmationTokenRepository;
     @Autowired
     private ConfirmationTokenService confirmationTokenService;
+    @Autowired
+    private CategoryRepository categoryRepository;
+    @Autowired
+    private AdRepository adRepository;
+    @Autowired
+    private RoleRepository roleRepository;
 
 
     private ObjectMapper objectMapper;
@@ -269,6 +276,84 @@ class UserControllerTest {
         assertEquals(true, userRepository.findById(user.getId()).get().getVerified());
     }
 
+    @Test
+    @WithMockUser(username = "user", roles = "USER")
+    void getUserDetailsSuccess() throws Exception {
+        User user = new User("user", "email@email.com", "Password1");
+        userRepository.save(user);
+        Set<Role> roles = new HashSet<>();
+        Role role = new Role("ROLE_USER");
+        roles.add(role);
+        roleRepository.save(role);
+        user.setRoles(roles);
+        userRepository.save(user);
+        Category category = new Category("category1", "description1");
+        categoryRepository.save(category);
+        Ad ad1 = new Ad("Leviathan Axe", "Good axe to kill norse gods. Used, some scratches and blood marks.", 3000.00, "12345", user, category);
+        Ad ad2 = new Ad("Blades of Chaos", "Good blades.", 3000.00, "12345", user, category);
+        adRepository.save(ad1);
+        adRepository.save(ad2);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/user/{id}", user.getId()))
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.username", is("user")))
+                .andExpect(jsonPath("$.email", is("email@email.com")))
+                .andExpect(jsonPath("$.role", is("USER")))
+                .andExpect(jsonPath("$.ads[0].title", is("Leviathan Axe")))
+                .andExpect(jsonPath("$.ads[1].title", is("Blades of Chaos")));
+    }
+
+    @Test
+    @WithMockUser(username = "user", roles = "USER")
+    void getUserDetailsFailed() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get("/user/b1042633-c69e-4c4e-b14e-46e"))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.error", is("User doesn't exist.")));
+    }
+
+    @Test
+    @WithMockUser(username = "user", roles = "USER")
+    void listUsersSuccess() throws Exception {
+        for (int i = 0; i < 12; i++) {
+            User user = new User("user", "email@email.com", "Password1");
+            userRepository.save(user);
+            Set<Role> roles = new HashSet<>();
+            Role role = new Role("ROLE_USER");
+            roles.add(role);
+            roleRepository.save(role);
+            user.setRoles(roles);
+            userRepository.save(user);
+        }
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/user")
+                .param("page", "1"))
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.page", is(1)))
+                .andExpect(jsonPath("$.total_pages", is(2)))
+                .andExpect(jsonPath("$.users[0].username", is("user")))
+                .andExpect(jsonPath("$.users[5].role", is("USER")))
+                .andExpect(jsonPath("$.users[9].email", is("email@email.com")));
+    }
+
+    @Test
+    @WithMockUser(username = "user", roles = "USER")
+    void listUsersFailed() throws Exception {
+        for (int i = 0; i < 2; i++) {
+            User user = new User("user", "email@email.com", "Password1");
+            userRepository.save(user);
+            Set<Role> roles = new HashSet<>();
+            Role role = new Role("ROLE_USER");
+            roles.add(role);
+            roleRepository.save(role);
+            user.setRoles(roles);
+            userRepository.save(user);
+        }
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/user")
+                        .param("page", "2"))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.error", is("This page is empty.")));
+    }
 
     @Test
     public void identitySuccess() throws Exception {

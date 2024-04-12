@@ -42,13 +42,13 @@ public class FoxbuyYellowApplication implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
 
-
         Role roleUser = roleRepository.save(new Role("ROLE_USER"));
-        Role roleVipUser = roleRepository.save(new Role("ROLE_VIP_USER"));
+        Role roleVipUser = roleRepository.save(new Role("ROLE_VIP"));
         Role roleAdmin = roleRepository.save(new Role("ROLE_ADMIN"));
 
         Category beverageCategory = new Category("Beverage", "Buy some good beer.");
         Category nourishmentCategory = new Category("Nourishment", "Buy some good beef.");
+
 
         categoryRepository.save(beverageCategory);
         categoryRepository.save(nourishmentCategory);
@@ -72,22 +72,31 @@ public class FoxbuyYellowApplication implements CommandLineRunner {
         adRepository.save(ad);
         adRepository.save(ad1);
 
-        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, nourishmentCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1000, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1001, "12345", user1, nourishmentCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1002, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1003, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1004, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1005, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1006, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1007, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1008, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1009, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1010, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1011, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1012, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1013, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1014, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1015, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1016, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1017, "12345", user1, beverageCategory));
+
+        for (int i = 0; i < 10; i++) {
+            User user = new User("test_user",
+                    "email@email.com",
+                    SecurityConfig.passwordEncoder().encode("password"),
+                    new HashSet<>(Collections.singletonList(roleUser)));
+            user1.setVerified(true);
+            userRepository.save(user);
+        }
     }
 }
