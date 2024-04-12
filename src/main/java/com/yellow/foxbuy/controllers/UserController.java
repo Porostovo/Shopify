@@ -44,7 +44,6 @@ public class UserController {
         }
 
         if (userService.existsByUsername(userDTO.getUsername())|| userService.existsByEmail(userDTO.getEmail())) {
-            logService.addLog("POST /registration", "ERROR", userDTO.toString());
             return ResponseEntity.status(400).body(authenticationService.badRegisterUser(userDTO));
         } else {
             logService.addLog("POST /registration", "INFO", userDTO.toString());
@@ -63,7 +62,6 @@ public class UserController {
             logService.addLog("POST /login", "ERROR", loginRequest.toString());
             return ErrorsHandling.handleValidationErrors(bindingResult);
         }
-        logService.addLog("POST /login", "INFO", loginRequest.toString());
         return authenticationService.authenticateUser(loginRequest);
     }
 
@@ -83,10 +81,9 @@ public class UserController {
     public ResponseEntity<?> userIdentity(@Valid @RequestBody AuthResponseDTO authResponseDTO,
                                           BindingResult bindingResult){
         if (bindingResult.hasErrors()) {
-            logService.addLog("POST /indentity", "ERROR", authResponseDTO.toString());
+            logService.addLog("POST /indentity", "ERROR", "token = " + authResponseDTO.toString());
             return ErrorsHandling.handleValidationErrors(bindingResult);
         }
-        logService.addLog("POST /indentity", "INFO", authResponseDTO.toString());
         return authenticationService.verifyJwtToken(authResponseDTO.getToken());
     }
 

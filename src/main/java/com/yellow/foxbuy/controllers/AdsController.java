@@ -18,7 +18,6 @@ import java.util.Optional;
 
 @RestController
 public class AdsController {
-
     private final AdManagementService adManagementService;
     private final AdService adService;
     private final CategoryService categoryService;
@@ -46,7 +45,6 @@ public class AdsController {
             logService.addLog("POST /advertisement", "ERROR", adDTO.toString());
             return ErrorsHandling.handleValidationErrors(bindingResult);
         }
-        logService.addLog("POST /advertisement", "INFO", adDTO.toString());
         return adManagementService.createAd(adDTO, authentication);
     }
 
@@ -62,7 +60,6 @@ public class AdsController {
             logService.addLog("PUT /advertisement/{id}", "ERROR", "id = " + id + " | " + adDTO.toString());
             return ErrorsHandling.handleValidationErrors(bindingResult);
         }
-        logService.addLog("PUT /advertisement/{id}", "INFO", "id = " + id + " | " + adDTO.toString());
         return adManagementService.updateAd(id, adDTO, authentication);
     }
 
@@ -72,7 +69,6 @@ public class AdsController {
     @ApiResponse(responseCode = "400", description = "Invalid input or user is not verified.")
     public ResponseEntity<?> deleteAd(@PathVariable Long id,
                                       Authentication authentication) {
-        logService.addLog("DELETE /advertisement/{id}", "INFO", "id = " + id);
         return adManagementService.deleteAd(id, authentication);
     }
 
