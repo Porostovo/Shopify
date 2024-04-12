@@ -105,8 +105,10 @@ public class UserController {
         Map<String, String> error = new HashMap<>();
         if (!userService.existsById(id)) {
             error.put("error", "User doesn't exist.");
+            logService.addLog("GET /user/{id}", "ERROR", "id = " + id);
             return ResponseEntity.status(400).body(error);
         }
+        logService.addLog("GET /user/{id}", "INFO", "id = " + id);
         return ResponseEntity.status(200).body(userService.getDetailsById(id));
     }
 
@@ -119,12 +121,14 @@ public class UserController {
         if (page > totalPages) {
             Map<String, String> error = new HashMap<>();
             error.put("error", "This page is empty.");
+            logService.addLog("GET /user", "ERROR", "page = " + page);
             return ResponseEntity.status(400).body(error);
         } else {
             Map<String, Object> result = new HashMap<>();
             result.put("page", page);
             result.put("total_pages", totalPages);
             result.put("users", userService.listUsersByPage(page));
+            logService.addLog("GET /user", "INFO", "page = " + page);
             return ResponseEntity.status(200).body(result);
         }
     }
