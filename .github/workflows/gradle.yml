@@ -25,6 +25,9 @@ jobs:
       EMAIL_PASSWORD: ${{secrets.EMAIL_PASSWORD}}
       EMAIL_USERNAME: ${{secrets.EMAIL_USERNAME}}
       JWT_SECRET_KEY: ${{secrets.JWT_SECRET_KEY}}
+      EMAIL_VERIFICATION: 'off'
+      DB_PASSWORD: ${{secrets.DB_PASSWORD}}
+      DB_USERNAME: ${{secrets.DB_USERNAME}}
       
     steps:
     - uses: actions/checkout@v4
