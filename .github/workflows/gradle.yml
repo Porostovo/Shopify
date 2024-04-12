@@ -20,6 +20,12 @@ jobs:
     permissions:
       contents: read
 
+    env:
+      STRIPE_APIKEY: ${{secrets.STRIPE_APIKEY}}
+      EMAIL_PASSWORD: ${{secrets.EMAIL_PASSWORD}}
+      EMAIL_USERNAME: ${{secrets.EMAIL_USERNAME}}
+      JWT_SECRET_KEY: ${{secrets.JWT_SECRET_KEY}}
+      
     steps:
     - uses: actions/checkout@v4
     - name: Set up JDK 17
@@ -27,7 +33,7 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-
+  
     # Configure Gradle for optimal use in GiHub Actions, including caching of downloaded dependencies.
     # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
     
