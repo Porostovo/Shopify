@@ -102,7 +102,9 @@ public class AdminController {
         logService.addLog("DELETE /category/{id}", "INFO", "id = " + id);
         return ResponseEntity.status(200).body(result);
     }
-
+    @Operation(summary = "Get list of logs", description = "Get list of logs by date, only admin can see this.")
+    @ApiResponse(responseCode = "200", description = "Logs successfully shown.")
+    @ApiResponse(responseCode = "400", description = "No logs in chosen date.")
     @GetMapping("/logs")
     public ResponseEntity<?> getLogs(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date){
         LocalDateTime startOfTheDay = date.atStartOfDay();
