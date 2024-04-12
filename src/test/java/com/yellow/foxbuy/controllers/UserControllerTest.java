@@ -5,8 +5,10 @@ import com.yellow.foxbuy.models.ConfirmationToken;
 import com.yellow.foxbuy.models.DTOs.AuthResponseDTO;
 import com.yellow.foxbuy.models.DTOs.LoginRequest;
 import com.yellow.foxbuy.models.DTOs.UserDTO;
+import com.yellow.foxbuy.models.Role;
 import com.yellow.foxbuy.models.User;
 import com.yellow.foxbuy.repositories.ConfirmationTokenRepository;
+import com.yellow.foxbuy.repositories.RoleRepository;
 import com.yellow.foxbuy.repositories.UserRepository;
 import com.yellow.foxbuy.services.ConfirmationTokenService;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,7 +25,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.util.UUID;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -42,6 +45,8 @@ class UserControllerTest {
     private ConfirmationTokenRepository confirmationTokenRepository;
     @Autowired
     private ConfirmationTokenService confirmationTokenService;
+    @Autowired
+    private RoleRepository roleRepository;
 
 
     private ObjectMapper objectMapper;
@@ -51,6 +56,7 @@ class UserControllerTest {
         objectMapper = new ObjectMapper();
         userRepository.deleteAll();
         confirmationTokenRepository.deleteAll();
+        roleRepository.deleteAll();
     }
 
     @Test
@@ -272,6 +278,9 @@ class UserControllerTest {
 
     @Test
     public void identitySuccess() throws Exception {
+        Role role = new Role("ROLE_ADMIN");
+        roleRepository.save(role);
+
         UserDTO userDTO = new UserDTO("user", "email@email.com", "Password123%");
         LoginRequest loginRequest = new LoginRequest("user", "Password123%");
 
@@ -280,7 +289,7 @@ class UserControllerTest {
                 .contentType(MediaType.APPLICATION_JSON));
 
         mockMvc.perform(MockMvcRequestBuilders.post("/login")
-                .content(objectMapper.writeValueAsString(loginRequest))
+                . content(objectMapper.writeValueAsString(loginRequest))
                 .contentType(MediaType.APPLICATION_JSON));
 
 
