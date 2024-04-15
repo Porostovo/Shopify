@@ -1,10 +1,10 @@
 package com.yellow.foxbuy.controllers;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.yellow.foxbuy.models.DTOs.AdDTO;
 import com.yellow.foxbuy.services.*;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
@@ -17,7 +17,7 @@ import com.google.gson.JsonObject;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
+
 
 
 @RestController
@@ -147,13 +147,13 @@ public class AdsController {
     }
 
     @PostMapping("/advertisement/{id}/message")
-    //@Operation(summary = "Get Ad by ID", description = "User can get information about ad by ID.")
-    //@ApiResponse(responseCode = "200", description = "Ad was found and info is shown.")
-    //@ApiResponse(responseCode = "400", description = "Ad with this ID doesn't exist.")
+    @Operation(summary = "Send a message to Seller", description = "User can send a message to Seller.")
+    @ApiResponse(responseCode = "200", description = "Thank you for your message.")
+    @ApiResponse(responseCode = "400", description = "You cannot write a message to your advertisements.")
     public ResponseEntity<?> sendMessageToSeller(@PathVariable(required = false) Long id,
+                                                 @Schema(example = "{\"message\": \"question.\"}")
                                                  @RequestBody(required = false) String requestBody,
                                                  Authentication authentication) throws MessagingException {
-        System.out.println(requestBody);
         Map<String, String> response = new HashMap<>();
         if (authentication == null){
             response.put("error", "If you want send messages you have to be logged in.");

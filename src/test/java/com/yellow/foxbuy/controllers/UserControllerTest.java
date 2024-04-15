@@ -58,6 +58,7 @@ class UserControllerTest {
         objectMapper = new ObjectMapper();
         userRepository.deleteAll();
         confirmationTokenRepository.deleteAll();
+        roleRepository.deleteAll();
     }
 
     @Test
