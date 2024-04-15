@@ -95,7 +95,7 @@ public class UserServiceImp implements UserService {
 
     @Override
     public boolean existsById(UUID id) {
-        return userRepository.findAll().stream().anyMatch(user -> user.getId().equals(id));
+            return userRepository.existsById(id);
     }
 
     @Override
