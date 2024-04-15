@@ -1,6 +1,7 @@
 package com.yellow.foxbuy.controllers;
 
 import com.yellow.foxbuy.models.DTOs.AdDTO;
+import com.yellow.foxbuy.models.DTOs.WatchDogDTO;
 import com.yellow.foxbuy.services.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -13,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 
 @RestController
@@ -23,14 +23,16 @@ public class AdsController {
     private final CategoryService categoryService;
     private final UserService userService;
     private final LogService logService;
+    private final WatchDogService watchDogService;
 
     @Autowired
-    public AdsController(AdManagementService adManagementService, AdService adService, CategoryService categoryService, UserService userService, LogService logService) {
+    public AdsController(AdManagementService adManagementService, AdService adService, CategoryService categoryService, UserService userService, LogService logService, WatchDogService watchDogService) {
         this.adManagementService = adManagementService;
         this.adService = adService;
         this.categoryService = categoryService;
         this.userService = userService;
         this.logService = logService;
+        this.watchDogService = watchDogService;
     }
 
     @PostMapping("/advertisement")
@@ -131,5 +133,16 @@ public class AdsController {
         error.put("error", "Unexpected error");
         logService.addLog("GET /advertisement", "ERROR", "category = " + category + " | page = " + page);
         return ResponseEntity.status(400).body(error);
+    }
+
+    @PostMapping("advertisement/watch")
+    public ResponseEntity<?> setUpWatchDog(@Valid @RequestBody WatchDogDTO watchDogDTO, BindingResult bindingResult){
+        if (bindingResult.hasErrors()) {
+            logService.addLog("POST /advertisement/watch", "ERROR", watchDogDTO.toString());
+            return ErrorsHandling.handleValidationErrors(bindingResult);
+        }
+        //needs to transform
+        watchDogService.setupWatchDog(watchDogDTO);
+        return ResponseEntity.ok("WatchDog set up successfully");
     }
 }
