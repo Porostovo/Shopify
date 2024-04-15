@@ -2,7 +2,9 @@ package com.yellow.foxbuy.controllers;
 
 
 import com.yellow.foxbuy.models.Category;
+import com.yellow.foxbuy.models.DTOs.BanDTO;
 import com.yellow.foxbuy.models.DTOs.CategDTO;
+import com.yellow.foxbuy.services.BanService;
 import com.yellow.foxbuy.services.CategoryService;
 import com.yellow.foxbuy.services.ErrorsHandling;
 import com.yellow.foxbuy.services.LogService;
@@ -19,15 +21,19 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 public class AdminController {
     private final CategoryService categoryService;
+    private final BanService banService;
+
     private final LogService logService;
 
     @Autowired
-    public AdminController(CategoryService categoryService, LogService logService) {
+    public AdminController(CategoryService categoryService, BanService banService, LogService logService) {
         this.categoryService = categoryService;
+        this.banService = banService;
         this.logService = logService;
     }
     @Operation(summary = "Create new Category", description = "Create new Category with name and description.")
@@ -118,6 +124,19 @@ public class AdminController {
             logService.addLog("GET /logs", "INFO", "date = " + date);
             return ResponseEntity.status(200).body(logService.findAllByDate(startOfTheDay, endOfTheDay));
         }
+    }
+
+    @Operation(summary = "Ban user", description = "Ban user with uuid: {id}.")
+    @ApiResponse(responseCode = "200", description = "User banned, ads hidden")
+    @ApiResponse(responseCode = "400", description = "User not banned, ads not hidden")
+    @PostMapping("/user/{id}/ban")
+    public ResponseEntity<?> banUser(@Valid @RequestBody BanDTO banDTO, BindingResult bindingResult,
+                                     @PathVariable UUID id){
+        if (bindingResult.hasErrors()) {
+            return ErrorsHandling.handleValidationErrors(bindingResult);
+        }
+        return banService.banUser(id, banDTO.getDuration());
+
     }
 }
 

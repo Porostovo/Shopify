@@ -29,6 +29,7 @@ public class Ad {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
+    private boolean hidden;
 
     public Ad(AdDTO adDTO, User user, Category category) {
         this.title = adDTO.getTitle();
@@ -38,7 +39,7 @@ public class Ad {
         this.user = user;
         this.localDateTime = LocalDateTime.now();
         this.category = category;
-
+        this.hidden = false;
     }
     public Ad(String title, String description, double price, String zipcode, User user, Category category) {
         this.title = title;
@@ -48,11 +49,13 @@ public class Ad {
         this.user = user;
         this.category = category;
         this.localDateTime = LocalDateTime.now();
+        this.hidden = false;
     }
 
     public Ad(String title, Category category) {
         this.title = title;
         this.category = category;
+        this.hidden = false;
     }
 
     public Ad(String title, String description, double price, String zipcode, Category category) {
@@ -61,5 +64,6 @@ public class Ad {
         this.price = price;
         this.zipcode = zipcode;
         this.category = category;
+        this.hidden = false;
     }
 }

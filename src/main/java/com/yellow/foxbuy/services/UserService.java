@@ -25,4 +25,8 @@ public interface UserService {
     int getTotalPages (List<User> users);
     List<User> getAllUsers();
     void saveCustomerIdFullNameAndAddress(String customerId, CustomerDTO customerDTO, User user);
+    User getUserById(UUID id);
+    User getUserByUsernameNotOptional(String username);
+    List<User> getBannedUsers();
+    void unbanUser(User user);
 }

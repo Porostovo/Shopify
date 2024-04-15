@@ -79,11 +79,11 @@ public class FoxbuyYellowApplication implements CommandLineRunner {
         adRepository.save(new Ad("Ad1","Description1", 1005, "12345", user1, beverageCategory));
         adRepository.save(new Ad("Ad1","Description1", 1006, "12345", user1, beverageCategory));
         adRepository.save(new Ad("Ad1","Description1", 1007, "12345", user1, beverageCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1008, "12345", user1, beverageCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1009, "12345", user1, beverageCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1010, "12345", user1, beverageCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1011, "12345", user1, beverageCategory));
-        adRepository.save(new Ad("Ad1","Description1", 1012, "12345", user1, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1008, "12345", user2, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1009, "12345", user2, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1010, "12345", user2, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1011, "12345", user2, beverageCategory));
+        adRepository.save(new Ad("Ad1","Description1", 1012, "12345", user2, beverageCategory));
         adRepository.save(new Ad("Ad1","Description1", 1013, "12345", user1, beverageCategory));
         adRepository.save(new Ad("Ad1","Description1", 1014, "12345", user1, beverageCategory));
         adRepository.save(new Ad("Ad1","Description1", 1015, "12345", user1, beverageCategory));
@@ -98,5 +98,9 @@ public class FoxbuyYellowApplication implements CommandLineRunner {
             user1.setVerified(true);
             userRepository.save(user);
         }
+        System.out.println();
+        System.out.println("username: JohnUSER      id: "+user1.getId());
+        System.out.println("username: JohnADMIN     id: "+user2.getId());
+        System.out.println();
     }
 }

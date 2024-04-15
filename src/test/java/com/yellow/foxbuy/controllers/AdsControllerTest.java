@@ -11,6 +11,7 @@ import com.yellow.foxbuy.repositories.AdRepository;
 import com.yellow.foxbuy.repositories.CategoryRepository;
 import com.yellow.foxbuy.repositories.RoleRepository;
 import com.yellow.foxbuy.repositories.UserRepository;
+import com.yellow.foxbuy.services.BanService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +48,8 @@ public class AdsControllerTest {
     private UserRepository userRepository;
     @Autowired
     private RoleRepository roleRepository;
+    @Autowired
+    private BanService banService;
 
     @BeforeEach
     public void setUp() {
@@ -254,7 +257,25 @@ public class AdsControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.get("/advertisement/50"))
                 .andExpect(status().is(400))
                 .andExpect(jsonPath("$.error", is("Ad with this id doesn't exist.")));
+    }
 
+    @Test
+    @WithMockUser(username = "user", roles = "USER")
+    void getAdvertisementErrorAdHidden() throws Exception {
+        Category beverageCategory = new Category("Beverage", "Buy some good beer.");
+        categoryRepository.save(beverageCategory);
+
+        User user = new User("user", "user@email.cz","Password1*");
+        userRepository.save(user);
+
+        Ad ad = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user, beverageCategory);
+        ad.setHidden(true); //as if the owner of the ad is banned
+        adRepository.save(ad);
+
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/advertisement/" + ad.getId()))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.error", is("Ad with this id doesn't exist.")));
     }
 
     @Test
@@ -443,5 +464,55 @@ public class AdsControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(400))
                 .andExpect(jsonPath("$.error", is("If you want send messages you have to be logged in.")));
+
+    @WithMockUser(username = "user", roles = "USER")
+    void listAdsUserSuccessWithBannedUser() throws Exception {
+        Category beverageCategory = new Category("Beverage", "Buy some good beer.");
+        categoryRepository.save(beverageCategory);
+        Long categoryId = beverageCategory.getId();
+
+        User user = new User("user1", "user@email.cz","Password1*");
+        userRepository.save(user);
+        User user2 = new User("user2", "user2@email.cz","Password1*");
+        userRepository.save(user2);
+
+        Ad ad1 = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user, beverageCategory);
+        Ad ad2 = new Ad("Pilsner urquell2", "Tasty beer2.", 3000.00, "12345", user2, beverageCategory);
+        Ad ad3 = new Ad("Pilsner urquell3", "Tasty beer3.", 1000.00, "67890", user, beverageCategory);
+        adRepository.save(ad1);
+        adRepository.save(ad2);
+        adRepository.save(ad3);
+
+        banService.banUser(user2.getId(), 5);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/advertisement")
+                        .param("category", String.valueOf(categoryId)))
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.ads.[0].title", is("Pilsner urquell")))
+                .andExpect(jsonPath("$.ads.[0].description", is("Tasty beer.")))
+                .andExpect(jsonPath("$.ads.[0].price", is(3000.00)))
+                .andExpect(jsonPath("$.ads.[0].zipcode", is("12345")))
+                .andExpect(jsonPath("$.ads.[1].title", is("Pilsner urquell3")))
+                .andExpect(jsonPath("$.ads.[1].description", is("Tasty beer3.")))
+                .andExpect(jsonPath("$.ads.[1].price", is(1000.00)))
+                .andExpect(jsonPath("$.ads.[1].zipcode", is("67890")));
+    }
+
+    @Test
+    @WithMockUser(username = "user", roles = "USER")
+    void listAdsUserFailSearchWithBannedUser() throws Exception {
+        Category beverageCategory = new Category("Beverage", "Buy some good beer.");
+        categoryRepository.save(beverageCategory);
+
+        User user = new User("user1", "user@email.cz","Password1*");
+        userRepository.save(user);
+
+        banService.banUser(user.getId(), 5);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/advertisement")
+                        .param("user", user.getUsername()))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.error", is("User with this name doesn't exist.")));
+
     }
 }
