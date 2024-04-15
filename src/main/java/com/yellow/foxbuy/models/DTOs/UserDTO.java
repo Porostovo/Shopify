@@ -35,4 +35,9 @@ public class UserDTO {
         this.email = email;
         this.password = password;
     }
+
+    @Override
+    public String toString() {
+        return "username = " + username + " | email = " + email;
+    }
 }

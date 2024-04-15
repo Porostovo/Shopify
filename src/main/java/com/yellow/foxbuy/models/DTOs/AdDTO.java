@@ -37,4 +37,9 @@ public class AdDTO {
         this.zipcode = zipcode;
         this.categoryID = categoryID;
     }
+
+    @Override
+    public String toString() {
+        return "title = " + title + " | description = " + description + " | price = " + price + " | zipcode = " + zipcode + " | categoryID = " + categoryID;
+    }
 }

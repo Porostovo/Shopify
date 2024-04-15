@@ -49,6 +49,7 @@ public class FoxbuyYellowApplication implements CommandLineRunner {
         Category beverageCategory = new Category("Beverage", "Buy some good beer.");
         Category nourishmentCategory = new Category("Nourishment", "Buy some good beef.");
 
+
         categoryRepository.save(beverageCategory);
         categoryRepository.save(nourishmentCategory);
 
