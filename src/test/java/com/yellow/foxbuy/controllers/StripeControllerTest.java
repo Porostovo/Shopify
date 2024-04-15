@@ -1,19 +1,15 @@
 package com.yellow.foxbuy.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yellow.foxbuy.models.Category;
 import com.yellow.foxbuy.models.DTOs.*;
 import com.yellow.foxbuy.models.User;
-import com.yellow.foxbuy.repositories.ConfirmationTokenRepository;
 import com.yellow.foxbuy.repositories.UserRepository;
-import com.yellow.foxbuy.services.ConfirmationTokenService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -125,6 +121,6 @@ public class StripeControllerTest {
                         .content(objectMapper.writeValueAsString(customerDTO))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(400))
-                .andExpect(jsonPath("$.error", is("Payment failed. You are already  VIP member.")));
+                .andExpect(jsonPath("$.error", is("Payment failed. You know, as administrator you cannot buy VIP membership.")));
     }
 }

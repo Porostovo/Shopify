@@ -59,6 +59,9 @@ public class AuthenticationServiceImp implements AuthenticationService {
             response.setMessage("User is not verified.");
             logService.addLog("POST /login", "ERROR", loginRequest.toString());
             return ResponseEntity.badRequest().body(response);
+        } else if (user.getBanned() != null) {
+            response.setMessage("User is temporarily banned");
+            return ResponseEntity.badRequest().body(response);
         } else if (!passwordEncoder.matches(password, user.getPassword())) {
             response.setMessage("Username or password are incorrect.");
             logService.addLog("POST /login", "ERROR", loginRequest.toString());

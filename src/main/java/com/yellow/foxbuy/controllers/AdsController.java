@@ -77,7 +77,7 @@ public class AdsController {
     @ApiResponse(responseCode = "200", description = "Ad was found and info is shown.")
     @ApiResponse(responseCode = "400", description = "Ad with this ID doesn't exist.")
     public ResponseEntity<?> getAdvertisement(@PathVariable Long id) {
-        if (!adService.existsById(id)) {
+        if (!adService.existsById(id) || adService.findAdByIdNoOptional(id).isHidden()) {
             Map<String, String> error = new HashMap<>();
             error.put("error", "Ad with this id doesn't exist.");
             logService.addLog("GET /advertisement/{id}", "ERROR", "id = " + id);
@@ -96,10 +96,10 @@ public class AdsController {
                                      @RequestParam(required = false) Long category,
                                      @RequestParam(required = false, defaultValue = "1") Integer page) {
         Map<String, String> error = new HashMap<>();
-        if (user != null && userService.existsByUsername(user)) {
+        if (user != null && userService.existsByUsername(user) && userService.getUserByUsernameNotOptional(user).getBanned() == null) {
             logService.addLog("GET /advertisement", "INFO", "user = " + user);
             return ResponseEntity.status(200).body(adService.findAllByUser(user));
-        } else if (user != null && !userService.existsByUsername(user)) {
+        } else if ((user != null && !userService.existsByUsername(user)) || (user != null && userService.getUserByUsernameNotOptional(user).getBanned() != null)) {
             logService.addLog("GET /advertisement", "ERROR", "user = " + user);
             error.put("error", "User with this name doesn't exist.");
             return ResponseEntity.status(400).body(error);
