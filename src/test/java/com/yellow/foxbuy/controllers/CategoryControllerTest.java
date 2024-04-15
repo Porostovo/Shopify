@@ -248,7 +248,7 @@ class CategoryControllerTest {
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/category/" + id))
                 .andExpect(status().is(200))
-                .andExpect(content().string("Category was deleted."));
+                .andExpect(jsonPath("$.message",is("Category was deleted.")));
 
         assertEquals(initialAdCount + 1, categoryRepository.findAll().size());
         assertEquals(categoryRepository.findFirstByOrderByIdDesc().getName(), "Uncategorized");
