@@ -46,7 +46,6 @@ public class GeneratePdfUtil {
         if (!directory.exists()) {
             directory.mkdirs(); //
         }
-       // String filePath = "invoice_vip_" + invoiceNumber + ".pdf";
 
        try {
             PdfWriter pdfWriter = new PdfWriter(filePath);
