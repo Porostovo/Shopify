@@ -1,7 +1,8 @@
 package com.yellow.foxbuy.controllers;
 
 import com.yellow.foxbuy.models.DTOs.AdDTO;
-import com.yellow.foxbuy.models.DTOs.WatchDogDTO;
+import com.yellow.foxbuy.models.DTOs.WatchdogDTO;
+import com.yellow.foxbuy.models.User;
 import com.yellow.foxbuy.services.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -15,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.yellow.foxbuy.services.AdManagementServiceImp.hasRole;
+
 
 @RestController
 public class AdsController {
@@ -23,10 +26,10 @@ public class AdsController {
     private final CategoryService categoryService;
     private final UserService userService;
     private final LogService logService;
-    private final WatchDogService watchDogService;
+    private final WatchdogService watchDogService;
 
     @Autowired
-    public AdsController(AdManagementService adManagementService, AdService adService, CategoryService categoryService, UserService userService, LogService logService, WatchDogService watchDogService) {
+    public AdsController(AdManagementService adManagementService, AdService adService, CategoryService categoryService, UserService userService, LogService logService, WatchdogService watchDogService) {
         this.adManagementService = adManagementService;
         this.adService = adService;
         this.categoryService = categoryService;
@@ -136,13 +139,26 @@ public class AdsController {
     }
 
     @PostMapping("advertisement/watch")
-    public ResponseEntity<?> setUpWatchDog(@Valid @RequestBody WatchDogDTO watchDogDTO, BindingResult bindingResult){
+    public ResponseEntity<?> setUpWatchDog(@Valid @RequestBody WatchdogDTO watchdogDTO, BindingResult bindingResult, Authentication authentication){
+        Map<String, String> result = new HashMap<>();
+
         if (bindingResult.hasErrors()) {
-            logService.addLog("POST /advertisement/watch", "ERROR", watchDogDTO.toString());
+            logService.addLog("POST /advertisement/watch", "ERROR", watchdogDTO.toString());
             return ErrorsHandling.handleValidationErrors(bindingResult);
         }
-        //needs to transform
-        watchDogService.setupWatchDog(watchDogDTO);
-        return ResponseEntity.ok("WatchDog set up successfully");
+
+       User user = userService.findByUsername(authentication.getName()).orElse(null);
+
+        boolean isVipUser = hasRole(authentication, "ROLE_VIP");
+        if (!isVipUser && user != null){
+            result.put("error", "User is not VIP and cannot have WATCHDOG.");
+            logService.addLog("POST /advertisement/watch", "ERROR", watchdogDTO.toString());
+            return ResponseEntity.status(400).body(result);
+        }
+
+        watchDogService.setupWatchdog(watchdogDTO, user, authentication);
+
+        logService.addLog("POST /advertisement/watch", "INFO", watchdogDTO.toString());
+        return ResponseEntity.status(200).body("Watchdog set up successfully");
     }
 }

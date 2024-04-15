@@ -10,13 +10,13 @@ import lombok.Setter;
 @Getter
 @NoArgsConstructor
 @Schema(description = "Schema used for watchdog")
-public class WatchDogDTO {
+public class WatchdogDTO {
     @NotNull(message = "Category is required!")
     @Schema(description = "required", example = "1")
     private Long category_id;
     @NotNull(message = "Max price is required!")
     @Schema(description = "required", example = "2500")
-    private Long max_price;
-    private Long keyword;
+    private double max_price;
+    private String keyword;
 
 }
