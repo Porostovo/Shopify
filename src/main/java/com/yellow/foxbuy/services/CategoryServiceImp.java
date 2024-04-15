@@ -44,14 +44,15 @@ public class CategoryServiceImp implements CategoryService {
     public void deleteCategory(Long id) {
         List<Ad> adList = adRepository.findAllByCategoryId(id);
 
-        if (categoryRepository.findFirstByName("Uncategorized") == null) {
-            Category category = new Category("Uncategorized", "N/A");
-            categoryRepository.save(category);
-        }
         Category category = categoryRepository.findFirstByName("Uncategorized");
+        if (category == null) {
+            category = new Category("Uncategorized", "N/A");
+            category=categoryRepository.save(category);
+        }
 
-        adList.stream().forEach(ad -> {
-            ad.setCategory(category);
+        Category finalCategory = category;
+        adList.forEach(ad -> {
+            ad.setCategory(finalCategory);
             adRepository.save(ad);
         });
         Category category1 = categoryRepository.findFirstById(id);

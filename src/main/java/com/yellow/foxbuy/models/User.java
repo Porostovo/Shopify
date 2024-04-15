@@ -29,11 +29,14 @@ public class  User implements UserDetails {
     private Boolean verified;
     @OneToMany(mappedBy = "user",  cascade = CascadeType.ALL)
     private List<Ad> ads = new ArrayList<>();
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany
     @JoinTable(name = "user_roles",
-            joinColumns = @JoinColumn(name = "user_id"),
+            joinColumns = @JoinColumn(name = "user_id", nullable = false),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
+    private String fullName;
+    private String address;
+    private String customerId;
 
     public User(String username, String email, String password) {
         this.username = username;
@@ -83,5 +86,11 @@ public class  User implements UserDetails {
         return false;
     }
 
-
+    public String getRole(){
+        String userRole = "";
+        for (Role role : roles) {
+            userRole = role.getName();
+        }
+        return userRole.substring(5);
+    }
 }

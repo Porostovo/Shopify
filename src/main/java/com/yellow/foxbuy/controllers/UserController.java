@@ -14,6 +14,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 @RestController
 public class UserController {
     private final UserService userService;
@@ -84,6 +88,38 @@ public class UserController {
     @Operation(summary = "Endpoint for testing", description = "Testing endpoint.")
     public Authentication confirm(Authentication authentication) {
         return authentication;
+    }
+
+    @GetMapping("/user/{id}")
+    @Operation(summary = "Get user details by ID", description = "Get username, email, role and list of ads by user UUID.")
+    @ApiResponse(responseCode = "200", description = "User details received.")
+    @ApiResponse(responseCode = "400", description = "User with this ID doesn't exist.")
+    public ResponseEntity<?> getUserDetails(@PathVariable UUID id) throws Exception {
+        Map<String, String> error = new HashMap<>();
+        if (!userService.existsById(id)) {
+            error.put("error", "User doesn't exist.");
+            return ResponseEntity.status(400).body(error);
+        }
+        return ResponseEntity.status(200).body(userService.getDetailsById(id));
+    }
+
+    @GetMapping("/user")
+    @Operation(summary = "Get list of users", description = "Get username, email, role and number of ads of all the users. Also shows actual page and total pages. Can be used with page parameter.")
+    @ApiResponse(responseCode = "200", description = "User list received.")
+    @ApiResponse(responseCode = "400", description = "Chosen page is empty.")
+    public ResponseEntity<?> listUsers(@RequestParam (required = false, defaultValue = "1") Integer page) {
+        int totalPages = userService.getTotalPages(userService.getAllUsers());
+        if (page > totalPages) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "This page is empty.");
+            return ResponseEntity.status(400).body(error);
+        } else {
+            Map<String, Object> result = new HashMap<>();
+            result.put("page", page);
+            result.put("total_pages", totalPages);
+            result.put("users", userService.listUsersByPage(page));
+            return ResponseEntity.status(200).body(result);
+        }
     }
 }
 
