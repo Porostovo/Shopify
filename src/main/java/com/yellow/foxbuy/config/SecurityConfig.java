@@ -69,6 +69,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/advertisement/**").hasAnyRole("USER", "VIP", "ADMIN")
                         .requestMatchers("/logs").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/test").hasAnyRole("USER", "VIP", "ADMIN")
+                        .requestMatchers(HttpMethod.POST,"/advertisement/watch").hasRole("VIP")
                         .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
