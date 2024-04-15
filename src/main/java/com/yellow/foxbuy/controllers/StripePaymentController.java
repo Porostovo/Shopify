@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -100,7 +101,9 @@ public class StripePaymentController {
             GeneratePdfUtil generatePdfUtil = new GeneratePdfUtil();
             String invoiceNumber = generatePdfUtil.generateInvoice(user);
 
-            String attachmentPath = "invoice_vip_" + invoiceNumber + ".pdf";
+            String directoryPath = "resources" + java.io.File.separator + "generated-PDF";
+            String fileName = "invoice_vip_" + invoiceNumber + ".pdf";
+            String attachmentPath = directoryPath + File.separator + fileName;
 
             emailService.sendEmailWithAttachment(user.getEmail(),attachmentPath);
 
