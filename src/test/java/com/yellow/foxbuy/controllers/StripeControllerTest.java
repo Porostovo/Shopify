@@ -122,5 +122,6 @@ public class StripeControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(400))
                 .andExpect(jsonPath("$.error", is("Payment failed. You know, as administrator you cannot buy VIP membership.")));
+
     }
 }

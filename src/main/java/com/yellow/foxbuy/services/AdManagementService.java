@@ -8,4 +8,6 @@ public interface AdManagementService {
     ResponseEntity<?> createAd(AdDTO adDTO, Authentication authentication);
     ResponseEntity<?> updateAd(Long id, AdDTO adDTO, Authentication authentication);
     ResponseEntity<?> deleteAd(Long id, Authentication authentication);
+
+    boolean isMessageToMyself(Long id, Authentication authentication);
 }

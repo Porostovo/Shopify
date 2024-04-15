@@ -1,19 +1,23 @@
 package com.yellow.foxbuy.controllers;
 
+import com.google.gson.Gson;
 import com.yellow.foxbuy.models.DTOs.AdDTO;
 import com.yellow.foxbuy.services.*;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import com.google.gson.JsonObject;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
+
 
 
 @RestController
@@ -22,15 +26,19 @@ public class AdsController {
     private final AdService adService;
     private final CategoryService categoryService;
     private final UserService userService;
-    private final LogService logService;
+private final LogService logService;
+    private final EmailService emailService;
 
     @Autowired
-    public AdsController(AdManagementService adManagementService, AdService adService, CategoryService categoryService, UserService userService, LogService logService) {
+    public AdsController(AdManagementService adManagementService, AdService adService, CategoryService categoryService, UserService userService,EmailService emailService, LogService logService) {
+
         this.adManagementService = adManagementService;
         this.adService = adService;
         this.categoryService = categoryService;
         this.userService = userService;
+        this.emailService = emailService;
         this.logService = logService;
+
     }
 
     @PostMapping("/advertisement")
@@ -131,5 +139,39 @@ public class AdsController {
         error.put("error", "Unexpected error");
         logService.addLog("GET /advertisement", "ERROR", "category = " + category + " | page = " + page);
         return ResponseEntity.status(400).body(error);
+    }
+
+    @PostMapping("/advertisement/{id}/message")
+    @Operation(summary = "Send a message to Seller", description = "User can send a message to Seller.")
+    @ApiResponse(responseCode = "200", description = "Thank you for your message.")
+    @ApiResponse(responseCode = "400", description = "You cannot write a message to your advertisements.")
+    public ResponseEntity<?> sendMessageToSeller(@PathVariable(required = false) Long id,
+                                                 @Schema(example = "{\"message\": \"question.\"}")
+                                                 @RequestBody(required = false) String requestBody,
+                                                 Authentication authentication) throws MessagingException {
+        Map<String, String> response = new HashMap<>();
+        if (authentication == null){
+            response.put("error", "If you want send messages you have to be logged in.");
+            return ResponseEntity.status(400).body(response);
+        }
+        if (id == null || !adService.existsById(id)){
+            response.put("error", "You're attempting to write a message to an advertisement that does not exist.");
+            return ResponseEntity.status(400).body(response);
+        }
+        JsonObject jsonObject = new Gson().fromJson(requestBody, JsonObject.class);//ChatGPT :-)
+        if (!jsonObject.has("message") || jsonObject.get("message").getAsString().isEmpty()) {
+            response.put("error", "Message should have at least 1 letter.");
+            return ResponseEntity.status(400).body(response);
+        }
+        String message = jsonObject.get("message").getAsString();
+
+        if (adManagementService.isMessageToMyself(id, authentication)) {
+            response.put("error", "You cannot write a message to your advertisements.");
+            return ResponseEntity.status(400).body(response);
+        }
+        emailService.sendMessageToSeller(authentication, id, message);
+        response.put("status", "200");
+        response.put("message", "Thank you for your message.");
+        return ResponseEntity.status(200).body(response);
     }
 }

@@ -169,6 +169,16 @@ public class AdManagementServiceImp implements AdManagementService {
 
     }
 
+    @Override
+    public boolean isMessageToMyself(Long id, Authentication authentication) {
+        String username = authentication.getName();
+        User user = userService.findByUsername(username).orElseThrow();
+        Optional<Ad> existingAdOptional = adService.findAdById(id);
+        Ad existingAd = existingAdOptional.orElseThrow();
+
+        return user.getId() == existingAd.getUser().getId();
+    }
+
     public static boolean hasRole(Authentication authentication, String roleName) {
         for (GrantedAuthority authority : authentication.getAuthorities()) {
             if (authority.getAuthority().equals(roleName)) {
