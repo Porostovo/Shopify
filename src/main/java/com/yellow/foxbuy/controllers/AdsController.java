@@ -18,18 +18,19 @@ import java.util.Optional;
 
 @RestController
 public class AdsController {
-
     private final AdManagementService adManagementService;
     private final AdService adService;
     private final CategoryService categoryService;
     private final UserService userService;
+    private final LogService logService;
 
     @Autowired
-    public AdsController(AdManagementService adManagementService, AdService adService, CategoryService categoryService, UserService userService) {
+    public AdsController(AdManagementService adManagementService, AdService adService, CategoryService categoryService, UserService userService, LogService logService) {
         this.adManagementService = adManagementService;
         this.adService = adService;
         this.categoryService = categoryService;
         this.userService = userService;
+        this.logService = logService;
     }
 
     @PostMapping("/advertisement")
@@ -41,11 +42,10 @@ public class AdsController {
                                       Authentication authentication) {
 
         if (bindingResult.hasErrors()) {
+            logService.addLog("POST /advertisement", "ERROR", adDTO.toString());
             return ErrorsHandling.handleValidationErrors(bindingResult);
         }
-
         return adManagementService.createAd(adDTO, authentication);
-
     }
 
     @PutMapping("advertisement/{id}")
@@ -57,9 +57,9 @@ public class AdsController {
                                       Authentication authentication) {
 
         if (bindingResult.hasErrors()) {
+            logService.addLog("PUT /advertisement/{id}", "ERROR", "id = " + id + " | " + adDTO.toString());
             return ErrorsHandling.handleValidationErrors(bindingResult);
         }
-
         return adManagementService.updateAd(id, adDTO, authentication);
     }
 
@@ -80,8 +80,12 @@ public class AdsController {
         if (!adService.existsById(id)) {
             Map<String, String> error = new HashMap<>();
             error.put("error", "Ad with this id doesn't exist.");
+            logService.addLog("GET /advertisement/{id}", "ERROR", "id = " + id);
             return ResponseEntity.status(400).body(error);
-        } else return ResponseEntity.status(200).body(adService.findById(id));
+        } else {
+            logService.addLog("GET /advertisement/{id}", "INFO", "id = " + id);
+            return ResponseEntity.status(200).body(adService.findById(id));
+        }
     }
 
     @GetMapping("/advertisement")
@@ -93,8 +97,10 @@ public class AdsController {
                                      @RequestParam(required = false, defaultValue = "1") Integer page) {
         Map<String, String> error = new HashMap<>();
         if (user != null && userService.existsByUsername(user)) {
+            logService.addLog("GET /advertisement", "INFO", "user = " + user);
             return ResponseEntity.status(200).body(adService.findAllByUser(user));
         } else if (user != null && !userService.existsByUsername(user)) {
+            logService.addLog("GET /advertisement", "ERROR", "user = " + user);
             error.put("error", "User with this name doesn't exist.");
             return ResponseEntity.status(400).body(error);
         }
@@ -103,40 +109,27 @@ public class AdsController {
 
         if (!categoryService.categoryIdExists(category)) {
             error.put("error", "Category with this ID doesn't exist.");
+            logService.addLog("GET /advertisement", "ERROR", "category = " + category + " | page = " + page);
             return ResponseEntity.status(400).body(error);
         } else {
             if (page != null && page > totalPages) {
                 error.put("error", "This page is empty.");
+                logService.addLog("GET /advertisement", "ERROR", "category = " + category + " | page = " + page);
                 return ResponseEntity.status(400).body(error);
             } else if (page != null && category != null) {
                 Map<String, Object> result = new HashMap<>();
                 result.put("page", page);
                 result.put("total_pages", totalPages);
                 result.put("ads", adService.listAdsByPageAndCategory(page, category));
+                logService.addLog("GET /advertisement", "INFO", "category = " + category + " | page = " + page);
                 return ResponseEntity.status(200).body(result);
             } else if (category != null) {
+                logService.addLog("GET /advertisement", "INFO", "category = " + category + " | page = " + page);
                 return ResponseEntity.status(200).body(adService.findAllByCategoryId(category));
             }
         }
-
-//        if (page != null && page > totalPages && categoryService.categoryIdExists(category)) {
-//            error.put("error", "This page is empty.");
-//            return ResponseEntity.status(400).body(error);
-//        } else if (!categoryService.categoryIdExists(category)) {
-//            error.put("error", "Category with this ID doesn't exist.");
-//            return ResponseEntity.status(400).body(error);
-//        } else if (page != null && category != null && categoryService.categoryIdExists(category)) {
-//            Map<String, Object> result = new HashMap<>();
-//            result.put("page", page);
-//            result.put("total_pages", totalPages);
-//            result.put("ads", adService.listAdsByPageAndCategory(page, category));
-//            return ResponseEntity.status(200).body(result);
-//        }
-//
-//        if (category != null && categoryService.categoryIdExists(category)) {
-//            return ResponseEntity.status(200).body(adService.findAllByCategoryId(category));
-//        }
         error.put("error", "Unexpected error");
+        logService.addLog("GET /advertisement", "ERROR", "category = " + category + " | page = " + page);
         return ResponseEntity.status(400).body(error);
     }
 }

@@ -18,4 +18,9 @@ public class CustomerDTO {
     @NotBlank(message = "Address is required.")
     @Schema(description = "required", example = "123 Main Street, Anytown, USA 12345")
     private String address;
+
+    @Override
+    public String toString() {
+        return "fullName = " + fullName + " | address = " + address + " | paymentMethod = " + paymentMethod;
+    }
 }
