@@ -125,6 +125,7 @@ public class StripeControllerTest {
                         .content(objectMapper.writeValueAsString(customerDTO))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(400))
-                .andExpect(jsonPath("$.error", is("Payment failed. You are already  VIP member.")));
+                .andExpect(jsonPath("$.error", is("Payment failed. You know, as administrator you cannot" +
+                        " buy VIP membership.")));
     }
 }
