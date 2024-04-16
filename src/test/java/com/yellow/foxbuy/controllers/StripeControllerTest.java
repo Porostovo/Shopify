@@ -42,6 +42,7 @@ public class StripeControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "user288", roles = {"USER"})
     public void processVipPayment() throws Exception {
         UserDTO userDTO = new UserDTO("user28", "email@email.com28", "Password123%");
         UserDTO userDTO2 = new UserDTO("user288", "email@email.com288", "Password123%");
@@ -89,6 +90,7 @@ public class StripeControllerTest {
         assertEquals(initialCount + 1, latestCount);
     }
     @Test
+    @WithMockUser(username = "user28", roles = {"USER"})
     public void processVipPaymentFAILED() throws Exception {
         UserDTO userDTO = new UserDTO("user28", "email@email.com28", "Password123%");
         LoginRequest loginRequest = new LoginRequest("user28", "Password123%");
