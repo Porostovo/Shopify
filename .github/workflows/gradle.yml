@@ -27,6 +27,7 @@ jobs:
       EMAIL_VERIFICATION: 'off'
       DB_PASSWORD: ${{secrets.DB_PASSWORD}}
       DB_USERNAME: ${{secrets.DB_USERNAME}}
+      STRIPE_APIKEY:  ${{secrets. STRIPE_APIKEY}}
 
     steps:
     - uses: actions/checkout@v4
