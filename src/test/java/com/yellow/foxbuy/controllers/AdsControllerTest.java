@@ -464,6 +464,7 @@ public class AdsControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(400))
                 .andExpect(jsonPath("$.error", is("If you want send messages you have to be logged in.")));
+    }
 
     @WithMockUser(username = "user", roles = "USER")
     void listAdsUserSuccessWithBannedUser() throws Exception {
