@@ -1,8 +1,11 @@
 package com.yellow.foxbuy.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yellow.foxbuy.config.SecurityConfig;
 import com.yellow.foxbuy.models.DTOs.*;
+import com.yellow.foxbuy.models.Role;
 import com.yellow.foxbuy.models.User;
+import com.yellow.foxbuy.repositories.RoleRepository;
 import com.yellow.foxbuy.repositories.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,8 +17,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.security.test.context.support.WithMockUser;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 import static org.hamcrest.Matchers.is;
@@ -29,42 +33,39 @@ public class StripeControllerTest {
     private final MockMvc mockMvc;
     private final UserRepository userRepository;
     private ObjectMapper objectMapper;
+    private final RoleRepository roleRepository;
 
     @Autowired
-    public StripeControllerTest(MockMvc mockMvc, UserRepository userRepository) {
+    public StripeControllerTest(MockMvc mockMvc, UserRepository userRepository, RoleRepository roleRepository) {
         this.mockMvc = mockMvc;
         this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
+
     }
 
     @BeforeEach
     public void setUp() {
         objectMapper = new ObjectMapper();
         userRepository.deleteAll();
+        roleRepository.deleteAll();
     }
 
     @Test
-    @WithMockUser(username = "user288", roles = {"USER"})
     public void processVipPayment() throws Exception {
-        UserDTO userDTO = new UserDTO("user28", "email@email.com28", "Password123%");
-        UserDTO userDTO2 = new UserDTO("user288", "email@email.com288", "Password123%");
-        LoginRequest loginRequest = new LoginRequest("user288", "Password123%");
+        Role roleUser = roleRepository.save(new Role("ROLE_USER"));
 
-        List<User> users = userRepository.findAll();
+        User user1 = new User("JohnUSER",
+                "email@email.com",
+                SecurityConfig.passwordEncoder().encode("Password123%"),
+                new HashSet<>(Collections.singletonList(roleUser)));
+        user1.setVerified(true);
+        userRepository.save(user1);
+        System.out.println("XXXXX" + user1.getPassword());
+
+        LoginRequest loginRequest = new LoginRequest("JohnUSER", "Password123%");
+
+       List<User> users = userRepository.findAll();
         long initialCount = users.stream().filter(ads -> ads.getAddress() != null).count();
-
-        mockMvc.perform(MockMvcRequestBuilders.post("/registration")
-                .content(objectMapper.writeValueAsString(userDTO))
-                .contentType(MediaType.APPLICATION_JSON));
-
-        mockMvc.perform(MockMvcRequestBuilders.post("/registration")
-                .content(objectMapper.writeValueAsString(userDTO2))
-                .contentType(MediaType.APPLICATION_JSON));
-
-
-        mockMvc.perform(MockMvcRequestBuilders.post("/login")
-                .content(objectMapper.writeValueAsString(loginRequest))
-                .contentType(MediaType.APPLICATION_JSON));
-
 
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post("/login")
                         .content(objectMapper.writeValueAsString(loginRequest))
@@ -91,20 +92,20 @@ public class StripeControllerTest {
         assertEquals(initialCount + 1, latestCount);
     }
     @Test
-    @WithMockUser(username = "user28", roles = {"USER"})
+
     public void processVipPaymentFAILED() throws Exception {
-        UserDTO userDTO = new UserDTO("user28", "email@email.com28", "Password123%");
-        LoginRequest loginRequest = new LoginRequest("user28", "Password123%");
+        Role roleAdmin = roleRepository.save(new Role("ROLE_ADMIN"));
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/registration")
-                .content(objectMapper.writeValueAsString(userDTO))
-                .contentType(MediaType.APPLICATION_JSON));
+        User user1 = new User("JohnADMIN",
+                "email@email.com",
+                SecurityConfig.passwordEncoder().encode("Password123%"),
+                new HashSet<>(Collections.singletonList(roleAdmin)));
+        user1.setVerified(true);
+        userRepository.save(user1);
+        System.out.println("XXXXX" + user1.getPassword());
 
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/login")
-                .content(objectMapper.writeValueAsString(loginRequest))
-                .contentType(MediaType.APPLICATION_JSON));
-
+        LoginRequest loginRequest = new LoginRequest("JohnADMIN", "Password123%");
 
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post("/login")
                         .content(objectMapper.writeValueAsString(loginRequest))
@@ -113,6 +114,8 @@ public class StripeControllerTest {
 
         String content = result.getResponse().getContentAsString();
         AuthResponseDTO response = objectMapper.readValue(content, AuthResponseDTO.class);
+
+        System.out.println("XXXXX" + content);
 
         CustomerDTO customerDTO = new CustomerDTO();
         customerDTO.setFullName("Test User");
@@ -124,7 +127,7 @@ public class StripeControllerTest {
                         .content(objectMapper.writeValueAsString(customerDTO))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(400))
-                .andExpect(jsonPath("$.error", is("Payment failed. You know, as administrator you cannot buy VIP membership.")));
-
+                .andExpect(jsonPath("$.error", is("Payment failed. You know, " +
+                        "as administrator you cannot buy VIP membership.")));
     }
 }
