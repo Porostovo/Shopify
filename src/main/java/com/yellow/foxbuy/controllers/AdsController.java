@@ -6,6 +6,7 @@ import com.yellow.foxbuy.models.User;
 import com.yellow.foxbuy.services.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -44,7 +45,7 @@ public class AdsController {
     @ApiResponse(responseCode = "400", description = "Invalid input or user is not verified.")
     public ResponseEntity<?> createAd(@Valid @RequestBody AdDTO adDTO,
                                       BindingResult bindingResult,
-                                      Authentication authentication) {
+                                      Authentication authentication) throws MessagingException {
 
         if (bindingResult.hasErrors()) {
             logService.addLog("POST /advertisement", "ERROR", adDTO.toString());
@@ -59,7 +60,7 @@ public class AdsController {
     @ApiResponse(responseCode = "400", description = "Invalid input or user is not verified.")
     public ResponseEntity<?> updateAd(@Valid @PathVariable Long id, @RequestBody AdDTO adDTO,
                                       BindingResult bindingResult,
-                                      Authentication authentication) {
+                                      Authentication authentication) throws MessagingException {
 
         if (bindingResult.hasErrors()) {
             logService.addLog("PUT /advertisement/{id}", "ERROR", "id = " + id + " | " + adDTO.toString());
@@ -139,6 +140,9 @@ public class AdsController {
     }
 
     @PostMapping("advertisement/watch")
+    @Operation(summary = "Watchdog create", description = "VIP USER can set Watchdog.")
+    @ApiResponse(responseCode = "200", description = "Watchdog was successfully created.")
+    @ApiResponse(responseCode = "400", description = "An error occurred.")
     public ResponseEntity<?> setUpWatchDog(@Valid @RequestBody WatchdogDTO watchdogDTO, BindingResult bindingResult, Authentication authentication){
         Map<String, String> result = new HashMap<>();
 
@@ -149,16 +153,29 @@ public class AdsController {
 
        User user = userService.findByUsername(authentication.getName()).orElse(null);
 
-        boolean isVipUser = hasRole(authentication, "ROLE_VIP");
-        if (!isVipUser && user != null){
-            result.put("error", "User is not VIP and cannot have WATCHDOG.");
+        if (user == null) {
+            result.put("error", "User is not authenticated.");
             logService.addLog("POST /advertisement/watch", "ERROR", watchdogDTO.toString());
             return ResponseEntity.status(400).body(result);
         }
 
+        boolean isVipUser = hasRole(authentication, "ROLE_VIP");
+        if (!isVipUser) {
+            result.put("error", "User is not VIP and cannot have WATCHDOG.");
+            logService.addLog("POST /advertisement/watch", "ERROR", watchdogDTO.toString());
+            return ResponseEntity.status(400).body(result);
+        }
         watchDogService.setupWatchdog(watchdogDTO, user, authentication);
 
         logService.addLog("POST /advertisement/watch", "INFO", watchdogDTO.toString());
-        return ResponseEntity.status(200).body("Watchdog set up successfully");
+        //if the keyword is empty
+        String keyword = watchdogDTO.getKeyword();
+        if (keyword == null || keyword.isEmpty()) {
+            result.put("success", "Watchdog has been set up successfully");
+            //if keyword is fill, show the name of the watchdog
+        } else {
+            result.put("success", "Watchdog '" + keyword + "' has been set up successfully");
+        }
+        return ResponseEntity.status(200).body(result);
     }
 }

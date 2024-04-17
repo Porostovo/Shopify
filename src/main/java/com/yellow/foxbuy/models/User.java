@@ -35,6 +35,8 @@ public class  User implements UserDetails {
     private String fullName;
     private String address;
     private String customerId;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Watchdog> watchdog = new ArrayList<>();
 
     public User(String username, String email, String password) {
         this.username = username;

@@ -11,6 +11,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -72,6 +73,23 @@ public class EmailServiceImp implements EmailService {
         // Add Attachment
         FileSystemResource file = new FileSystemResource(new File(attachmentPath));
         helper.addAttachment(Objects.requireNonNull(file.getFilename()), file);
+
+        emailSender.send(message);
+    }
+
+    // method to send email to user(s) who has specific watchdog(s)
+    @Override
+    public void sendEmailWithWatchdogToUser(List<String> userEmails) throws MessagingException {
+        MimeMessage message = emailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+        String subject = "The ad you wanted to watch was created";
+        String text = "Hello, recently you set up a watchdog on specific category up to certain price.\n Just before a few moments the ad was created. Look into FOX BUY application";
+        helper.setFrom("noreply@baeldung.com");
+        String emailString = String.join(", ", userEmails);
+        helper.setTo(emailString);
+        helper.setSubject(subject);
+        helper.setText(text, true);
 
         emailSender.send(message);
     }

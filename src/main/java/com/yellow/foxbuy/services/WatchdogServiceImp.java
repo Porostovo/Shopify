@@ -1,15 +1,17 @@
 package com.yellow.foxbuy.services;
 
 import com.yellow.foxbuy.models.Category;
+import com.yellow.foxbuy.models.DTOs.AdDTO;
 import com.yellow.foxbuy.models.DTOs.WatchdogDTO;
 import com.yellow.foxbuy.models.User;
 import com.yellow.foxbuy.models.Watchdog;
 import com.yellow.foxbuy.repositories.WatchdogRepository;
+import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
-import static com.yellow.foxbuy.services.AdManagementServiceImp.hasRole;
+import java.util.List;
 
 @Service
 public class WatchdogServiceImp implements WatchdogService {
@@ -18,41 +20,48 @@ public class WatchdogServiceImp implements WatchdogService {
     private final EmailService emailService;
     private final UserService userService;
     private final CategoryService categoryService;
+
     @Autowired
     public WatchdogServiceImp(WatchdogRepository watchdogRepository, EmailService emailService, UserService userService, CategoryService categoryService) {
         this.watchdogRepository = watchdogRepository;
-
         this.emailService = emailService;
         this.userService = userService;
         this.categoryService = categoryService;
     }
+
     @Override
-    public void setupWatchdog(WatchdogDTO watchdogDTO, User user, Authentication authentication) {
+    public void setupWatchdog(WatchdogDTO watchdogDTO, User user, Authentication authentication) throws RuntimeException {
         Watchdog watchdog = new Watchdog();
 
-       userService.findByUsername(authentication.getName()).orElse(null);
+        userService.findByUsername(authentication.getName()).orElse(null);
 
-        boolean isVipUser = hasRole(authentication, "ROLE_VIP");
-
-        // Set the user for the Watchdog
         watchdog.setUser(user);
 
-        // Retrieve the Category entity based on the provided category ID
         Category category = categoryService.findCategoryById(watchdogDTO.getCategory_id());
 
-        // Set the category for the Watchdog
         watchdog.setCategory(category);
 
-        // Set other properties like max price and keyword
         watchdog.setMaxPrice(watchdogDTO.getMax_price());
         watchdog.setKeyword(watchdogDTO.getKeyword());
 
-        watchdogRepository.save(watchdog);
+        try {
+            watchdogRepository.save(watchdog);
+        } catch (Exception e) {
+            throw new RuntimeException("An error occurred while saving the watchdog: " + e.getMessage(), e);
+        }
     }
-
 
     @Override
-    public Watchdog saveWatchdog(Watchdog watchdog) {
-        return watchdogRepository.save(watchdog);
+    public void checkWatchdogs(AdDTO adDTO) throws MessagingException {
+        Long category_id = adDTO.getCategoryID();
+        Double maxPrice = adDTO.getPrice();
+        String titleDescription = adDTO.getTitle() + " " + adDTO.getDescription();
+
+        List<String> userEmails = watchdogRepository.findMatchingWatchdogs(category_id,maxPrice,titleDescription);
+
+        if (!userEmails.isEmpty()) {
+            emailService.sendEmailWithWatchdogToUser(userEmails);
+        }
     }
+
 }

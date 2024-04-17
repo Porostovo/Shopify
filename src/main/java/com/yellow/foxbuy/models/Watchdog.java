@@ -25,4 +25,10 @@ public class Watchdog {
     @JoinColumn(name = "category_id")
     private Category category;
 
+    public Watchdog(double maxPrice, String keyword, User user, Category category) {
+        this.maxPrice = maxPrice;
+        this.keyword = keyword;
+        this.user = user;
+        this.category = category;
+    }
 }

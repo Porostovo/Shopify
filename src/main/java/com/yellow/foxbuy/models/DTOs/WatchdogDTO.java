@@ -19,4 +19,8 @@ public class WatchdogDTO {
     private double max_price;
     private String keyword;
 
+    @Override
+    public String toString() {
+        return "category_id=" + category_id + "| max_price=" + max_price + "| keyword='" + keyword;
+    }
 }
