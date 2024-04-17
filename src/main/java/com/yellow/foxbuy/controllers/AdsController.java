@@ -120,20 +120,17 @@ private final LogService logService;
             logService.addLog("GET /advertisement", "ERROR", "category = " + category + " | page = " + page);
             return ResponseEntity.status(400).body(error);
         } else {
-            if (page != null && page > totalPages) {
+            if (page > totalPages) {
                 error.put("error", "This page is empty.");
                 logService.addLog("GET /advertisement", "ERROR", "category = " + category + " | page = " + page);
                 return ResponseEntity.status(400).body(error);
-            } else if (page != null && category != null) {
+            } else if (category != null) {
                 Map<String, Object> result = new HashMap<>();
                 result.put("page", page);
                 result.put("total_pages", totalPages);
                 result.put("ads", adService.listAdsByPageAndCategory(page, category));
                 logService.addLog("GET /advertisement", "INFO", "category = " + category + " | page = " + page);
                 return ResponseEntity.status(200).body(result);
-            } else if (category != null) {
-                logService.addLog("GET /advertisement", "INFO", "category = " + category + " | page = " + page);
-                return ResponseEntity.status(200).body(adService.findAllByCategoryId(category));
             }
         }
         error.put("error", "Unexpected error");
