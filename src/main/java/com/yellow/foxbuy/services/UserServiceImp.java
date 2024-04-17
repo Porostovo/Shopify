@@ -161,6 +161,5 @@ public class UserServiceImp implements UserService {
     public void unbanUser(User user) {
         user.setBanned(null);
         userRepository.save(user);
-        System.out.println("------------new id: "+ user.getId());
     }
 }
