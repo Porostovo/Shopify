@@ -104,7 +104,6 @@ public class AdServiceImp implements AdService {
 
     @Override
     public List<AdResponseDTO> findAllByCategoryId(Long id) {
-      //  List<Ad> adList = adRepository.findAllByCategoryId(id);
         List<Ad> adList = adRepository.findAllByCategoryIdAndHiddenIsFalse(id);
         List<AdResponseDTO> userAds = new ArrayList<>();
         for (Ad ad : adList) {
@@ -120,7 +119,6 @@ public class AdServiceImp implements AdService {
         List<AdResponseDTO> userAds = new ArrayList<>();
         Pageable pageable = PageRequest.of(page - 1, pageSize);
 
-//      List<Ad> adList = adRepository.findByCategoryId(id, pageable).getContent();
         List<Ad> adList = adRepository.findByCategoryIdAndHiddenIsFalse(id, pageable).getContent();
 
         System.out.println(adList);
