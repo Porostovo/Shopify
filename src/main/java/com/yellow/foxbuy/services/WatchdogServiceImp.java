@@ -52,16 +52,40 @@ public class WatchdogServiceImp implements WatchdogService {
     }
 
     @Override
-    public void checkWatchdogs(AdDTO adDTO) throws MessagingException {
+    public void checkWatchdogs(AdDTO adDTO, WatchdogDTO watchdogDTO) throws MessagingException {
         Long category_id = adDTO.getCategoryID();
         Double maxPrice = adDTO.getPrice();
         String titleDescription = adDTO.getTitle() + " " + adDTO.getDescription();
+        String keyword = watchdogDTO.getKeyword();
 
-        List<String> userEmails = watchdogRepository.findMatchingWatchdogs(category_id,maxPrice,titleDescription);
+        List<Watchdog>matchingWatchdogs = watchdogRepository.findByCategory_IdAndMaxPriceGreaterThan(category_id, maxPrice);
+
+        if (keyword != null && !keyword.isEmpty()) {
+            matchingWatchdogs = filterWatchdogsByKeyword(matchingWatchdogs, keyword, titleDescription);
+        }
+        List<String> userEmails = extractUserEmailsFromWatchdogs(matchingWatchdogs);
+
 
         if (!userEmails.isEmpty()) {
             emailService.sendEmailWithWatchdogToUser(userEmails);
         }
+    }
+
+    private List<Watchdog> filterWatchdogsByKeyword(List<Watchdog> matchingWatchdogs, String keyword, String titleDescription) {
+    return matchingWatchdogs.stream()
+            .filter(watchdog -> titleDescription.contains(keyword))
+            .toList();
+    }
+
+    @Override
+    public List<Watchdog>findMatchingWatchdogs(long category_id, double maxPrice){
+        return watchdogRepository.findByCategory_IdAndMaxPriceGreaterThan(category_id, maxPrice);
+    }
+    private List<String> extractUserEmailsFromWatchdogs(List<Watchdog> watchdogs) {
+        // Extract emails from users who created matching watchdogs
+        return watchdogs.stream()
+                .map(watchdog -> watchdog.getUser().getEmail())
+                .toList();
     }
 
 }

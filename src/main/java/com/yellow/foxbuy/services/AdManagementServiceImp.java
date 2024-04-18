@@ -4,6 +4,7 @@ import com.yellow.foxbuy.models.Ad;
 import com.yellow.foxbuy.models.Category;
 import com.yellow.foxbuy.models.DTOs.AdDTO;
 import com.yellow.foxbuy.models.DTOs.AdResponseDTO;
+import com.yellow.foxbuy.models.DTOs.WatchdogDTO;
 import com.yellow.foxbuy.models.User;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +35,7 @@ public class AdManagementServiceImp implements AdManagementService {
     }
 
     @Override
-    public ResponseEntity<?> createAd(AdDTO adDTO, Authentication authentication) throws MessagingException {
+    public ResponseEntity<?> createAd(AdDTO adDTO, Authentication authentication, WatchdogDTO watchdogDTO) throws MessagingException {
         Map<String, String> result = new HashMap<>();
         User user = userService.findByUsername(authentication.getName()).orElse(null);
 
@@ -56,7 +57,7 @@ public class AdManagementServiceImp implements AdManagementService {
         // Create Ad from AdDTO
         Ad ad = new Ad(adDTO, user, category);
         // Check if there is watchdog for this ad
-        watchdogService.checkWatchdogs(adDTO);
+        watchdogService.checkWatchdogs(adDTO, watchdogDTO);
 
         // Save ad to repository
         try {
@@ -81,7 +82,7 @@ public class AdManagementServiceImp implements AdManagementService {
     }
 
     @Override
-    public ResponseEntity<?> updateAd(Long id, AdDTO adDTO, Authentication authentication) throws MessagingException {
+    public ResponseEntity<?> updateAd(Long id, AdDTO adDTO, Authentication authentication, WatchdogDTO watchdogDTO) throws MessagingException {
         Map<String, String> result = new HashMap<>();
 
         String username = authentication.getName();
@@ -113,7 +114,7 @@ public class AdManagementServiceImp implements AdManagementService {
         ad.setId(id); // Set the ID of the existing advertisement
 
         // Check if there is watchdog for this ad
-        watchdogService.checkWatchdogs(adDTO);
+        watchdogService.checkWatchdogs(adDTO, watchdogDTO);
 
         try {
             adService.saveAd(ad);

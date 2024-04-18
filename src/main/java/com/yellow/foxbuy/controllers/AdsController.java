@@ -51,7 +51,7 @@ public class AdsController {
             logService.addLog("POST /advertisement", "ERROR", adDTO.toString());
             return ErrorsHandling.handleValidationErrors(bindingResult);
         }
-        return adManagementService.createAd(adDTO, authentication);
+        return adManagementService.createAd(adDTO, authentication,new WatchdogDTO());
     }
 
     @PutMapping("advertisement/{id}")
@@ -66,7 +66,7 @@ public class AdsController {
             logService.addLog("PUT /advertisement/{id}", "ERROR", "id = " + id + " | " + adDTO.toString());
             return ErrorsHandling.handleValidationErrors(bindingResult);
         }
-        return adManagementService.updateAd(id, adDTO, authentication);
+        return adManagementService.updateAd(id, adDTO, authentication,new WatchdogDTO());
     }
 
     @DeleteMapping("advertisement/{id}")
