@@ -83,7 +83,7 @@ public class EmailServiceImp implements EmailService {
         MimeMessage message = emailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
-        String subject = "The ad you wanted to watch was created";
+        String subject = "The ad you were interested in has been created";
         String text = "Hello, recently you set up a watchdog on specific category up to certain price.\n Just before a few moments the ad was created. Look into FOX BUY application";
         helper.setFrom("noreply@baeldung.com");
         String emailString = String.join(", ", userEmails);
