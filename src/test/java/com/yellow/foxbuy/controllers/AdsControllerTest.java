@@ -2,15 +2,9 @@ package com.yellow.foxbuy.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yellow.foxbuy.config.SecurityConfig;
-import com.yellow.foxbuy.models.Ad;
-import com.yellow.foxbuy.models.Category;
+import com.yellow.foxbuy.models.*;
 import com.yellow.foxbuy.models.DTOs.AdDTO;
-import com.yellow.foxbuy.models.Role;
-import com.yellow.foxbuy.models.User;
-import com.yellow.foxbuy.repositories.AdRepository;
-import com.yellow.foxbuy.repositories.CategoryRepository;
-import com.yellow.foxbuy.repositories.RoleRepository;
-import com.yellow.foxbuy.repositories.UserRepository;
+import com.yellow.foxbuy.repositories.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +41,8 @@ public class AdsControllerTest {
     private UserRepository userRepository;
     @Autowired
     private RoleRepository roleRepository;
+    @Autowired
+    private WatchdogRepository watchdogRepository;
 
     @BeforeEach
     public void setUp() {
@@ -55,17 +51,18 @@ public class AdsControllerTest {
         adRepository.deleteAll();
         userRepository.deleteAll();
         roleRepository.deleteAll();
+        watchdogRepository.deleteAll();
     }
 
-  @Test
-  @WithMockUser(username = "user", roles = "USER")
+    @Test
+    @WithMockUser(username = "user", roles = "USER")
     public void adCreatedSuccess() throws Exception {
         int initialAdCount = adRepository.findAll().size();
 
-        Category beverageCategory = new Category("Beverage", "Buy some good beer." );
+        Category beverageCategory = new Category("Beverage", "Buy some good beer.");
         categoryRepository.save(beverageCategory);
 
-        AdDTO adDTO= new AdDTO("Pilsner urquell", "Tasty beer.", 3000.00, "12345",beverageCategory.getId());
+        AdDTO adDTO = new AdDTO("Pilsner urquell", "Tasty beer.", 3000.00, "12345", beverageCategory.getId());
 
         mockMvc.perform(MockMvcRequestBuilders.post("/advertisement")
                         .content(objectMapper.writeValueAsString(adDTO))
@@ -84,25 +81,26 @@ public class AdsControllerTest {
     @WithMockUser(username = "user", roles = "USER")
     public void adCreatedError() throws Exception {
 
-        Category beverageCategory = new Category("Beverage", "Buy some good beer." );
+        Category beverageCategory = new Category("Beverage", "Buy some good beer.");
         categoryRepository.save(beverageCategory);
 
-        AdDTO adDTO= new AdDTO("Pilsner urquell", "Tasty beer.", 3000.00, "12345",12355L);
+        AdDTO adDTO = new AdDTO("Pilsner urquell", "Tasty beer.", 3000.00, "12345", 12355L);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/advertisement")
                         .content(objectMapper.writeValueAsString(adDTO))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(400))
                 .andExpect(jsonPath("$.error", is("Category not found.")));
-   }
+    }
+
     @Test
     @WithMockUser(username = "user", roles = "USER")
     public void adCreatedFailed() throws Exception {
 
-        Category beverageCategory = new Category("Beverage", "Buy some good beer." );
+        Category beverageCategory = new Category("Beverage", "Buy some good beer.");
         categoryRepository.save(beverageCategory);
 
-        AdDTO adDTO= new AdDTO("", "Tasty beer.", 3000.00, "12345", beverageCategory.getId());
+        AdDTO adDTO = new AdDTO("", "Tasty beer.", 3000.00, "12345", beverageCategory.getId());
 
         mockMvc.perform(MockMvcRequestBuilders.post("/advertisement")
                         .content(objectMapper.writeValueAsString(adDTO))
@@ -110,6 +108,7 @@ public class AdsControllerTest {
                 .andExpect(status().is(400))
                 .andExpect(jsonPath("$.title", is("Title is required!")));
     }
+
     @Test
     @WithMockUser(username = "user", roles = "USER")
     public void adUpdateSuccess() throws Exception {
@@ -123,7 +122,7 @@ public class AdsControllerTest {
         user.setRoles(roles);
         userRepository.save(user);
 
-        Category beverageCategory = new Category("Beverage", "Buy some good beer." );
+        Category beverageCategory = new Category("Beverage", "Buy some good beer.");
         categoryRepository.save(beverageCategory);
 
         Ad ad = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user, beverageCategory);
@@ -154,10 +153,10 @@ public class AdsControllerTest {
         user1.setVerified(true);
         userRepository.save(user1);
 
-         Category beverageCategory = new Category("Beverage", "Buy some good beer." );
+        Category beverageCategory = new Category("Beverage", "Buy some good beer.");
         categoryRepository.save(beverageCategory);
 
-        Ad ad = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345",user1, beverageCategory);
+        Ad ad = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user1, beverageCategory);
         adRepository.save(ad);
 
         mockMvc.perform(MockMvcRequestBuilders.put("/advertisement/{id}", ad.getId())
@@ -165,7 +164,7 @@ public class AdsControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(400))
                 .andExpect(jsonPath("$.error", is("You are not authorized to update this advertisement")));
-         }
+    }
 
     @Test
     @WithMockUser(username = "user", roles = "USER")
@@ -180,7 +179,7 @@ public class AdsControllerTest {
         user.setRoles(roles);
         userRepository.save(user);
 
-        Category beverageCategory = new Category("Beverage", "Buy some good beer." );
+        Category beverageCategory = new Category("Beverage", "Buy some good beer.");
         categoryRepository.save(beverageCategory);
 
         Ad ad = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user, beverageCategory);
@@ -188,13 +187,14 @@ public class AdsControllerTest {
         int initialAdCount = adRepository.findAll().size();
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/advertisement/{id}", ad.getId())
-                     .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(200))
-         .andExpect(jsonPath("$.message", is("Your ad was deleted")));
+                .andExpect(jsonPath("$.message", is("Your ad was deleted")));
 
         assertEquals(initialAdCount - 1, adRepository.findAll().size());
 
     }
+
     @Test
     @WithMockUser(username = "user1", roles = "USER")
     public void adDeleteError() throws Exception {
@@ -208,18 +208,19 @@ public class AdsControllerTest {
         user.setRoles(roles);
         userRepository.save(user);
 
-        Category beverageCategory = new Category("Beverage", "Buy some good beer." );
+        Category beverageCategory = new Category("Beverage", "Buy some good beer.");
         categoryRepository.save(beverageCategory);
 
         Ad ad = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user, beverageCategory);
         adRepository.save(ad);
-                mockMvc.perform(MockMvcRequestBuilders.delete("/advertisement/{id}", ad.getId())
+        mockMvc.perform(MockMvcRequestBuilders.delete("/advertisement/{id}", ad.getId())
                         .content(objectMapper.writeValueAsString(ad))
                         .contentType(MediaType.APPLICATION_JSON))
-                      .andExpect(status().is(400))
-                      .andExpect(jsonPath("$.error", is("You are not authorized to delete this advertisement")));
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.error", is("You are not authorized to delete this advertisement")));
 
-          }
+    }
+
     @Test
     @WithMockUser(username = "user", roles = "USER")
     void getAdvertisementSuccess() throws Exception {
@@ -228,7 +229,7 @@ public class AdsControllerTest {
         Category beverageCategory = new Category("Beverage", "Buy some good beer.");
         categoryRepository.save(beverageCategory);
 
-        User user = new User("user", "user@email.cz","Password1*");
+        User user = new User("user", "user@email.cz", "Password1*");
         userRepository.save(user);
 
         Ad ad = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user, beverageCategory);
@@ -260,7 +261,7 @@ public class AdsControllerTest {
         Category beverageCategory = new Category("Beverage", "Buy some good beer.");
         categoryRepository.save(beverageCategory);
 
-        User user = new User("user1", "user@email.cz","Password1*");
+        User user = new User("user1", "user@email.cz", "Password1*");
         userRepository.save(user);
 
         Ad ad1 = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user, beverageCategory);
@@ -269,7 +270,7 @@ public class AdsControllerTest {
         adRepository.save(ad2);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/advertisement")
-                .param("user", "user1"))
+                        .param("user", "user1"))
                 .andExpect(status().is(200))
                 .andExpect(jsonPath("$[0].title", is("Pilsner urquell")))
                 .andExpect(jsonPath("$[0].description", is("Tasty beer.")))
@@ -288,7 +289,7 @@ public class AdsControllerTest {
         Category beverageCategory = new Category("Beverage", "Buy some good beer.");
         categoryRepository.save(beverageCategory);
 
-        User user = new User("user1", "user@email.cz","Password1*");
+        User user = new User("user1", "user@email.cz", "Password1*");
         userRepository.save(user);
 
         Ad ad1 = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user, beverageCategory);
@@ -331,7 +332,7 @@ public class AdsControllerTest {
         categoryRepository.save(category);
         Long categoryId = category.getId();
 
-        User user = new User("user1", "user@email.cz","Password1*");
+        User user = new User("user1", "user@email.cz", "Password1*");
         userRepository.save(user);
 
         for (int i = 0; i < 12; i++) {
@@ -344,5 +345,47 @@ public class AdsControllerTest {
                 .andExpect(status().is(200))
                 .andExpect(jsonPath("$.page", is(1)))
                 .andExpect(jsonPath("$.total_pages", is(2)));
+    }
+
+    @Test
+    @WithMockUser(username = "user", roles = "VIP")
+    void setUpWatchdogSuccess() throws Exception {
+        int initialWatchdogCount = watchdogRepository.findAll().size();
+
+        User user = new User("user", "email@email.com", "Password1");
+        userRepository.save(user);
+        Set<Role> roles = new HashSet<>();
+        Role role = new Role("ROLE_VIP");
+        roles.add(role);
+        roleRepository.save(role);
+        user.setRoles(roles);
+        userRepository.save(user);
+
+        Category beverageCategory = new Category("Beverage", "Buy some good beer.");
+        categoryRepository.save(beverageCategory);
+
+        Ad ad = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user, beverageCategory);
+        adRepository.save(ad);
+
+        Watchdog watchdog = new Watchdog(2500, "Keyboard", user, beverageCategory);
+        watchdogRepository.save(watchdog);
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/advertisement/watch")
+                        .content(objectMapper.writeValueAsString(watchdog))
+                        .contentType(MediaType.APPLICATION_JSON))
+
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.success", is("Watchdog 'Keyboard' has been set up successfully")));
+
+        assertEquals(initialWatchdogCount + 1, watchdogRepository.findAll().size());
+    }
+
+    @Test
+    @WithMockUser(username = "user", roles = "VIP")
+    void setUpWatchdogFail() {
+        int initialWatchdogCount = watchdogRepository.findAll().size();
+
+
+        assertEquals(initialWatchdogCount, watchdogRepository.findAll().size());
     }
 }
