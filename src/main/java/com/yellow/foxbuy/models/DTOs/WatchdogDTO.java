@@ -19,6 +19,13 @@ public class WatchdogDTO {
     private double max_price;
     private String keyword;
 
+
+    public WatchdogDTO(Long category_id, double max_price, String keyword) {
+        this.category_id = category_id;
+        this.max_price = max_price;
+        this.keyword = keyword;
+    }
+
     @Override
     public String toString() {
         return "category_id=" + category_id + "| max_price=" + max_price + "| keyword='" + keyword;

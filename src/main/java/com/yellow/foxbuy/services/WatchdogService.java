@@ -13,7 +13,7 @@ public interface WatchdogService {
 
     void setupWatchdog(WatchdogDTO watchdogDTO, User user, Authentication authentication);
 
-    void checkWatchdogs(AdDTO adDTO, WatchdogDTO watchdogDTO) throws MessagingException;
+    void findMatchingAdsAndNotifyUsers(AdDTO adDTO, WatchdogDTO watchdogDTO) throws MessagingException;
 
     List<Watchdog> filterWatchdogsByKeyword(List<Watchdog> matchingWatchdogs, String keyword, String titleDescription);
 

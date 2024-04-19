@@ -55,7 +55,7 @@ public class WatchdogServiceImp implements WatchdogService {
     }
 
     @Override
-    public void checkWatchdogs(AdDTO adDTO, WatchdogDTO watchdogDTO) throws MessagingException {
+    public void findMatchingAdsAndNotifyUsers(AdDTO adDTO, WatchdogDTO watchdogDTO) throws MessagingException {
         Long category_id = adDTO.getCategoryID();
         Double maxPrice = adDTO.getPrice();
         String titleDescription = adDTO.getTitle() + " " + adDTO.getDescription();
@@ -81,12 +81,12 @@ public class WatchdogServiceImp implements WatchdogService {
                 .toList();
     }
 
-    @Override
     public List<String> extractUserEmailsFromWatchdogs(List<Watchdog> watchdogs) {
-        // Extract emails from users who created matching watchdogs
         return watchdogs.stream()
                 .filter(watchdog -> watchdog.getUser() != null) // Check if user is not null
-                .map(watchdog -> watchdog.getUser().getEmail())
+                .map(watchdog -> watchdog.getUser().getEmail()
+                        .trim()) // Trim leading/trailing whitespaces before processing
+                .filter(email -> !email.isEmpty()) // Filter out empty email addresses
                 .collect(Collectors.toList()); // Collect emails into a list
     }
 

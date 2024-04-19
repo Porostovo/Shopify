@@ -57,7 +57,7 @@ public class AdManagementServiceImp implements AdManagementService {
         // Create Ad from AdDTO
         Ad ad = new Ad(adDTO, user, category);
         // Check if there is watchdog for this ad
-        watchdogService.checkWatchdogs(adDTO, watchdogDTO);
+        watchdogService.findMatchingAdsAndNotifyUsers(adDTO, watchdogDTO);
 
         // Save ad to repository
         try {
@@ -114,7 +114,7 @@ public class AdManagementServiceImp implements AdManagementService {
         ad.setId(id); // Set the ID of the existing advertisement
 
         // Check if there is watchdog for this ad
-        watchdogService.checkWatchdogs(adDTO, watchdogDTO);
+        watchdogService.findMatchingAdsAndNotifyUsers(adDTO, watchdogDTO);
 
         try {
             adService.saveAd(ad);

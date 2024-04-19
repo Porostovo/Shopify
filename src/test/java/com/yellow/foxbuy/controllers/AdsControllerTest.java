@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yellow.foxbuy.config.SecurityConfig;
 import com.yellow.foxbuy.models.*;
 import com.yellow.foxbuy.models.DTOs.AdDTO;
+import com.yellow.foxbuy.models.DTOs.WatchdogDTO;
 import com.yellow.foxbuy.repositories.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -346,46 +347,73 @@ public class AdsControllerTest {
                 .andExpect(jsonPath("$.page", is(1)))
                 .andExpect(jsonPath("$.total_pages", is(2)));
     }
-//
-//    @Test
-//    @WithMockUser(username = "user", roles = "VIP")
-//    void setUpWatchdogSuccess() throws Exception {
-//        int initialWatchdogCount = watchdogRepository.findAll().size();
-//
-//        User user = new User("user", "email@email.com", "Password1");
-//        userRepository.save(user);
-//        Set<Role> roles = new HashSet<>();
-//        Role role = new Role("ROLE_VIP");
-//        roles.add(role);
-//        roleRepository.save(role);
-//        user.setRoles(roles);
-//        userRepository.save(user);
-//
-//        Category beverageCategory = new Category("Beverage", "Buy some good beer.");
-//        categoryRepository.save(beverageCategory);
-//
-//        Ad ad = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user, beverageCategory);
-//        adRepository.save(ad);
-//
-//        Watchdog watchdog = new Watchdog(2500, "Keyboard", user, beverageCategory);
-//        watchdogRepository.save(watchdog);
-//
-//        mockMvc.perform(MockMvcRequestBuilders.post("/advertisement/watch")
-//                        .content(objectMapper.writeValueAsString(watchdog))
-//                        .contentType(MediaType.APPLICATION_JSON))
-//
-//                .andExpect(status().is(200))
-//                .andExpect(jsonPath("$.success", is("Watchdog 'Keyboard' has been set up successfully")));
-//
-//        assertEquals(initialWatchdogCount + 1, watchdogRepository.findAll().size());
-//    }
-//
-//    @Test
-//    @WithMockUser(username = "user", roles = "VIP")
-//    void setUpWatchdogFail() {
-//        int initialWatchdogCount = watchdogRepository.findAll().size();
-//
-//
-//        assertEquals(initialWatchdogCount, watchdogRepository.findAll().size());
-//    }
+
+    @Test
+    @WithMockUser(username = "user", roles = "VIP")
+    void setUpWatchdogSuccess() throws Exception {
+        int initialWatchdogCount = watchdogRepository.findAll().size();
+
+        User user = new User("user", "email@email.com", "Password1");
+        userRepository.save(user);
+        Set<Role> roles = new HashSet<>();
+        Role role = new Role("ROLE_VIP");
+        roles.add(role);
+        roleRepository.save(role);
+        user.setRoles(roles);
+        userRepository.save(user);
+
+        Category beverageCategory = new Category("Beverage", "Buy some good beer.");
+        categoryRepository.save(beverageCategory);
+
+        Ad ad = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user, beverageCategory);
+        adRepository.save(ad);
+
+        WatchdogDTO watchdogDTO = new WatchdogDTO(1L,2500, "Keyboard");
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/advertisement/watch")
+                        .content(objectMapper.writeValueAsString(watchdogDTO))
+                        .contentType(MediaType.APPLICATION_JSON))
+
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.success", is("Watchdog 'Keyboard' has been set up successfully")));
+
+        assertEquals(initialWatchdogCount + 1, watchdogRepository.findAll().size());
+    }
+
+    @Test
+    @WithMockUser(username = "user", roles = "VIP")
+    void setUpWatchdogFail() throws Exception {
+        int initialWatchdogCount = watchdogRepository.findAll().size();
+
+        User user = new User("user", "email@email.com", "Password1");
+        userRepository.save(user);
+        Set<Role> roles = new HashSet<>();
+        Role role = new Role("ROLE_VIP");
+        roles.add(role);
+        roleRepository.save(role);
+        user.setRoles(roles);
+        userRepository.save(user);
+
+        Category beverageCategory = new Category("Beverage", "Buy some good beer.");
+        categoryRepository.save(beverageCategory);
+
+        Watchdog firstWatchdog = new Watchdog(2500, "Keyboard", user, beverageCategory);
+        watchdogRepository.save(firstWatchdog);
+
+        WatchdogDTO duplicateWatchdogDTO = new WatchdogDTO();
+        duplicateWatchdogDTO.setCategory_id(beverageCategory.getId());
+        duplicateWatchdogDTO.setMax_price(2500);
+        duplicateWatchdogDTO.setKeyword("Keyboard");
+
+        // Attempt to set up another watchdog with the same parameters
+        mockMvc.perform(MockMvcRequestBuilders.post("/advertisement/watch")
+                        .content(objectMapper.writeValueAsString(duplicateWatchdogDTO))
+                        .contentType(MediaType.APPLICATION_JSON))
+
+                .andExpect(status().is(400)) // Expecting a failure status code
+                .andExpect(jsonPath("$.error", is("This watchdog already exists for this user.")));
+
+        // Assert that the number of watchdogs remains unchanged
+        assertEquals(initialWatchdogCount + 1, watchdogRepository.findAll().size());
+    }
 }
