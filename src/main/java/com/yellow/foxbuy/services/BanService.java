@@ -45,7 +45,7 @@ public class BanService {
         return ResponseEntity.status(200).body(result);
     }
 
-    @Scheduled (fixedRate = 10000)
+    @Scheduled (fixedRate = 1000000)
     public void unban(){
         List<User> bannedUsers = userService.getBannedUsers();
         for (User tempUser:bannedUsers){

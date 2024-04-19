@@ -60,7 +60,6 @@ public class StripeControllerTest {
                 new HashSet<>(Collections.singletonList(roleUser)));
         user1.setVerified(true);
         userRepository.save(user1);
-        System.out.println("XXXXX" + user1.getPassword());
 
         LoginRequest loginRequest = new LoginRequest("JohnUSER", "Password123%");
 
@@ -92,7 +91,6 @@ public class StripeControllerTest {
         assertEquals(initialCount + 1, latestCount);
     }
     @Test
-
     public void processVipPaymentFAILED() throws Exception {
         Role roleAdmin = roleRepository.save(new Role("ROLE_ADMIN"));
 
@@ -102,8 +100,6 @@ public class StripeControllerTest {
                 new HashSet<>(Collections.singletonList(roleAdmin)));
         user1.setVerified(true);
         userRepository.save(user1);
-        System.out.println("XXXXX" + user1.getPassword());
-
 
         LoginRequest loginRequest = new LoginRequest("JohnADMIN", "Password123%");
 
@@ -114,8 +110,6 @@ public class StripeControllerTest {
 
         String content = result.getResponse().getContentAsString();
         AuthResponseDTO response = objectMapper.readValue(content, AuthResponseDTO.class);
-
-        System.out.println("XXXXX" + content);
 
         CustomerDTO customerDTO = new CustomerDTO();
         customerDTO.setFullName("Test User");

@@ -17,9 +17,10 @@ public class AuthResponseDTO {
     @NotNull(message = "missing token")
     @NotBlank(message = "missing token")
     private String token;
+    private String refreshToken;
 
     @Override
     public String toString() {
-        return "message = " + message + " | token = " + token;
+        return "message = " + message + " | token = " + token + " | refreshToken = " + refreshToken;
     }
 }

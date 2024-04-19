@@ -163,4 +163,9 @@ public class UserServiceImp implements UserService {
         userRepository.save(user);
         System.out.println("------------new id: "+ user.getId());
     }
+
+    @Override
+    public User findByRefreshToken(String refreshToken) {
+        return userRepository.findFirstByRefreshToken(refreshToken);
+    }
 }
