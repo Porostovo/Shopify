@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.*;
 
 @Service
 public class AdServiceImp implements AdService {
@@ -35,6 +36,13 @@ public class AdServiceImp implements AdService {
     public Optional<Ad> findAdById(Long id) {
         return adRepository.findById(id);
     }
+
+    @Override
+    public Ad findAdByIdNoOptional(Long id) {
+        Optional<Ad> optAd = findAdById(id);
+        if (optAd.isPresent()) return optAd.get();
+        return null;
+     }
 
     @Override
     public void deleteAd(Ad ad) {
@@ -70,8 +78,37 @@ public class AdServiceImp implements AdService {
     }
 
     @Override
+    public List<Ad> findAllByUsername(String username){
+        List<Ad> result = adRepository.findAllByUserUsername(username);
+        return result;
+    }
+
+    @Override
+    public void updateAd(List<Ad> adList, Boolean cond) {
+        for (Ad ad:adList){
+            ad.setHidden(cond);
+            adRepository.save(ad);
+        }
+    }
+
+    @Override
+    public List<Ad> getHiddenAds(User user) {
+        return adRepository.findAllByUserAndHiddenIsTrue(user);
+    }
+
+    @Override
+    public boolean isHidden(Ad ad) {
+        return ad.isHidden();
+    }
+
+    @Override
+    public List<Ad> findAllByUserID(UUID uuid) {
+        return null;
+    }
+
+    @Override
     public List<AdResponseDTO> findAllByCategoryId(Long id) {
-        List<Ad> adList = adRepository.findAllByCategoryId(id);
+        List<Ad> adList = adRepository.findAllByCategoryIdAndHiddenIsFalse(id);
         List<AdResponseDTO> userAds = new ArrayList<>();
         for (Ad ad : adList) {
             userAds.add(loadAdResponseDTO(ad));
@@ -85,8 +122,10 @@ public class AdServiceImp implements AdService {
         int offset = (page - 1) * pageSize;
         List<AdResponseDTO> userAds = new ArrayList<>();
         Pageable pageable = PageRequest.of(page - 1, pageSize);
-        List<Ad> adList = adRepository.findByCategoryId(id, pageable).getContent();
 
+        List<Ad> adList = adRepository.findByCategoryIdAndHiddenIsFalse(id, pageable).getContent();
+
+        System.out.println(adList);
         for (Ad ad : adList) {
             userAds.add(loadAdResponseDTO(ad));
         }

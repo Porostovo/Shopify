@@ -1,10 +1,13 @@
 package com.yellow.foxbuy.controllers;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.yellow.foxbuy.models.DTOs.AdDTO;
 import com.yellow.foxbuy.models.DTOs.WatchdogDTO;
 import com.yellow.foxbuy.models.User;
 import com.yellow.foxbuy.services.*;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
@@ -20,23 +23,27 @@ import java.util.Map;
 import static com.yellow.foxbuy.services.AdManagementServiceImp.hasRole;
 
 
+
 @RestController
 public class AdsController {
     private final AdManagementService adManagementService;
     private final AdService adService;
     private final CategoryService categoryService;
     private final UserService userService;
+    private final EmailService emailService;
     private final LogService logService;
     private final WatchdogService watchDogService;
 
     @Autowired
-    public AdsController(AdManagementService adManagementService, AdService adService, CategoryService categoryService, UserService userService, LogService logService, WatchdogService watchDogService) {
-        this.adManagementService = adManagementService;
+    public AdsController(AdManagementService adManagementService, AdService adService, CategoryService categoryService, UserService userService, LogService logService, WatchdogService watchDogService, EmailService emailService) {
+           this.adManagementService = adManagementService;
         this.adService = adService;
         this.categoryService = categoryService;
         this.userService = userService;
+        this.emailService = emailService;
         this.logService = logService;
         this.watchDogService = watchDogService;
+
     }
 
     @PostMapping("/advertisement")
@@ -83,7 +90,7 @@ public class AdsController {
     @ApiResponse(responseCode = "200", description = "Ad was found and info is shown.")
     @ApiResponse(responseCode = "400", description = "Ad with this ID doesn't exist.")
     public ResponseEntity<?> getAdvertisement(@PathVariable Long id) {
-        if (!adService.existsById(id)) {
+        if (!adService.existsById(id) || adService.findAdByIdNoOptional(id).isHidden()) {
             Map<String, String> error = new HashMap<>();
             error.put("error", "Ad with this id doesn't exist.");
             logService.addLog("GET /advertisement/{id}", "ERROR", "id = " + id);
@@ -102,10 +109,10 @@ public class AdsController {
                                      @RequestParam(required = false) Long category,
                                      @RequestParam(required = false, defaultValue = "1") Integer page) {
         Map<String, String> error = new HashMap<>();
-        if (user != null && userService.existsByUsername(user)) {
+        if (user != null && userService.existsByUsername(user) && userService.getUserByUsernameNotOptional(user).getBanned() == null) {
             logService.addLog("GET /advertisement", "INFO", "user = " + user);
             return ResponseEntity.status(200).body(adService.findAllByUser(user));
-        } else if (user != null && !userService.existsByUsername(user)) {
+        } else if ((user != null && !userService.existsByUsername(user)) || (user != null && userService.getUserByUsernameNotOptional(user).getBanned() != null)) {
             logService.addLog("GET /advertisement", "ERROR", "user = " + user);
             error.put("error", "User with this name doesn't exist.");
             return ResponseEntity.status(400).body(error);
@@ -118,20 +125,17 @@ public class AdsController {
             logService.addLog("GET /advertisement", "ERROR", "category = " + category + " | page = " + page);
             return ResponseEntity.status(400).body(error);
         } else {
-            if (page != null && page > totalPages) {
+            if (page > totalPages) {
                 error.put("error", "This page is empty.");
                 logService.addLog("GET /advertisement", "ERROR", "category = " + category + " | page = " + page);
                 return ResponseEntity.status(400).body(error);
-            } else if (page != null && category != null) {
+            } else if (category != null) {
                 Map<String, Object> result = new HashMap<>();
                 result.put("page", page);
                 result.put("total_pages", totalPages);
                 result.put("ads", adService.listAdsByPageAndCategory(page, category));
                 logService.addLog("GET /advertisement", "INFO", "category = " + category + " | page = " + page);
                 return ResponseEntity.status(200).body(result);
-            } else if (category != null) {
-                logService.addLog("GET /advertisement", "INFO", "category = " + category + " | page = " + page);
-                return ResponseEntity.status(200).body(adService.findAllByCategoryId(category));
             }
         }
         error.put("error", "Unexpected error");
@@ -187,5 +191,39 @@ public class AdsController {
             result.put("success", "Watchdog '" + keyword + "' has been set up successfully");
         }
         return ResponseEntity.status(200).body(result);
+    }
+
+    @PostMapping("/advertisement/{id}/message")
+    @Operation(summary = "Send a message to Seller", description = "User can send a message to Seller.")
+    @ApiResponse(responseCode = "200", description = "Thank you for your message.")
+    @ApiResponse(responseCode = "400", description = "You cannot write a message to your advertisements.")
+    public ResponseEntity<?> sendMessageToSeller(@PathVariable(required = false) Long id,
+                                                 @Schema(example = "{\"message\": \"question.\"}")
+                                                 @RequestBody(required = false) String requestBody,
+                                                 Authentication authentication) throws MessagingException {
+        Map<String, String> response = new HashMap<>();
+        if (authentication == null){
+            response.put("error", "If you want send messages you have to be logged in.");
+            return ResponseEntity.status(400).body(response);
+        }
+        if (id == null || !adService.existsById(id)){
+            response.put("error", "You're attempting to write a message to an advertisement that does not exist.");
+            return ResponseEntity.status(400).body(response);
+        }
+        JsonObject jsonObject = new Gson().fromJson(requestBody, JsonObject.class);//ChatGPT :-)
+        if (!jsonObject.has("message") || jsonObject.get("message").getAsString().isEmpty()) {
+            response.put("error", "Message should have at least 1 letter.");
+            return ResponseEntity.status(400).body(response);
+        }
+        String message = jsonObject.get("message").getAsString();
+
+        if (adManagementService.isMessageToMyself(id, authentication)) {
+            response.put("error", "You cannot write a message to your advertisements.");
+            return ResponseEntity.status(400).body(response);
+        }
+        emailService.sendMessageToSeller(authentication, id, message);
+        response.put("status", "200");
+        response.put("message", "Thank you for your message.");
+        return ResponseEntity.status(200).body(response);
     }
 }

@@ -15,7 +15,6 @@ public interface UserService {
     User save(User user);
     boolean existsByUsername (String username);
     boolean existsByEmail (String email);
-
     void setUserAsVerified(Optional<ConfirmationToken> optionalToken);
     Optional<User> findByUsername(String username);
     boolean userRepositoryIsEmpty();
@@ -25,4 +24,9 @@ public interface UserService {
     int getTotalPages (List<User> users);
     List<User> getAllUsers();
     void saveCustomerIdFullNameAndAddress(String customerId, CustomerDTO customerDTO, User user);
+    User getUserById(UUID id);
+    User getUserByUsernameNotOptional(String username);
+    List<User> getBannedUsers();
+    void unbanUser(User user);
+    User findByRefreshToken(String refreshToken);
 }

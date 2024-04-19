@@ -8,7 +8,10 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.*;
+
+import java.time.LocalDateTime;
 
 @Setter
 @Getter
@@ -37,26 +40,24 @@ public class  User implements UserDetails {
     private String customerId;
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Watchdog> watchdog = new ArrayList<>();
+    private LocalDateTime banned;
+    private String refreshToken;
 
     public User(String username, String email, String password) {
         this.username = username;
         this.email = email;
         this.password = password;
         this.verified = false;
+        this.banned = null;
     }
     public User(String username, String email, String password, Set<Role> roles  ) {
         this.username = username;
         this.email = email;
         this.password = password;
         this.roles = roles;
+        this.banned = null;
     }
 
-
-    //private Set<String> roles;
-
-    // Other fields, constructor, and getter/setter methods
-
-    // Implement getAuthorities() method to return user roles as GrantedAuthority objects
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Set<GrantedAuthority> authorities = new HashSet<>();

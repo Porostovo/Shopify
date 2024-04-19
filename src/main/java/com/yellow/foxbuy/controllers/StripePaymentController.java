@@ -55,7 +55,8 @@ public class StripePaymentController {
     @PostMapping("/vip")
     public ResponseEntity<?> processVipPayment(@Valid @RequestBody CustomerDTO customerDTO,
                                                BindingResult bindingResult,
-                                               Authentication authentication) throws StripeException, IOException, MessagingException {
+                                               Authentication authentication)
+            throws StripeException,IOException, MessagingException {
         if (bindingResult.hasErrors()) {
             logService.addLog("POST /vip", "ERROR", customerDTO.toString());
             return ErrorsHandling.handleValidationErrors(bindingResult);

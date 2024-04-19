@@ -15,7 +15,7 @@ public class ScheduledConfig {
     @Scheduled(cron = "0 00 18 * * *") //every day at six o clock run this
     public void deleteInvoices() {
         File folder = new File(INVOICE_FOLDER_PATH);
-        System.out.println(INVOICE_FOLDER_PATH);
+      
         // Get all files in the directory
         File[] files = folder.listFiles((dir, name) -> name.endsWith(".pdf"));
 

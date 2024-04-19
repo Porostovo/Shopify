@@ -3,15 +3,18 @@ package com.yellow.foxbuy.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yellow.foxbuy.models.Ad;
 import com.yellow.foxbuy.models.Category;
+import com.yellow.foxbuy.models.DTOs.BanDTO;
+import com.yellow.foxbuy.models.Role;
 import com.yellow.foxbuy.models.User;
 import com.yellow.foxbuy.repositories.AdRepository;
 import com.yellow.foxbuy.repositories.CategoryRepository;
+import com.yellow.foxbuy.repositories.RoleRepository;
+import com.yellow.foxbuy.repositories.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
@@ -36,6 +39,10 @@ class CategoryControllerTest {
 
     @Autowired
     private AdRepository adRepository;
+    @Autowired
+    private RoleRepository roleRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     @BeforeEach
     public void setUp() {
@@ -274,6 +281,54 @@ class CategoryControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.delete("/category/" + (id2)))
                 .andExpect(jsonPath("$.error", is("This category is not possible to delete")));
     }
+
+    @Test
+    @WithMockUser(username = "user1", roles = {"ADMIN"})
+    public void banUserSuccess() throws Exception {
+        Role role = new Role("ROLE_USER");
+        roleRepository.save(role);
+
+        User user = new User("user", "email@gmail.com", "password1/");
+        userRepository.save(user);
+
+        BanDTO banDTO = new BanDTO(5);
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/user/"+user.getId()+"/ban")
+                .content(objectMapper.writeValueAsString(banDTO))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.username", is("user")));
+    }
+    @Test
+    @WithMockUser(username = "user1", roles = {"ADMIN"})
+    public void banUserFailedNoUser() throws Exception {
+
+        BanDTO banDTO = new BanDTO(5);
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/user/b4533d98-5354-4f8b-8921-49feb093be03/ban")
+                        .content(objectMapper.writeValueAsString(banDTO))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.error", is("User does not exist")));
+    }
+    @Test
+    @WithMockUser(username = "user1", roles = {"ADMIN"})
+    public void banUserFailedNoDuration() throws Exception {
+        Role role = new Role("ROLE_USER");
+        roleRepository.save(role);
+
+        User user = new User("user", "email@gmail.com", "password1/");
+        userRepository.save(user);
+
+        BanDTO banDTO = new BanDTO(0);
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/user/"+user.getId()+"/ban")
+                        .content(objectMapper.writeValueAsString(banDTO))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.error", is("Wrong ban duration")));
+    }
+
 }
 
 

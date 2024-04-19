@@ -13,4 +13,6 @@ public interface AdManagementService {
     ResponseEntity<?> updateAd(Long id, AdDTO adDTO, Authentication authentication, WatchdogDTO watchdogDTO) throws MessagingException;
 
     ResponseEntity<?> deleteAd(Long id, Authentication authentication);
+
+    boolean isMessageToMyself(Long id, Authentication authentication);
 }

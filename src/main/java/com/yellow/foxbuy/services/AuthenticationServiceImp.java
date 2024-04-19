@@ -7,6 +7,7 @@ import com.yellow.foxbuy.models.DTOs.UserDTO;
 import com.yellow.foxbuy.models.Role;
 import com.yellow.foxbuy.models.User;
 import com.yellow.foxbuy.utils.JwtUtil;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +28,7 @@ public class AuthenticationServiceImp implements AuthenticationService {
     private final RoleService roleService;
     private final EmailService emailService;
     private final LogService logService;
+
     @Autowired
     public AuthenticationServiceImp(UserService userService, PasswordEncoder passwordEncoder, JwtUtil jwtUtil, RoleService roleService, EmailService emailService, LogService logService) {
         this.userService = userService;
@@ -55,9 +57,12 @@ public class AuthenticationServiceImp implements AuthenticationService {
             response.setMessage("Username or password are incorrect.");
             logService.addLog("POST /login", "ERROR", loginRequest.toString());
             return ResponseEntity.badRequest().body(response);
-        } else if (!user.getVerified()) {
+        } else if (user.getVerified() == null || !user.getVerified()) {
             response.setMessage("User is not verified.");
             logService.addLog("POST /login", "ERROR", loginRequest.toString());
+            return ResponseEntity.badRequest().body(response);
+        } else if (user.getBanned() != null) {
+            response.setMessage("User is temporarily banned");
             return ResponseEntity.badRequest().body(response);
         } else if (!passwordEncoder.matches(password, user.getPassword())) {
             response.setMessage("Username or password are incorrect.");
@@ -66,20 +71,24 @@ public class AuthenticationServiceImp implements AuthenticationService {
         }
 
         String token = jwtUtil.createToken(user);
+        String refreshToken = jwtUtil.createRefreshToken(user);
+        user.setRefreshToken(refreshToken);
+        userService.save(user);
         response.setMessage("Login successful.");
         response.setToken(token);
+        response.setRefreshToken(refreshToken);
         logService.addLog("POST /login", "INFO", loginRequest.toString());
         return ResponseEntity.ok(response);
     }
 
     @Override
-    public ResponseEntity<?>  verifyJwtToken(String token) {
+    public ResponseEntity<?> verifyJwtToken(String token) {
         Map<String, String> response = new HashMap<>();
-        if (jwtUtil.validateToken(token)){
+        if (jwtUtil.validateToken(token)) {
 
             String jwtName = jwtUtil.getUsernameFromJWT(token);
 
-            if (userService.findByUsername(jwtName).isPresent()){
+            if (userService.findByUsername(jwtName).isPresent()) {
 
                 response.put("id", userService
                         .findByUsername(jwtName)
@@ -90,12 +99,12 @@ public class AuthenticationServiceImp implements AuthenticationService {
                 response.put("username", jwtName);
                 logService.addLog("POST /indentity", "INFO", "token = " + token);
                 return ResponseEntity.ok().body(response);
-            } else  {
+            } else {
                 response.put("error", "token does not match any user");
                 logService.addLog("POST /indentity", "ERROR", "token = " + token);
                 return ResponseEntity.badRequest().body(response);
             }
-        } else{
+        } else {
             response.put("error", "token is not valid");
             logService.addLog("POST /indentity", "ERROR", "token = " + token);
             return ResponseEntity.badRequest().body(response);
@@ -133,7 +142,7 @@ public class AuthenticationServiceImp implements AuthenticationService {
     }
 
     @Override
-    public Map<String, String> badRegisterUser(UserDTO userDTO){
+    public Map<String, String> badRegisterUser(UserDTO userDTO) {
         Map<String, String> result = new HashMap<>();
 
         if (userService.existsByUsername(userDTO.getUsername())) {
@@ -143,5 +152,19 @@ public class AuthenticationServiceImp implements AuthenticationService {
         }
         logService.addLog("POST /registration", "ERROR", userDTO.toString());
         return result;
+    }
+
+    @Override
+    public Boolean isRefreshTokenValid(String refreshToken) {
+        try {
+            return jwtUtil.validateToken(refreshToken);
+        } catch (ExpiredJwtException e) {
+            return false;
+        }
+    }
+
+    @Override
+    public String generateNewJwtToken(User user) {
+        return jwtUtil.createToken(user);
     }
 }
