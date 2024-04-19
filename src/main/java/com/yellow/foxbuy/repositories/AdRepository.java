@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -22,5 +23,6 @@ public interface AdRepository extends JpaRepository<Ad,Long> {
     long countByCategoryId (Long id);
     List<Ad> findAllByUserId(UUID uuid);
     List<Ad> findAllByUserAndHiddenIsTrue(User user);
+    Optional<Ad> findByUserAndTitleAndDescriptionAndPriceAndZipcode(User user, String title, String description, Double price, String zipcode);
 }
 

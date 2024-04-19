@@ -24,11 +24,14 @@ public class Category {
     private Timestamp created_at;
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
     private List<Ad> ads;
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
+    private List<Watchdog> watchdog = new ArrayList<>();
 
     public Category(String name, String description) {
         this.name = name;
         this.description = description;
         this.created_at = new Timestamp(System.currentTimeMillis());
         this.ads = new ArrayList<>();
+        this.watchdog = new ArrayList<>();
     }
 }

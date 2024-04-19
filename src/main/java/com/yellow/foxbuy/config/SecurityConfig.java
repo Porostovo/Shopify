@@ -77,6 +77,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST,"/user/**").hasRole("ADMIN")
                         .requestMatchers("/logs").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/test").hasAnyRole("USER", "VIP", "ADMIN")
+                        .requestMatchers(HttpMethod.POST,"/advertisement/watch").hasRole("VIP")
                         .requestMatchers("/refreshtoken").permitAll()
                         .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())

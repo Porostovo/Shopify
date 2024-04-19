@@ -8,9 +8,10 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-
 import java.time.LocalDateTime;
 import java.util.*;
+
+import java.time.LocalDateTime;
 
 @Setter
 @Getter
@@ -37,6 +38,8 @@ public class  User implements UserDetails {
     private String fullName;
     private String address;
     private String customerId;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Watchdog> watchdog = new ArrayList<>();
     private LocalDateTime banned;
     private String refreshToken;
 
