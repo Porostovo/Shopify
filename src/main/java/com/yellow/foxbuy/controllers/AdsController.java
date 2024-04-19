@@ -165,7 +165,13 @@ public class AdsController {
             logService.addLog("POST /advertisement/watch", "ERROR", watchdogDTO.toString());
             return ResponseEntity.status(400).body(result);
         }
-        watchDogService.checkIfWatchdodAlreadyExists(user,watchdogDTO);
+        // Check if a similar watchdog already exists for the user
+        boolean watchdogExists = watchDogService.checkIfWatchdogExists(user, watchdogDTO);
+        if (watchdogExists) {
+            result.put("error", "This watchdog already exists for this user.");
+            logService.addLog("POST /advertisement/watch", "ERROR", watchdogDTO.toString());
+            return ResponseEntity.status(400).body(result);
+        }
 
         watchDogService.setupWatchdog(watchdogDTO, user, authentication);
 

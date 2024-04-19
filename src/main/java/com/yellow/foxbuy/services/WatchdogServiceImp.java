@@ -8,13 +8,10 @@ import com.yellow.foxbuy.models.Watchdog;
 import com.yellow.foxbuy.repositories.WatchdogRepository;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -94,12 +91,12 @@ public class WatchdogServiceImp implements WatchdogService {
     }
 
     @Override
-    public ResponseEntity<?> checkIfWatchdodAlreadyExists(User user, WatchdogDTO watchdogDTO) {
-        Map<String, String> response = new HashMap<>();
-
+    public boolean checkIfWatchdogExists(User user, WatchdogDTO watchdogDTO) {
+        // Check if a similar watchdog already exists for the user
         Optional<Watchdog> existingWatchdog;
         if (watchdogDTO.getKeyword() != null && !watchdogDTO.getKeyword().isEmpty()) {
-            existingWatchdog = watchdogRepository.findByUserAndCategoryAndMaxPriceAndKeyword(user,
+            existingWatchdog = watchdogRepository.findByUserAndCategoryAndMaxPriceAndKeyword(
+                    user,
                     categoryService.findCategoryById(watchdogDTO.getCategory_id()),
                     watchdogDTO.getMax_price(),
                     watchdogDTO.getKeyword()
@@ -111,10 +108,8 @@ public class WatchdogServiceImp implements WatchdogService {
                     watchdogDTO.getMax_price()
             );
         }
-        if (existingWatchdog.isPresent()) {
-            response.put("error", "Invalid parameter");
-        }
-        return ResponseEntity.status(400).body(response);
-
+        return existingWatchdog.isPresent();
     }
+
+
 }

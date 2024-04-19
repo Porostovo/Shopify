@@ -18,4 +18,6 @@ public interface WatchdogService {
     List<Watchdog> filterWatchdogsByKeyword(List<Watchdog> matchingWatchdogs, String keyword, String titleDescription);
 
     List<String> extractUserEmailsFromWatchdogs(List<Watchdog> watchdogs);
+
+    boolean checkIfWatchdogExists(User user, WatchdogDTO watchdogDTO);
 }
