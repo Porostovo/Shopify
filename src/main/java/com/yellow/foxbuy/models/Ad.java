@@ -3,6 +3,7 @@ package com.yellow.foxbuy.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yellow.foxbuy.models.DTOs.AdDTO;
 import jakarta.persistence.*;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

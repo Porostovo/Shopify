@@ -37,6 +37,7 @@ public class CategoryServiceImp implements CategoryService {
 
     @Override
     public boolean categoryIdExists(Long id) {
+        if (id == null) return false;
         return categoryRepository.findById(id).isPresent();
     }
 

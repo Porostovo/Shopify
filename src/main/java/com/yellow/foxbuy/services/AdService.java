@@ -30,5 +30,6 @@ public interface AdService {
     void updateAd(List<Ad> ad, Boolean cond);
     List<Ad> getHiddenAds(User user);
     boolean isHidden(Ad ad);
+    List<AdResponseDTO> searchAds(String search);
 
 }

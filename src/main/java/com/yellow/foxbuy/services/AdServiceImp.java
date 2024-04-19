@@ -98,6 +98,35 @@ public class AdServiceImp implements AdService {
     }
 
     @Override
+    public List<AdResponseDTO> searchAds(String search) {
+//        List<Ad> foundByTitle = adRepository.findAllByTitleContainingAnyIgnoreCase(search);
+//        List<Ad> foundByDescription = adRepository.findAllByDescriptionContainingAnyIgnoreCase(search);
+//        List<Ad> foundAds = new ArrayList<>(foundByTitle);
+//        foundAds.addAll(foundByDescription);
+
+
+//        String[] searchArray = search.split("");
+//        List<Ad> adListFound = new ArrayList<>();
+//        for (int i = 0; i < searchArray.length; i++) {
+//            List<Ad> adList = adRepository.findAllByTitleOrDescriptionContainingAnyIgnoreCase(search);
+//            adListFound.addAll(adList);
+//        }
+//        List<AdResponseDTO> foundAdsDTO = new ArrayList<>();
+//        for (Ad ad : adListFound) {
+//            foundAdsDTO.add(loadAdResponseDTO(ad));
+//        }
+//        return foundAdsDTO;
+
+
+        List<Ad> foundAds = adRepository.findAllByTitleOrDescriptionContainingAnyIgnoreCase(search);
+        List<AdResponseDTO> foundAdsDTO = new ArrayList<>();
+        for (Ad ad : foundAds) {
+            foundAdsDTO.add(loadAdResponseDTO(ad));
+        }
+        return foundAdsDTO;
+    }
+
+    @Override
     public List<Ad> findAllByUserID(UUID uuid) {
         return null;
     }
