@@ -1,7 +1,9 @@
 package com.yellow.foxbuy.services;
 
 import com.yellow.foxbuy.models.Ad;
+import com.yellow.foxbuy.models.DTOs.AdDTO;
 import com.yellow.foxbuy.models.DTOs.AdResponseDTO;
+import com.yellow.foxbuy.models.User;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,4 +25,5 @@ public interface AdService {
 
     int getTotalPages(Long categoryId);
 
+    boolean checkIfAdExists(User user, AdDTO adDTO);
 }

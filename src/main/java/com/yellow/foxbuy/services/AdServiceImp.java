@@ -1,7 +1,9 @@
 package com.yellow.foxbuy.services;
 
 import com.yellow.foxbuy.models.Ad;
+import com.yellow.foxbuy.models.DTOs.AdDTO;
 import com.yellow.foxbuy.models.DTOs.AdResponseDTO;
+import com.yellow.foxbuy.models.User;
 import com.yellow.foxbuy.repositories.AdRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -10,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -98,7 +99,22 @@ public class AdServiceImp implements AdService {
         return (int) Math.ceil((double) totalAds / 10.0);
     }
 
-    private static AdResponseDTO loadAdResponseDTO (Ad ad){
+    @Override
+    public boolean checkIfAdExists(User user, AdDTO adDTO) {
+
+        // Check if a similar advertisement already exists for the user
+        Optional<Ad> existingAd = adRepository.findByUserAndTitleAndDescriptionAndPriceAndZipcode(
+                user,
+                adDTO.getTitle(),
+                adDTO.getDescription(),
+                adDTO.getPrice(),
+                adDTO.getZipcode()
+        );
+        return existingAd.isPresent();
+    }
+
+
+    private static AdResponseDTO loadAdResponseDTO(Ad ad) {
         AdResponseDTO adDTO = new AdResponseDTO();
         adDTO.setId(ad.getId());
         adDTO.setTitle(ad.getTitle());

@@ -46,6 +46,14 @@ public class AdManagementServiceImp implements AdManagementService {
             logService.addLog("POST /advertisement", "ERROR", adDTO.toString());
             return ResponseEntity.status(400).body(result);
         }
+        // Check if the ad already exists for the user
+        boolean adExists = adService.checkIfAdExists(user, adDTO);
+        if (adExists) {
+            result.put("error", "This advertisement already exists for this user.");
+            logService.addLog("POST /advertisement", "ERROR", adDTO.toString());
+            return ResponseEntity.status(400).body(result);
+        }
+
         // Find the category in repository
         Category category = categoryService.findCategoryById(adDTO.getCategoryID());
 

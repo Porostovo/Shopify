@@ -80,15 +80,13 @@ public class WatchdogServiceImp implements WatchdogService {
                 .filter(watchdog -> titleDescription.contains(keyword))
                 .toList();
     }
-
     public List<String> extractUserEmailsFromWatchdogs(List<Watchdog> watchdogs) {
         return watchdogs.stream()
-                .filter(watchdog -> watchdog.getUser() != null) // Check if user is not null
-                .map(watchdog -> watchdog.getUser().getEmail()
-                        .trim()) // Trim leading/trailing whitespaces before processing
-                .filter(email -> !email.isEmpty()) // Filter out empty email addresses
-                .collect(Collectors.toList()); // Collect emails into a list
+                .map(watchdog -> watchdog.getUser() == null ? null : watchdog.getUser().getEmail().trim())
+                .filter(email -> email != null && !email.isEmpty())
+                .collect(Collectors.toList());
     }
+
 
     @Override
     public boolean checkIfWatchdogExists(User user, WatchdogDTO watchdogDTO) {
@@ -110,6 +108,4 @@ public class WatchdogServiceImp implements WatchdogService {
         }
         return existingWatchdog.isPresent();
     }
-
-
 }

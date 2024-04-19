@@ -51,7 +51,7 @@ public class AdsController {
             logService.addLog("POST /advertisement", "ERROR", adDTO.toString());
             return ErrorsHandling.handleValidationErrors(bindingResult);
         }
-        return adManagementService.createAd(adDTO, authentication,new WatchdogDTO());
+        return adManagementService.createAd(adDTO, authentication, new WatchdogDTO());
     }
 
     @PutMapping("advertisement/{id}")
@@ -66,7 +66,7 @@ public class AdsController {
             logService.addLog("PUT /advertisement/{id}", "ERROR", "id = " + id + " | " + adDTO.toString());
             return ErrorsHandling.handleValidationErrors(bindingResult);
         }
-        return adManagementService.updateAd(id, adDTO, authentication,new WatchdogDTO());
+        return adManagementService.updateAd(id, adDTO, authentication, new WatchdogDTO());
     }
 
     @DeleteMapping("advertisement/{id}")
@@ -143,7 +143,7 @@ public class AdsController {
     @Operation(summary = "Watchdog create", description = "VIP USER can set Watchdog.")
     @ApiResponse(responseCode = "200", description = "Watchdog was successfully created.")
     @ApiResponse(responseCode = "400", description = "An error occurred.")
-    public ResponseEntity<?> setUpWatchDog(@Valid @RequestBody WatchdogDTO watchdogDTO, BindingResult bindingResult, Authentication authentication){
+    public ResponseEntity<?> setUpWatchDog(@Valid @RequestBody WatchdogDTO watchdogDTO, BindingResult bindingResult, Authentication authentication) {
         Map<String, String> result = new HashMap<>();
 
         if (bindingResult.hasErrors()) {
@@ -151,35 +151,37 @@ public class AdsController {
             return ErrorsHandling.handleValidationErrors(bindingResult);
         }
 
-       User user = userService.findByUsername(authentication.getName()).orElse(null);
+        User user = userService.findByUsername(authentication.getName()).orElse(null);
 
         if (user == null) {
             result.put("error", "User is not authenticated.");
             logService.addLog("POST /advertisement/watch", "ERROR", watchdogDTO.toString());
             return ResponseEntity.status(400).body(result);
         }
-
+        //set the role VIP
         boolean isVipUser = hasRole(authentication, "ROLE_VIP");
         if (!isVipUser) {
             result.put("error", "User is not VIP and cannot have WATCHDOG.");
             logService.addLog("POST /advertisement/watch", "ERROR", watchdogDTO.toString());
             return ResponseEntity.status(400).body(result);
         }
-        // Check if a similar watchdog already exists for the user
+        // Check if watchdog already exists for the user
         boolean watchdogExists = watchDogService.checkIfWatchdogExists(user, watchdogDTO);
         if (watchdogExists) {
             result.put("error", "This watchdog already exists for this user.");
             logService.addLog("POST /advertisement/watch", "ERROR", watchdogDTO.toString());
             return ResponseEntity.status(400).body(result);
         }
-
+        //calling the method which will create watchdog
         watchDogService.setupWatchdog(watchdogDTO, user, authentication);
 
         logService.addLog("POST /advertisement/watch", "INFO", watchdogDTO.toString());
+
         //if the keyword is empty
         String keyword = watchdogDTO.getKeyword();
         if (keyword == null || keyword.isEmpty()) {
             result.put("success", "Watchdog has been set up successfully");
+
             //if keyword is fill, show the name of the watchdog
         } else {
             result.put("success", "Watchdog '" + keyword + "' has been set up successfully");
