@@ -19,4 +19,9 @@ public class CategDTO {
     @NotBlank(message = "Description is required.")
     @Schema(description = "required", example = "Buy some beer.")
     private String description;
+
+    @Override
+    public String toString() {
+        return "id = " + id + " | name = " + name + " | description = " + description;
+    }
 }

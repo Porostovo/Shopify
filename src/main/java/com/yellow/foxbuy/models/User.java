@@ -1,6 +1,5 @@
 package com.yellow.foxbuy.models;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,6 +9,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Setter
@@ -37,18 +37,21 @@ public class  User implements UserDetails {
     private String fullName;
     private String address;
     private String customerId;
+    private LocalDateTime banned;
 
     public User(String username, String email, String password) {
         this.username = username;
         this.email = email;
         this.password = password;
         this.verified = false;
+        this.banned = null;
     }
     public User(String username, String email, String password, Set<Role> roles  ) {
         this.username = username;
         this.email = email;
         this.password = password;
         this.roles = roles;
+        this.banned = null;
     }
 
 

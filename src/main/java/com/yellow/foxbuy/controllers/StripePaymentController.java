@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,16 +34,18 @@ public class StripePaymentController {
     private final StripeUtil stripeUtil;
     private final GeneratePdfUtil generatePdfUtil;
     private final EmailService emailService;
+    private final LogService logService;
     private static final Long vipPrice = 2000L;//20$
     private static final String currency = "usd";
 
     @Autowired
-    public StripePaymentController(UserService userService, RoleService roleService, StripeUtil stripeUtil, GeneratePdfUtil generatePdfUtil, EmailService emailService) {
+    public StripePaymentController(UserService userService, RoleService roleService, StripeUtil stripeUtil, GeneratePdfUtil generatePdfUtil, EmailService emailService, LogService logService) {
         this.userService = userService;
         this.roleService = roleService;
         this.stripeUtil = stripeUtil;
         this.generatePdfUtil = generatePdfUtil;
         this.emailService = emailService;
+        this.logService = logService;
     }
     @Operation(summary = "User pay for VIP account.", description = "User can pay for VIP account. " +
             "Application need to contact 3rd party API (Stripe) with payment details and wait for response, " +
@@ -52,14 +55,17 @@ public class StripePaymentController {
     @PostMapping("/vip")
     public ResponseEntity<?> processVipPayment(@Valid @RequestBody CustomerDTO customerDTO,
                                                BindingResult bindingResult,
-                                               Authentication authentication) throws StripeException, IOException, MessagingException {
+                                               Authentication authentication)
+            throws StripeException,IOException, MessagingException {
         if (bindingResult.hasErrors()) {
+            logService.addLog("POST /vip", "ERROR", customerDTO.toString());
             return ErrorsHandling.handleValidationErrors(bindingResult);
         }
         Map<String, String> response = new HashMap<>();
 
         if (!customerDTO.getPaymentMethod().equals("pm_card_visa")) {
             response.put("error", "This is for testing purposes only, if you want test payments set 'paymentMethod' to 'pm_card_visa' ");
+            logService.addLog("POST /vip", "ERROR", customerDTO.toString());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
 
@@ -67,12 +73,14 @@ public class StripePaymentController {
 
         if (user.getAuthorities().stream().findAny().get().getAuthority().equals("ROLE_ADMIN")) {
             response.put("error", "Payment failed. You know, as administrator you cannot buy VIP membership.");
+            logService.addLog("POST /vip", "ERROR", customerDTO.toString());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
 
         if (!AdManagementServiceImp.hasRole(authentication, "ROLE_USER") ||
                 !user.getAuthorities().stream().findAny().get().getAuthority().equals("ROLE_USER")) {
             response.put("error", "Payment failed. You are already  VIP member.");
+            logService.addLog("POST /vip", "ERROR", customerDTO.toString());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
 
@@ -94,14 +102,18 @@ public class StripePaymentController {
             GeneratePdfUtil generatePdfUtil = new GeneratePdfUtil();
             String invoiceNumber = generatePdfUtil.generateInvoice(user);
 
-            String attachmentPath = "invoice_vip_" + invoiceNumber + ".pdf";
+            String directoryPath = "resources" + java.io.File.separator + "generated-PDF";
+            String fileName = "invoice_vip_" + invoiceNumber + ".pdf";
+            String attachmentPath = directoryPath + File.separator + fileName;
 
             emailService.sendEmailWithAttachment(user.getEmail(),attachmentPath);
 
             response.put("message", "Payment successful. You are now a VIP member!");
+            logService.addLog("POST /vip", "INFO", customerDTO.toString());
             return ResponseEntity.ok(response);
         } else {
             response.put("error", "Payment failed. Please try again.");
+            logService.addLog("POST /vip", "ERROR", customerDTO.toString());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }

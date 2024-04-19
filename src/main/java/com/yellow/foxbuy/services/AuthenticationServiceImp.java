@@ -21,21 +21,20 @@ import java.util.Set;
 @Service
 public class AuthenticationServiceImp implements AuthenticationService {
 
-
     private final UserService userService;
-
     private final PasswordEncoder passwordEncoder;
-
     private final JwtUtil jwtUtil;
     private final RoleService roleService;
     private final EmailService emailService;
+    private final LogService logService;
     @Autowired
-    public AuthenticationServiceImp(UserService userService, PasswordEncoder passwordEncoder, JwtUtil jwtUtil, RoleService roleService, EmailService emailService) {
+    public AuthenticationServiceImp(UserService userService, PasswordEncoder passwordEncoder, JwtUtil jwtUtil, RoleService roleService, EmailService emailService, LogService logService) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.roleService = roleService;
         this.emailService = emailService;
+        this.logService = logService;
     }
 
     @Override
@@ -47,24 +46,32 @@ public class AuthenticationServiceImp implements AuthenticationService {
 
         if (username == null || password == null) {
             response.setMessage("Field username or field password was empty!");
+            logService.addLog("POST /login", "ERROR", loginRequest.toString());
             return ResponseEntity.badRequest().body(response);
         }
 
         User user = userService.findByUsername(username).orElse(null);
         if (user == null) {
             response.setMessage("Username or password are incorrect.");
+            logService.addLog("POST /login", "ERROR", loginRequest.toString());
             return ResponseEntity.badRequest().body(response);
         } else if (!user.getVerified()) {
             response.setMessage("User is not verified.");
+            logService.addLog("POST /login", "ERROR", loginRequest.toString());
+            return ResponseEntity.badRequest().body(response);
+        } else if (user.getBanned() != null) {
+            response.setMessage("User is temporarily banned");
             return ResponseEntity.badRequest().body(response);
         } else if (!passwordEncoder.matches(password, user.getPassword())) {
             response.setMessage("Username or password are incorrect.");
+            logService.addLog("POST /login", "ERROR", loginRequest.toString());
             return ResponseEntity.badRequest().body(response);
         }
 
         String token = jwtUtil.createToken(user);
         response.setMessage("Login successful.");
         response.setToken(token);
+        logService.addLog("POST /login", "INFO", loginRequest.toString());
         return ResponseEntity.ok(response);
     }
 
@@ -84,13 +91,16 @@ public class AuthenticationServiceImp implements AuthenticationService {
                         .toString());
 
                 response.put("username", jwtName);
+                logService.addLog("POST /indentity", "INFO", "token = " + token);
                 return ResponseEntity.ok().body(response);
             } else  {
                 response.put("error", "token does not match any user");
+                logService.addLog("POST /indentity", "ERROR", "token = " + token);
                 return ResponseEntity.badRequest().body(response);
             }
         } else{
             response.put("error", "token is not valid");
+            logService.addLog("POST /indentity", "ERROR", "token = " + token);
             return ResponseEntity.badRequest().body(response);
         }
     }
@@ -134,6 +144,7 @@ public class AuthenticationServiceImp implements AuthenticationService {
         } else if (userService.existsByEmail(userDTO.getEmail())) {
             result.put("error", "Email is already used.");
         }
+        logService.addLog("POST /registration", "ERROR", userDTO.toString());
         return result;
     }
 }

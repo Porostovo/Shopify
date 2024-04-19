@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -22,6 +23,7 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 
 @Configuration
 @EnableWebSecurity
+@EnableScheduling
 public class SecurityConfig {
     @Autowired
     private JwtAuthorisationFilter jwtAuthorisationFilter;
@@ -64,9 +66,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/category/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/swagger").permitAll()
                         .requestMatchers(HttpMethod.GET, "/advertisement/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/advertisement/{id}/message").permitAll()
                         .requestMatchers(HttpMethod.POST, "/advertisement/**").hasAnyRole("USER", "VIP", "ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/advertisement/**").hasAnyRole("USER", "VIP", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/advertisement/**").hasAnyRole("USER", "VIP", "ADMIN")
+                        .requestMatchers(HttpMethod.POST,"/user/**").hasRole("ADMIN")
+                        .requestMatchers("/logs").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/test").hasAnyRole("USER", "VIP", "ADMIN")
                         .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())

@@ -5,13 +5,11 @@ import com.yellow.foxbuy.models.ConfirmationToken;
 import com.yellow.foxbuy.models.DTOs.AdResponseDTO;
 import com.yellow.foxbuy.models.DTOs.UserDetailsResponseDTO;
 import com.yellow.foxbuy.models.DTOs.UserListResponseDTO;
-import com.yellow.foxbuy.models.Role;
 import com.yellow.foxbuy.models.DTOs.CustomerDTO;
 import com.yellow.foxbuy.models.User;
 import com.yellow.foxbuy.repositories.AdRepository;
 import com.yellow.foxbuy.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -130,6 +128,38 @@ public class UserServiceImp implements UserService {
         user.setAddress(customerDTO.getAddress());
         user.setCustomerId(customerId);
         user.setFullName(customerDTO.getFullName());
+        userRepository.save(user);
+    }
+    @Override
+    public User getUserById(UUID id) {
+        Optional<User> optUser =  userRepository.findUserById(id);
+        if (optUser.isPresent()) {
+            return optUser.get();
+        }
+        else {
+            return null;
+        }
+    }
+
+    @Override
+    public User getUserByUsernameNotOptional(String username) {
+        Optional<User> optUser =  findByUsername(username);
+        if (optUser.isPresent()) {
+            return optUser.get();
+        }
+        else {
+            return null;
+        }
+    }
+
+    @Override
+    public List<User> getBannedUsers() {
+        return userRepository.findAllByBannedIsNotNull();
+    }
+
+    @Override
+    public void unbanUser(User user) {
+        user.setBanned(null);
         userRepository.save(user);
     }
 }

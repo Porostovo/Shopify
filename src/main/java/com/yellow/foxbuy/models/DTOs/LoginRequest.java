@@ -22,4 +22,9 @@ public class LoginRequest {
         this.username = username;
         this.password = password;
     }
+
+    @Override
+    public String toString() {
+        return "username = " + username;
+    }
 }

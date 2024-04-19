@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yellow.foxbuy.models.*;
 import com.yellow.foxbuy.models.ConfirmationToken;
 import com.yellow.foxbuy.models.DTOs.AuthResponseDTO;
+import com.yellow.foxbuy.models.DTOs.BanDTO;
 import com.yellow.foxbuy.models.DTOs.LoginRequest;
 import com.yellow.foxbuy.models.DTOs.UserDTO;
 import com.yellow.foxbuy.repositories.*;
@@ -269,6 +270,31 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.message", is("Username or password are incorrect.")));
     }
     @Test
+    @WithMockUser(username = "user", roles = "ADMIN")
+    public void loginFailedUserBanned() throws Exception {
+
+        UserDTO userDTO = new UserDTO("testUser", "email@email.com1", "Password123%");
+        LoginRequest loginRequest = new LoginRequest("testUser", "Password123%%");
+
+        BanDTO banDTO = new BanDTO(5);
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/registration")
+                .content(objectMapper.writeValueAsString(userDTO))
+                .contentType(MediaType.APPLICATION_JSON));
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/user/"+ userRepository.findByUsername(userDTO.getUsername()).get().getId() +"/ban")
+                        .content(objectMapper.writeValueAsString(banDTO))
+                        .contentType(MediaType.APPLICATION_JSON));
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/login")
+                        .content(objectMapper.writeValueAsString(loginRequest))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.message", is("User is temporarily banned")));
+    }
+
+
+    @Test
     public void testVerificationEmailConfirmEndpoint() throws Exception {
         User user = new User("user", "emaile@mail.com", "Password1");
         userRepository.save(user);
@@ -375,7 +401,7 @@ class UserControllerTest {
                 .contentType(MediaType.APPLICATION_JSON));
 
         mockMvc.perform(MockMvcRequestBuilders.post("/login")
-                . content(objectMapper.writeValueAsString(loginRequest))
+                .content(objectMapper.writeValueAsString(loginRequest))
                 .contentType(MediaType.APPLICATION_JSON));
 
 

@@ -20,12 +20,14 @@ public class AdManagementServiceImp implements AdManagementService {
     private final CategoryService categoryService;
     private final UserService userService;
     private final AdService adService;
+    private final LogService logService;
 
     @Autowired
-    public AdManagementServiceImp(CategoryService categoryService, UserService userService, AdService adService) {
+    public AdManagementServiceImp(CategoryService categoryService, UserService userService, AdService adService, LogService logService) {
         this.categoryService = categoryService;
         this.userService = userService;
         this.adService = adService;
+        this.logService = logService;
     }
 
     @Override
@@ -37,6 +39,7 @@ public class AdManagementServiceImp implements AdManagementService {
 
         if (!isVipUser && user != null && user.getAds().size() >= 3) {
             result.put("error", "User has 3 advertisements. Get VIP user or delete some ad.");
+            logService.addLog("POST /advertisement", "ERROR", adDTO.toString());
             return ResponseEntity.status(400).body(result);
         }
         // Find the category in repository
@@ -44,6 +47,7 @@ public class AdManagementServiceImp implements AdManagementService {
 
         if (category == null) {
             result.put("error", "Category not found.");
+            logService.addLog("POST /advertisement", "ERROR", adDTO.toString());
             return ResponseEntity.status(400).body(result);
         }
         // Create Ad from AdDTO
@@ -54,6 +58,7 @@ public class AdManagementServiceImp implements AdManagementService {
             adService.saveAd(ad);
         } catch (Exception e) {
             result.put("error", "Error saving advertisement " + e.getMessage());
+            logService.addLog("POST /advertisement", "ERROR", adDTO.toString());
             return ResponseEntity.status(400).body(result);
         }
 
@@ -66,7 +71,7 @@ public class AdManagementServiceImp implements AdManagementService {
                 adDTO.getZipcode(),
                 adDTO.getCategoryID()
         );
-
+        logService.addLog("POST /advertisement", "INFO", adDTO.toString());
         return ResponseEntity.status(200).body(response);
     }
 
@@ -82,17 +87,20 @@ public class AdManagementServiceImp implements AdManagementService {
 
         if (existingAd == null) {
             result.put("error", "Advertisement not found.");
+            logService.addLog("PUT /advertisement/{id}", "ERROR", "id = " + id + " | " + adDTO.toString());
             return ResponseEntity.status(404).body(result);
         }
 
         if (!existingAd.getUser().equals(user)) {
             result.put("error", "You are not authorized to update this advertisement");
+            logService.addLog("PUT /advertisement/{id}", "ERROR", "id = " + id + " | " + adDTO.toString());
             return ResponseEntity.status(400).body(result);
         }
 
         Category category = categoryService.findCategoryById(adDTO.getCategoryID());
         if (category == null) {
             result.put("error", "Category not found.");
+            logService.addLog("PUT /advertisement/{id}", "ERROR", "id = " + id + " | " + adDTO.toString());
             return ResponseEntity.status(400).body(result);
         }
 
@@ -110,9 +118,11 @@ public class AdManagementServiceImp implements AdManagementService {
                     adDTO.getZipcode(),
                     adDTO.getCategoryID()
             );
+            logService.addLog("PUT /advertisement/{id}", "INFO", "id = " + id + " | " + adDTO.toString());
             return ResponseEntity.status(200).body(response);
         } catch (Exception e) {
             result.put("error", "Error saving advertisement: " + e.getMessage());
+            logService.addLog("PUT /advertisement/{id}", "ERROR", "id = " + id + " | " + adDTO.toString());
             return ResponseEntity.status(400).body(result);
         }
     }
@@ -129,6 +139,7 @@ public class AdManagementServiceImp implements AdManagementService {
 
         if (existingAd == null) {
             result.put("error", "Advertisement not found");
+            logService.addLog("DELETE /advertisement/{id}", "ERROR", "id = " + id);
             return ResponseEntity.status(404).body(result);
 
         }
@@ -138,6 +149,7 @@ public class AdManagementServiceImp implements AdManagementService {
 
             if (!existingAd.getUser().equals(user)) {
                 result.put("error", "You are not authorized to delete this advertisement");
+                logService.addLog("DELETE /advertisement/{id}", "ERROR", "id = " + id);
                 return ResponseEntity.status(400).body(result);
             }
 
@@ -145,14 +157,26 @@ public class AdManagementServiceImp implements AdManagementService {
         try {
             adService.deleteAd(existingAd);
             result.put("message", "Your ad was deleted");
+            logService.addLog("DELETE /advertisement/{id}", "INFO", "id = " + id);
             return ResponseEntity.status(200).body(result);
 
         } catch (Exception e) {
             result.put("error", "Error deleting previous advertisement: " + e.getMessage());
+            logService.addLog("DELETE /advertisement/{id}", "ERROR", "id = " + id);
             return ResponseEntity.status(400).body(result);
 
         }
 
+    }
+
+    @Override
+    public boolean isMessageToMyself(Long id, Authentication authentication) {
+        String username = authentication.getName();
+        User user = userService.findByUsername(username).orElseThrow();
+        Optional<Ad> existingAdOptional = adService.findAdById(id);
+        Ad existingAd = existingAdOptional.orElseThrow();
+
+        return user.getId() == existingAd.getUser().getId();
     }
 
     public static boolean hasRole(Authentication authentication, String roleName) {
