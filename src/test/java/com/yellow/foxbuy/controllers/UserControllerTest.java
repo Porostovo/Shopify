@@ -1,12 +1,10 @@
 package com.yellow.foxbuy.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yellow.foxbuy.config.SecurityConfig;
 import com.yellow.foxbuy.models.*;
 import com.yellow.foxbuy.models.ConfirmationToken;
-import com.yellow.foxbuy.models.DTOs.AuthResponseDTO;
-import com.yellow.foxbuy.models.DTOs.BanDTO;
-import com.yellow.foxbuy.models.DTOs.LoginRequest;
-import com.yellow.foxbuy.models.DTOs.UserDTO;
+import com.yellow.foxbuy.models.DTOs.*;
 import com.yellow.foxbuy.repositories.*;
 import com.yellow.foxbuy.models.Role;
 import com.yellow.foxbuy.models.User;
@@ -14,6 +12,7 @@ import com.yellow.foxbuy.repositories.ConfirmationTokenRepository;
 import com.yellow.foxbuy.repositories.RoleRepository;
 import com.yellow.foxbuy.repositories.UserRepository;
 import com.yellow.foxbuy.services.ConfirmationTokenService;
+import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,10 +25,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -59,6 +57,9 @@ class UserControllerTest {
 
 
     private ObjectMapper objectMapper;
+    //// fields REFRESH_TOKEN_NOT_IN_DATABASE, EXPIRED_JWT_TOKEN for "JohnUSER", "Password123%", "ROLE_USER"
+    private static final String REFRESH_TOKEN_EXPIRED = "eyJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6IkpvaG5VU0VSIiwiZW1haWwiOiJlbWFpbEBlbWFpbC5jb20iLCJpYXQiOjE3MTM0NDQ1NjQsImV4cCI6MTcxMzQ0NDcxNH0.W5MQHDx3xFt--1o3BgVHY_a8tRSsWdp5wNKeaOE0NYI";
+    private static final String EXPIRED_JWT_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6IkpvaG5VU0VSIiwiZW1haWwiOiJlbWFpbEBlbWFpbC5jb20iLCJhdXRob3JpdGllcyI6IlJPTEVfVVNFUiIsImlhdCI6MTcxMzQ0NDU2NCwiZXhwIjoxNzEzNDQ0NjI0fQ.AX2fDYBxrlwOutr5L29ejKVJvcMHauRpEGQGthjSeck";
 
     @BeforeEach
     public void setUp() {
@@ -269,6 +270,7 @@ class UserControllerTest {
                 .andExpect(status().is(400))
                 .andExpect(jsonPath("$.message", is("Username or password are incorrect.")));
     }
+
     @Test
     @WithMockUser(username = "user", roles = "ADMIN")
     public void loginFailedUserBanned() throws Exception {
@@ -282,9 +284,9 @@ class UserControllerTest {
                 .content(objectMapper.writeValueAsString(userDTO))
                 .contentType(MediaType.APPLICATION_JSON));
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/user/"+ userRepository.findByUsername(userDTO.getUsername()).get().getId() +"/ban")
-                        .content(objectMapper.writeValueAsString(banDTO))
-                        .contentType(MediaType.APPLICATION_JSON));
+        mockMvc.perform(MockMvcRequestBuilders.post("/user/" + userRepository.findByUsername(userDTO.getUsername()).get().getId() + "/ban")
+                .content(objectMapper.writeValueAsString(banDTO))
+                .contentType(MediaType.APPLICATION_JSON));
 
         mockMvc.perform(MockMvcRequestBuilders.post("/login")
                         .content(objectMapper.writeValueAsString(loginRequest))
@@ -359,7 +361,7 @@ class UserControllerTest {
         }
 
         mockMvc.perform(MockMvcRequestBuilders.get("/user")
-                .param("page", "1"))
+                        .param("page", "1"))
                 .andExpect(status().is(200))
                 .andExpect(jsonPath("$.page", is(1)))
                 .andExpect(jsonPath("$.total_pages", is(2)))
@@ -406,17 +408,17 @@ class UserControllerTest {
 
 
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post("/login")
-                .content(objectMapper.writeValueAsString(loginRequest))
-                .contentType(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(loginRequest))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
 
         String content = result.getResponse().getContentAsString();
         AuthResponseDTO response = objectMapper.readValue(content, AuthResponseDTO.class);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/identity")
-                    .header("Authorization", "Bearer " + response.getToken())
-                    .content(objectMapper.writeValueAsString(response))
-                    .contentType(MediaType.APPLICATION_JSON))
+                        .header("Authorization", "Bearer " + response.getToken())
+                        .content(objectMapper.writeValueAsString(response))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(200))
                 .andExpect(jsonPath("$.username", is("user")));
     }
@@ -481,5 +483,89 @@ class UserControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(400))
                 .andExpect(jsonPath("$.error", is("token does not match any user")));
+    }
+
+    @Test
+    public void refreshTokenSUCCESS() throws Exception {
+        Role roleUser = roleRepository.save(new Role("ROLE_USER"));
+
+        User user1 = new User("JohnUSER",
+                "email@email.com",
+                SecurityConfig.passwordEncoder().encode("Password123%"),
+                new HashSet<>(Collections.singletonList(roleUser)));
+        user1.setVerified(true);
+        userRepository.save(user1);
+
+        LoginRequest loginRequest = new LoginRequest("JohnUSER", "Password123%");
+
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post("/login")
+                        .content(objectMapper.writeValueAsString(loginRequest))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        String content = result.getResponse().getContentAsString();
+        AuthResponseDTO response = objectMapper.readValue(content, AuthResponseDTO.class);
+
+        RefreshTokenDTO refreshTokenDTO = new RefreshTokenDTO();
+        refreshTokenDTO.setRefreshToken(response.getRefreshToken());
+
+        MvcResult result2 = mockMvc.perform(MockMvcRequestBuilders.post("/refreshtoken")
+                        .content(objectMapper.writeValueAsString(refreshTokenDTO))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.refreshToken", is(refreshTokenDTO.getRefreshToken())))
+                .andReturn();
+
+        String responseContent = result2.getResponse().getContentAsString();
+        JSONObject jsonResponse = new JSONObject(responseContent);
+        String token = jsonResponse.getString("jwtToken");
+        assertThat(token).isNotEmpty();
+        // check if refresh token is properly saved in the database.
+        assertEquals(user1.getUsername(),
+                userRepository.findFirstByRefreshToken(refreshTokenDTO.getRefreshToken()).getUsername());
+    }
+
+    @Test
+    public void refreshTokenNotInDatabase() throws Exception {
+        RefreshTokenDTO refreshTokenDTO = new RefreshTokenDTO();
+        refreshTokenDTO.setRefreshToken(REFRESH_TOKEN_EXPIRED + "thisStringMakeTokenInvalid");
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/refreshtoken")
+                        .content(objectMapper.writeValueAsString(refreshTokenDTO))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(403))
+                .andExpect(jsonPath("$.error", is("Refresh token is not in database.")));
+    }
+
+    @Test
+    public void refreshTokenEXPIRED() throws Exception {
+        Role roleUser = roleRepository.save(new Role("ROLE_USER"));
+
+        User user1 = new User("JohnUSER",
+                "email@email.com",
+                SecurityConfig.passwordEncoder().encode("Password123%"),
+                new HashSet<>(Collections.singletonList(roleUser)));
+        user1.setVerified(true);
+        user1.setRefreshToken(REFRESH_TOKEN_EXPIRED);
+        userRepository.save(user1);
+
+        RefreshTokenDTO refreshTokenDTO = new RefreshTokenDTO();
+        refreshTokenDTO.setRefreshToken(REFRESH_TOKEN_EXPIRED);
+
+         mockMvc.perform(MockMvcRequestBuilders.post("/refreshtoken")
+                        .content(objectMapper.writeValueAsString(refreshTokenDTO))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(403))
+                .andExpect(jsonPath("$.error", is("Refresh token is not valid. Please make a new sign " +
+                        "in request.")));
+    }
+    @Test
+    public void JWTtokenEXPIRED() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get("/test")
+                        .header("Authorization", "Bearer " + EXPIRED_JWT_TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(401))
+                .andExpect(jsonPath("$.message", is("Authentication failed, please send refresh token" +
+                        " to renew JWT.")));
     }
 }

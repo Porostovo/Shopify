@@ -91,7 +91,6 @@ public class StripeControllerTest {
         assertEquals(initialCount + 1, latestCount);
     }
     @Test
-
     public void processVipPaymentFAILED() throws Exception {
         Role roleAdmin = roleRepository.save(new Role("ROLE_ADMIN"));
 

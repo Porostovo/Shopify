@@ -2,6 +2,9 @@ package com.yellow.foxbuy.utils;
 
 import com.yellow.foxbuy.models.User;
 import io.jsonwebtoken.*;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
@@ -19,9 +22,27 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
+
     String secret = System.getenv("JWT_SECRET_KEY");
+    @Value("${security.jwt.expiration}")
+    Long JwtTokenExpiration;
+    @Value("${security.refresh-token.expiration}")
+    Long refreshTokenExpiration;
 
     Key hmacKey = new SecretKeySpec(Base64.getDecoder().decode(secret), SignatureAlgorithm.HS256.getJcaName());
+    public String createRefreshToken(User user) {
+        Instant now = Instant.now();
+
+        return Jwts.builder()
+                .claim("username", user.getUsername())
+                .claim("email", user.getEmail())
+                .setIssuedAt(Date.from(now))
+                .setExpiration(Date.from(now.plus(refreshTokenExpiration, ChronoUnit.SECONDS)))
+                .signWith(hmacKey)
+                //.setHeaderParam("typ", "JWT")
+                .compact();
+       //  jwtToken;
+    }
 
     public String createToken(User user) {
         Instant now = Instant.now();
@@ -41,7 +62,7 @@ public class JwtUtil {
                 .claim("email", user.getEmail())
                 .claim("authorities", authorityString.toString())
                 .setIssuedAt(Date.from(now))
-                .setExpiration(Date.from(now.plus(3000, ChronoUnit.MINUTES)))
+                .setExpiration(Date.from(now.plus(JwtTokenExpiration, ChronoUnit.SECONDS)))
                 .signWith(hmacKey)
                 .setHeaderParam("typ", "JWT")
                 .compact();
@@ -56,7 +77,7 @@ public class JwtUtil {
                 .parseClaimsJws(jwtString);
         return jwt;
     }
-    public boolean validateToken(String token) {
+    public boolean validateToken(String token)throws ExpiredJwtException {
         try {
             Jwts.parser()
                     .setSigningKey(hmacKey)
@@ -65,7 +86,7 @@ public class JwtUtil {
         } catch (SignatureException ex) {
             // Invalid signature/claims
         } catch (ExpiredJwtException ex) {
-            // Expired token
+            throw ex;
         } catch (UnsupportedJwtException ex) {
             // Unsupported JWT token
         } catch (MalformedJwtException ex) {
