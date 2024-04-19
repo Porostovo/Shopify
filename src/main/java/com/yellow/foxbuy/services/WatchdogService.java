@@ -15,5 +15,7 @@ public interface WatchdogService {
 
     void checkWatchdogs(AdDTO adDTO, WatchdogDTO watchdogDTO) throws MessagingException;
 
-    List<Watchdog> findMatchingWatchdogs(long category_id, double maxPrice);
+    List<Watchdog> filterWatchdogsByKeyword(List<Watchdog> matchingWatchdogs, String keyword, String titleDescription);
+
+    List<String> extractUserEmailsFromWatchdogs(List<Watchdog> watchdogs);
 }
