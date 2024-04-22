@@ -107,7 +107,8 @@ public class AdsController {
     @ApiResponse(responseCode = "400", description = "User or category doesn't exist or unexpected error.")
     public ResponseEntity<?> listAds(@RequestParam(required = false) String user,
                                      @RequestParam(required = false) Long category,
-                                     @RequestParam(required = false, defaultValue = "1") Integer page) {
+                                     @RequestParam(required = false, defaultValue = "1") Integer page,
+                                     @RequestParam(required = false) String search) {
         Map<String, String> error = new HashMap<>();
         if (user != null && userService.existsByUsername(user) && userService.getUserByUsernameNotOptional(user).getBanned() == null) {
             logService.addLog("GET /advertisement", "INFO", "user = " + user);
@@ -117,7 +118,14 @@ public class AdsController {
             error.put("error", "User with this name doesn't exist.");
             return ResponseEntity.status(400).body(error);
         }
-
+        if (search != null && !adService.searchAds(search).isEmpty()) {
+            logService.addLog("GET /advertisement", "INFO", "search = " + search);
+            return ResponseEntity.status(200).body(adService.searchAds(search));
+        } else if (search != null && adService.searchAds(search).isEmpty()) {
+            error.put("error", "No match found.");
+            logService.addLog("GET /advertisement", "ERROR", "search = " + search);
+            return ResponseEntity.status(400).body(error);
+        }
         int totalPages = adService.getTotalPages(category);
 
         if (!categoryService.categoryIdExists(category)) {

@@ -590,4 +590,34 @@ public class AdsControllerTest {
                 .andExpect(jsonPath("$.error", is("User with this name doesn't exist.")));
 
     }
+
+    @Test
+    @WithMockUser(username = "user", roles = "USER")
+    void searchAdsSuccess() throws Exception {
+        Category category = new Category("Category name", "category description");
+        categoryRepository.save(category);
+        adRepository.save(new Ad("Apple", "fruit", 20, "12345", category));
+        adRepository.save(new Ad("Orange", "fruit", 20, "12345", category));
+        adRepository.save(new Ad("Cucumber", "vegetable", 20, "12345", category));
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/advertisement")
+                .param("search", "apple vegetable"))
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.length()").value(2));
+    }
+
+    @Test
+    @WithMockUser(username = "user", roles = "USER")
+    void searchAdsFailed() throws Exception {
+        Category category = new Category("Category name", "category description");
+        categoryRepository.save(category);
+        adRepository.save(new Ad("Apple", "fruit", 20, "12345", category));
+        adRepository.save(new Ad("Orange", "fruit", 20, "12345", category));
+        adRepository.save(new Ad("Cucumber", "vegetable", 20, "12345", category));
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/advertisement")
+                        .param("search", "strawberry raspberry"))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.error", is("No match found.")));
+    }
 }

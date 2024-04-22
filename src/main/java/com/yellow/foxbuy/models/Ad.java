@@ -3,11 +3,13 @@ package com.yellow.foxbuy.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yellow.foxbuy.models.DTOs.AdDTO;
 import jakarta.persistence.*;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Setter
 @Getter
@@ -65,5 +67,18 @@ public class Ad {
         this.zipcode = zipcode;
         this.category = category;
         this.hidden = false;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Ad ad = (Ad) o;
+        return Objects.equals(id, ad.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

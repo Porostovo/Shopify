@@ -102,6 +102,21 @@ public class AdServiceImp implements AdService {
     }
 
     @Override
+    public List<AdResponseDTO> searchAds(String search) {
+        String[] searchWords = search.split("\\s+");
+        List<Ad> result = new ArrayList<>();
+        for (String word : searchWords) {
+            result.addAll(adRepository.findAllByTitleOrDescriptionContainingAnyIgnoreCase(word));
+        }
+        List<Ad> uniqueAds = result.stream().distinct().toList();
+        List<AdResponseDTO> foundAds = new ArrayList<>();
+        for (Ad ad : uniqueAds) {
+            foundAds.add(loadAdResponseDTO(ad));
+        }
+        return foundAds;
+    }
+
+    @Override
     public List<Ad> findAllByUserID(UUID uuid) {
         return null;
     }
