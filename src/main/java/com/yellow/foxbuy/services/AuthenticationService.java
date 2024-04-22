@@ -4,12 +4,10 @@ import com.yellow.foxbuy.models.DTOs.LoginRequest;
 import com.yellow.foxbuy.models.DTOs.UserDTO;
 import com.yellow.foxbuy.models.User;
 import jakarta.mail.MessagingException;
-import org.springframework.http.ResponseEntity;
 
 import java.util.Map;
 
 public interface AuthenticationService {
-    ResponseEntity<?> verifyJwtToken(String token);
     Map<String, String> registerUserSuccessful(UserDTO userDTO) throws MessagingException;
     Map<String, String> registerUserFailed(UserDTO userDTO);
     Boolean isRefreshTokenValid(String refreshToken);

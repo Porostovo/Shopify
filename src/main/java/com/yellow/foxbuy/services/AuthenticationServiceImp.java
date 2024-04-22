@@ -9,7 +9,6 @@ import com.yellow.foxbuy.utils.JwtUtil;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -25,46 +24,14 @@ public class AuthenticationServiceImp implements AuthenticationService {
     private final JwtUtil jwtUtil;
     private final RoleService roleService;
     private final EmailService emailService;
-    private final LogService logService;
 
     @Autowired
-    public AuthenticationServiceImp(UserService userService, PasswordEncoder passwordEncoder, JwtUtil jwtUtil, RoleService roleService, EmailService emailService, LogService logService) {
+    public AuthenticationServiceImp(UserService userService, PasswordEncoder passwordEncoder, JwtUtil jwtUtil, RoleService roleService, EmailService emailService) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.roleService = roleService;
         this.emailService = emailService;
-        this.logService = logService;
-    }
-
-    @Override
-    public ResponseEntity<?> verifyJwtToken(String token) {
-        Map<String, String> response = new HashMap<>();
-        if (jwtUtil.validateToken(token)) {
-
-            String jwtName = jwtUtil.getUsernameFromJWT(token);
-
-            if (userService.findByUsername(jwtName).isPresent()) {
-
-                response.put("id", userService
-                        .findByUsername(jwtName)
-                        .get()
-                        .getId()
-                        .toString());
-
-                response.put("username", jwtName);
-                logService.addLog("POST /indentity", "INFO", "token = " + token);
-                return ResponseEntity.ok().body(response);
-            } else {
-                response.put("error", "token does not match any user");
-                logService.addLog("POST /indentity", "ERROR", "token = " + token);
-                return ResponseEntity.badRequest().body(response);
-            }
-        } else {
-            response.put("error", "token is not valid");
-            logService.addLog("POST /indentity", "ERROR", "token = " + token);
-            return ResponseEntity.badRequest().body(response);
-        }
     }
 
     @Override
