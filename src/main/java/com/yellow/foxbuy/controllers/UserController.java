@@ -1,11 +1,13 @@
 package com.yellow.foxbuy.controllers;
 
+import com.yellow.foxbuy.config.SecurityConfig;
 import com.yellow.foxbuy.models.DTOs.AuthResponseDTO;
 import com.yellow.foxbuy.models.DTOs.LoginRequest;
 import com.yellow.foxbuy.models.DTOs.RefreshTokenDTO;
 import com.yellow.foxbuy.models.DTOs.UserDTO;
 import com.yellow.foxbuy.models.User;
 import com.yellow.foxbuy.services.*;
+import com.yellow.foxbuy.utils.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.mail.MessagingException;
@@ -26,17 +28,18 @@ public class UserController {
     private final AuthenticationService authenticationService;
     private final ConfirmationTokenService confirmationTokenService;
     private final LogService logService;
+    private final JwtUtil jwtUtil;
 
     @Autowired
     public UserController(UserService userService,
                           ConfirmationTokenService confirmationTokenService,
-                          AuthenticationService authenticationService, LogService logService) {
+                          AuthenticationService authenticationService, LogService logService, JwtUtil jwtUtil) {
         this.userService = userService;
         this.confirmationTokenService = confirmationTokenService;
         this.authenticationService = authenticationService;
         this.logService = logService;
+        this.jwtUtil = jwtUtil;
     }
-
 
     @PostMapping("/registration")
     @Operation(summary = "Register a new user", description = "Register a new user with username, email and password.")
@@ -50,10 +53,11 @@ public class UserController {
         }
 
         if (userService.existsByUsername(userDTO.getUsername()) || userService.existsByEmail(userDTO.getEmail())) {
-            return ResponseEntity.status(400).body(authenticationService.badRegisterUser(userDTO));
+            logService.addLog("POST /registration", "ERROR", userDTO.toString());
+            return ResponseEntity.status(400).body(authenticationService.registerUserFailed(userDTO));
         } else {
             logService.addLog("POST /registration", "INFO", userDTO.toString());
-            return ResponseEntity.status(200).body(authenticationService.goodRegisterUser(userDTO));
+            return ResponseEntity.status(200).body(authenticationService.registerUserSuccessful(userDTO));
         }
     }
 
@@ -63,12 +67,18 @@ public class UserController {
     @ApiResponse(responseCode = "400", description = "Invalid input or user is not verified.")
     public ResponseEntity<?> userLoginAndGenerateJWToken(@Valid @RequestBody LoginRequest loginRequest,
                                                          BindingResult bindingResult) {
-
         if (bindingResult.hasErrors()) {
             logService.addLog("POST /login", "ERROR", loginRequest.toString());
             return ErrorsHandling.handleValidationErrors(bindingResult);
         }
-        return authenticationService.authenticateUser(loginRequest);
+        User user = userService.findByUsername(loginRequest.getUsername()).orElse(null);
+        if (user == null || user.getVerified() == null || !user.getVerified() || user.getBanned() != null ||
+                !SecurityConfig.passwordEncoder().matches(loginRequest.getPassword(), user.getPassword())) {
+            logService.addLog("POST /login", "ERROR", loginRequest.toString());
+            return ResponseEntity.status(400).body(authenticationService.loginUserFailed(loginRequest));
+        }
+        logService.addLog("POST /login", "INFO", loginRequest.toString());
+        return ResponseEntity.status(200).body(authenticationService.loginUserSuccessful(loginRequest));
     }
 
     @GetMapping(path = "/confirm")
@@ -90,7 +100,17 @@ public class UserController {
             logService.addLog("POST /indentity", "ERROR", "token = " + authResponseDTO.toString());
             return ErrorsHandling.handleValidationErrors(bindingResult);
         }
-        return authenticationService.verifyJwtToken(authResponseDTO.getToken());
+        if (!jwtUtil.validateToken(authResponseDTO.getToken())) {
+            logService.addLog("POST /indentity", "ERROR", "token = " + authResponseDTO.getToken());
+            return ResponseEntity.status(400).body(authenticationService.verifyJwtTokenFailed(authResponseDTO.getToken()));
+        }
+        String jwtName = jwtUtil.getUsernameFromJWT(authResponseDTO.getToken());
+        if (userService.findByUsername(jwtName).isEmpty()) {
+            logService.addLog("POST /indentity", "ERROR", "token = " + authResponseDTO.getToken());
+            return ResponseEntity.status(400).body(authenticationService.verifyJwtTokenFailed(authResponseDTO.getToken()));
+        }
+        logService.addLog("POST /indentity", "INFO", "token = " + authResponseDTO.getToken());
+        return ResponseEntity.status(200).body(authenticationService.verifyJwtTokenSuccessful(authResponseDTO.getToken()));
     }
 
     @GetMapping(path = "/test")

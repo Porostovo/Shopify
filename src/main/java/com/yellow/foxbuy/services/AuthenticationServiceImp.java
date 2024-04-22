@@ -1,7 +1,6 @@
 package com.yellow.foxbuy.services;
 
 import com.yellow.foxbuy.config.SecurityConfig;
-import com.yellow.foxbuy.models.DTOs.AuthResponseDTO;
 import com.yellow.foxbuy.models.DTOs.LoginRequest;
 import com.yellow.foxbuy.models.DTOs.UserDTO;
 import com.yellow.foxbuy.models.Role;
@@ -21,7 +20,6 @@ import java.util.Set;
 
 @Service
 public class AuthenticationServiceImp implements AuthenticationService {
-
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
@@ -37,48 +35,6 @@ public class AuthenticationServiceImp implements AuthenticationService {
         this.roleService = roleService;
         this.emailService = emailService;
         this.logService = logService;
-    }
-
-    @Override
-    public ResponseEntity<AuthResponseDTO> authenticateUser(LoginRequest loginRequest) {
-        AuthResponseDTO response = new AuthResponseDTO();
-
-        String username = loginRequest.getUsername();
-        String password = loginRequest.getPassword();
-
-        if (username == null || password == null) {
-            response.setMessage("Field username or field password was empty!");
-            logService.addLog("POST /login", "ERROR", loginRequest.toString());
-            return ResponseEntity.badRequest().body(response);
-        }
-
-        User user = userService.findByUsername(username).orElse(null);
-        if (user == null) {
-            response.setMessage("Username or password are incorrect.");
-            logService.addLog("POST /login", "ERROR", loginRequest.toString());
-            return ResponseEntity.badRequest().body(response);
-        } else if (user.getVerified() == null || !user.getVerified()) {
-            response.setMessage("User is not verified.");
-            logService.addLog("POST /login", "ERROR", loginRequest.toString());
-            return ResponseEntity.badRequest().body(response);
-        } else if (user.getBanned() != null) {
-            response.setMessage("User is temporarily banned");
-            return ResponseEntity.badRequest().body(response);
-        } else if (!passwordEncoder.matches(password, user.getPassword())) {
-            response.setMessage("Username or password are incorrect.");
-            logService.addLog("POST /login", "ERROR", loginRequest.toString());
-            return ResponseEntity.badRequest().body(response);
-        }
-
-        String token = jwtUtil.createToken(user);
-        String refreshToken = jwtUtil.createRefreshToken(user);
-        user.setRefreshToken(refreshToken);
-        userService.save(user);
-        response.setMessage("Login successful.");
-        response.setToken(token);
-        response.setRefreshToken(refreshToken);
-        logService.addLog("POST /login", "INFO", loginRequest.toString());
-        return ResponseEntity.ok(response);
     }
 
     @Override
@@ -112,7 +68,7 @@ public class AuthenticationServiceImp implements AuthenticationService {
     }
 
     @Override
-    public Map<String, String> goodRegisterUser(UserDTO userDTO) throws MessagingException {
+    public Map<String, String> registerUserSuccessful(UserDTO userDTO) throws MessagingException {
         Map<String, String> result = new HashMap<>();
 
         Set<Role> userRole = new HashSet<>();
@@ -142,7 +98,7 @@ public class AuthenticationServiceImp implements AuthenticationService {
     }
 
     @Override
-    public Map<String, String> badRegisterUser(UserDTO userDTO) {
+    public Map<String, String> registerUserFailed(UserDTO userDTO) {
         Map<String, String> result = new HashMap<>();
 
         if (userService.existsByUsername(userDTO.getUsername())) {
@@ -150,7 +106,6 @@ public class AuthenticationServiceImp implements AuthenticationService {
         } else if (userService.existsByEmail(userDTO.getEmail())) {
             result.put("error", "Email is already used.");
         }
-        logService.addLog("POST /registration", "ERROR", userDTO.toString());
         return result;
     }
 
@@ -167,4 +122,77 @@ public class AuthenticationServiceImp implements AuthenticationService {
     public String generateNewJwtToken(User user) {
         return jwtUtil.createToken(user);
     }
+
+    @Override
+    public Map<String, String> loginUserFailed(LoginRequest loginRequest) {
+        Map<String, String> result = new HashMap<>();
+
+        String username = loginRequest.getUsername();
+        String password = loginRequest.getPassword();
+
+        User user = userService.findByUsername(username).orElse(null);
+        if (user == null) {
+            result.put("message", "Username or password are incorrect.");
+        } else if (user.getVerified() == null || !user.getVerified()) {
+            result.put("message", "User is not verified.");
+        } else if (user.getBanned() != null) {
+            result.put("message", "User is temporarily banned");
+        } else if (!passwordEncoder.matches(password, user.getPassword())) {
+            result.put("message", "Username or password are incorrect.");
+        }
+        return result;
+    }
+
+    @Override
+    public Map<String, String> loginUserSuccessful(LoginRequest loginRequest) {
+        Map<String, String> result = new HashMap<>();
+        String username = loginRequest.getUsername();
+        User user = userService.findByUsername(username).orElse(null);
+
+        String token = jwtUtil.createToken(user);
+        String refreshToken = jwtUtil.createRefreshToken(user);
+        user.setRefreshToken(refreshToken);
+        userService.save(user);
+        result.put("message", "Login successful.");
+        result.put("token", token);
+        result.put("refreshToken", refreshToken);
+        return result;
+    }
+
+    @Override
+    public Map<String, String> verifyJwtTokenFailed(String token) {
+        Map<String, String> response = new HashMap<>();
+        if (!jwtUtil.validateToken(token)){
+            response.put("error", "token is not valid");
+            return response;
+        }
+        String jwtName = jwtUtil.getUsernameFromJWT(token);
+        if (userService.findByUsername(jwtName).isEmpty()) {
+            response.put("error", "token does not match any user");
+            return response;
+        }
+        return response;
+    }
+
+    @Override
+    public Map<String, String> verifyJwtTokenSuccessful(String token) {
+        Map<String, String> response = new HashMap<>();
+        if (jwtUtil.validateToken(token)) {
+
+            String jwtName = jwtUtil.getUsernameFromJWT(token);
+
+            if (userService.findByUsername(jwtName).isPresent()) {
+
+                response.put("id", userService
+                        .findByUsername(jwtName)
+                        .get()
+                        .getId()
+                        .toString());
+
+                response.put("username", jwtName);
+            }
+        }
+        return response;
+    }
 }
+

@@ -9,10 +9,13 @@ import org.springframework.http.ResponseEntity;
 import java.util.Map;
 
 public interface AuthenticationService {
-    ResponseEntity<?> authenticateUser(LoginRequest loginRequest);
     ResponseEntity<?> verifyJwtToken(String token);
-    Map<String, String> goodRegisterUser(UserDTO userDTO) throws MessagingException;
-    Map<String, String> badRegisterUser(UserDTO userDTO);
+    Map<String, String> registerUserSuccessful(UserDTO userDTO) throws MessagingException;
+    Map<String, String> registerUserFailed(UserDTO userDTO);
     Boolean isRefreshTokenValid(String refreshToken);
     String generateNewJwtToken(User user);
+    Map<String, String> loginUserFailed(LoginRequest loginRequest);
+    Map<String, String> loginUserSuccessful(LoginRequest loginRequest);
+    Map<String, String> verifyJwtTokenFailed(String token);
+    Map<String, String> verifyJwtTokenSuccessful(String token);
 }
