@@ -18,24 +18,11 @@ public interface AdRepository extends JpaRepository<Ad,Long> {
     List<Ad> findAllByCategoryIdAndHiddenIsFalse(Long id);
     List<Ad> findAllByUserUsername(String username);
     Page<Ad> findByCategoryId(Long categoryId, Pageable pageable);
-
     Page<Ad> findByCategoryIdAndHiddenIsFalse(Long categoryId, Pageable pageable);
-
     long countByCategoryId (Long id);
     List<Ad> findAllByUserId(UUID uuid);
     List<Ad> findAllByUserAndHiddenIsTrue(User user);
-    @Query(value = "SELECT * FROM ad WHERE LOWER(title) LIKE %:title%", nativeQuery = true)
-    List<Ad> findAllByTitleContainingAnyIgnoreCase(String title);
-    @Query(value = "SELECT * FROM ad WHERE LOWER(description) LIKE %:description%", nativeQuery = true)
-    List<Ad> findAllByDescriptionContainingAnyIgnoreCase(String description);
-
-//    @Query(value = "SELECT DISTINCT * FROM ad WHERE LOWER(title) LIKE %:search% OR LOWER(description) LIKE %:search%", nativeQuery = true)
-//    List<Ad> findAllByTitleOrDescriptionContainingAnyIgnoreCase(@Param("search") String search);
-
-    @Query(value = "SELECT DISTINCT * FROM ad WHERE LOWER(title) LIKE CONCAT('%', LOWER(:search), '%') OR LOWER(description) LIKE CONCAT('%', LOWER(:search), '%')", nativeQuery = true)
+    @Query(value = "SELECT DISTINCT * FROM ad WHERE LOWER(title) LIKE %:search% OR LOWER(description) LIKE %:search%", nativeQuery = true)
     List<Ad> findAllByTitleOrDescriptionContainingAnyIgnoreCase(@Param("search") String search);
-
-//    @Query(value = "SELECT * FROM ad WHERE MATCH(title) AGAINST(:keyword IN NATURAL LANGUAGE MODE)", nativeQuery = true)
-//    List<Ad> findAllByTitleOrDescriptionContainingAnyIgnoreCase(@Param("keyword") String keyword);
 }
 

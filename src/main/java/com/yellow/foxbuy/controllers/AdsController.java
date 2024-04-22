@@ -113,8 +113,13 @@ private final LogService logService;
             error.put("error", "User with this name doesn't exist.");
             return ResponseEntity.status(400).body(error);
         }
-        if (search != null) {
+        if (search != null && !adService.searchAds(search).isEmpty()) {
+            logService.addLog("GET /advertisement", "INFO", "search = " + search);
             return ResponseEntity.status(200).body(adService.searchAds(search));
+        } else if (search != null && adService.searchAds(search).isEmpty()) {
+            error.put("error", "No match found.");
+            logService.addLog("GET /advertisement", "ERROR", "search = " + search);
+            return ResponseEntity.status(400).body(error);
         }
         int totalPages = adService.getTotalPages(category);
 
