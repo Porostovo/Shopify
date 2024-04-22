@@ -14,20 +14,16 @@ import java.util.Optional;
 
 
 @Service
-public class RoleServiceImp implements RoleService{
-@Autowired
+public class RoleServiceImp implements RoleService {
+    @Autowired
     private final RoleRepository roleRepository;
-@Autowired
+    @Autowired
     private final UserRepository userRepository;
 
-    public RoleServiceImp(RoleRepository roleRepository, UserRepository userRepository) {
+    public RoleServiceImp(RoleRepository roleRepository,
+                          UserRepository userRepository) {
         this.roleRepository = roleRepository;
         this.userRepository = userRepository;
-    }
-
-    @Override
-    public Role getReferenceById(long l) {
-        return roleRepository.getReferenceById(l);
     }
 
     @Override
@@ -39,7 +35,7 @@ public class RoleServiceImp implements RoleService{
 
     public Role findRoleByName(String name) {
         Optional<Role> optRole = roleRepository.findRoleByName(name);
-        if (optRole.isPresent()){
+        if (optRole.isPresent()) {
             return optRole.get();
         } else return null;
 

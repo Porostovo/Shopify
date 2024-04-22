@@ -269,7 +269,7 @@ public class AdsControllerTest {
         Category beverageCategory = new Category("Beverage", "Buy some good beer.");
         categoryRepository.save(beverageCategory);
 
-        User user = new User("user", "user@email.cz","Password1*");
+        User user = new User("user", "user@email.cz", "Password1*");
         userRepository.save(user);
 
         Ad ad = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user, beverageCategory);
@@ -395,7 +395,7 @@ public class AdsControllerTest {
         Ad ad = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user, beverageCategory);
         adRepository.save(ad);
 
-        WatchdogDTO watchdogDTO = new WatchdogDTO(1L,2500, "Keyboard");
+        WatchdogDTO watchdogDTO = new WatchdogDTO(1L, 2500, "Keyboard");
 
         mockMvc.perform(MockMvcRequestBuilders.post("/advertisement/watch")
                         .content(objectMapper.writeValueAsString(watchdogDTO))
@@ -539,15 +539,16 @@ public class AdsControllerTest {
                 .andExpect(jsonPath("$.error", is("If you want send messages you have to be logged in.")));
     }
 
+    @Test
     @WithMockUser(username = "user", roles = "USER")
     void listAdsUserSuccessWithBannedUser() throws Exception {
         Category beverageCategory = new Category("Beverage", "Buy some good beer.");
         categoryRepository.save(beverageCategory);
         Long categoryId = beverageCategory.getId();
 
-        User user = new User("user1", "user@email.cz","Password1*");
+        User user = new User("user1", "user@email.cz", "Password1*");
         userRepository.save(user);
-        User user2 = new User("user2", "user2@email.cz","Password1*");
+        User user2 = new User("user2", "user2@email.cz", "Password1*");
         userRepository.save(user2);
 
         Ad ad1 = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user, beverageCategory);
@@ -578,7 +579,7 @@ public class AdsControllerTest {
         Category beverageCategory = new Category("Beverage", "Buy some good beer.");
         categoryRepository.save(beverageCategory);
 
-        User user = new User("user1", "user@email.cz","Password1*");
+        User user = new User("user1", "user@email.cz", "Password1*");
         userRepository.save(user);
 
         banService.banUser(user.getId(), 5);

@@ -27,27 +27,29 @@ import java.util.UUID;
 public class AdminController {
     private final CategoryService categoryService;
     private final BanService banService;
-
     private final LogService logService;
 
     @Autowired
-    public AdminController(CategoryService categoryService, BanService banService, LogService logService) {
+    public AdminController(CategoryService categoryService,
+                           BanService banService,
+                           LogService logService) {
         this.categoryService = categoryService;
         this.banService = banService;
         this.logService = logService;
     }
+
     @Operation(summary = "Create new Category", description = "Create new Category with name and description.")
     @ApiResponse(responseCode = "200", description = "Category created.")
     @ApiResponse(responseCode = "400", description = "Invalid input or Category name already exists.")
     @PostMapping("/category")
-    public ResponseEntity<?> createCategory(@Valid @RequestBody CategDTO categDTO,BindingResult bindingResult) {
+    public ResponseEntity<?> createCategory(@Valid @RequestBody CategDTO categDTO, BindingResult bindingResult) {
         Map<String, Object> result = new HashMap<>();
 
         if (bindingResult.hasErrors()) {
             logService.addLog("POST /category", "ERROR", categDTO.toString());
             return ErrorsHandling.handleValidationErrors(bindingResult);
         }
-        if(!categoryService.isCategoryNameUnique(categDTO.getName())){
+        if (!categoryService.isCategoryNameUnique(categDTO.getName())) {
             result.put("error", "This category name is already taken.");
             logService.addLog("POST /category", "ERROR", categDTO.toString());
             return ResponseEntity.status(400).body(result);
@@ -56,12 +58,13 @@ public class AdminController {
         logService.addLog("POST /category", "INFO", categDTO.toString());
         return ResponseEntity.status(200).body(categDTO1);
     }
+
     @Operation(summary = "Update Category", description = "Update Category {id} with name and description.")
     @ApiResponse(responseCode = "200", description = "Category Updated.")
     @ApiResponse(responseCode = "400", description = "Invalid input.")
     @PutMapping("/category/{id}")
     public ResponseEntity<?> updateCategory(@Valid @RequestBody CategDTO categDTO, BindingResult bindingResult,
-                                            @PathVariable Long id )  {
+                                            @PathVariable Long id) {
 
         Map<String, Object> result = new HashMap<>();
 
@@ -69,15 +72,13 @@ public class AdminController {
             logService.addLog("PUT /category/{id}", "ERROR", categDTO.toString());
             return ErrorsHandling.handleValidationErrors(bindingResult);
         }
-        if(!categoryService.categoryIdExists(id)){
+        if (!categoryService.categoryIdExists(id)) {
             result.put("error", "This category id doesn't exist.");
             logService.addLog("PUT /category/{id}", "ERROR", categDTO.toString());
             return ResponseEntity.status(400).body(result);
         }
         String name = categoryService.findNameById(id);
-        System.out.println(name);
-        System.out.println(categDTO.getName());
-        if(!categoryService.isCategoryNameUnique(categDTO.getName()) && !name.equals(categDTO.getName()) ){
+        if (!categoryService.isCategoryNameUnique(categDTO.getName()) && !name.equals(categDTO.getName())) {
             result.put("error", "This category name is already taken.");
             logService.addLog("PUT /category/{id}", "ERROR", categDTO.toString());
             return ResponseEntity.status(400).body(result);
@@ -86,19 +87,20 @@ public class AdminController {
         logService.addLog("PUT /category/{id}", "INFO", categDTO.toString());
         return ResponseEntity.status(200).body(categDTO1);
     }
+
     @Operation(summary = "Delete Category", description = "Delete Category {id}.")
     @ApiResponse(responseCode = "200", description = "Category Deleted")
     @ApiResponse(responseCode = "400", description = "Unable to delete this category with this Id does not exists")
-    @DeleteMapping ("/category/{id}")
-    public ResponseEntity<?> deleteCategory(@PathVariable Long id)  {
+    @DeleteMapping("/category/{id}")
+    public ResponseEntity<?> deleteCategory(@PathVariable Long id) {
         Map<String, Object> result = new HashMap<>();
-        if(!categoryService.categoryIdExists(id)){
+        if (!categoryService.categoryIdExists(id)) {
             result.put("error", "This category id doesn't exist.");
             logService.addLog("DELETE /category/{id}", "ERROR", "id = " + id);
             return ResponseEntity.status(400).body(result);
         }
         Category category = categoryService.findCategoryById(id);
-        if(category.getName().equals("Uncategorized")){
+        if (category.getName().equals("Uncategorized")) {
             result.put("error", "This category is not possible to delete");
             logService.addLog("DELETE /category/{id}", "ERROR", "id = " + id);
             return ResponseEntity.status(400).body(result);
@@ -108,11 +110,12 @@ public class AdminController {
         logService.addLog("DELETE /category/{id}", "INFO", "id = " + id);
         return ResponseEntity.status(200).body(result);
     }
+
     @Operation(summary = "Get list of logs", description = "Get list of logs by date, only admin can see this.")
     @ApiResponse(responseCode = "200", description = "Logs successfully shown.")
     @ApiResponse(responseCode = "400", description = "No logs in chosen date.")
     @GetMapping("/logs")
-    public ResponseEntity<?> getLogs(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date){
+    public ResponseEntity<?> getLogs(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         LocalDateTime startOfTheDay = date.atStartOfDay();
         LocalDateTime endOfTheDay = date.atTime(23, 59, 59);
         if (logService.findAllByDate(startOfTheDay, endOfTheDay).isEmpty()) {
@@ -131,12 +134,15 @@ public class AdminController {
     @ApiResponse(responseCode = "400", description = "User not banned, ads not hidden")
     @PostMapping("/user/{id}/ban")
     public ResponseEntity<?> banUser(@Valid @RequestBody BanDTO banDTO, BindingResult bindingResult,
-                                     @PathVariable UUID id){
+                                     @PathVariable UUID id) {
         if (bindingResult.hasErrors()) {
             return ErrorsHandling.handleValidationErrors(bindingResult);
         }
-        return banService.banUser(id, banDTO.getDuration());
-
+        Map<String,String> result = banService.banUser(id, banDTO.getDuration());
+        if (result.containsKey("error")){
+            return  ResponseEntity.status(400).body(result);
+        }
+        return  ResponseEntity.status(200).body(result);
     }
 }
 

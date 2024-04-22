@@ -29,14 +29,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @SpringBootTest
 class CategoryControllerTest {
-
     @Autowired
     private MockMvc mockMvc;
     private ObjectMapper objectMapper;
-
     @Autowired
     private CategoryRepository categoryRepository;
-
     @Autowired
     private AdRepository adRepository;
     @Autowired
@@ -255,7 +252,7 @@ class CategoryControllerTest {
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/category/" + id))
                 .andExpect(status().is(200))
-                .andExpect(jsonPath("$.message",is("Category was deleted.")));
+                .andExpect(jsonPath("$.message", is("Category was deleted.")));
 
         assertEquals(initialAdCount + 1, categoryRepository.findAll().size());
         assertEquals(categoryRepository.findFirstByOrderByIdDesc().getName(), "Uncategorized");
@@ -293,12 +290,13 @@ class CategoryControllerTest {
 
         BanDTO banDTO = new BanDTO(5);
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/user/"+user.getId()+"/ban")
-                .content(objectMapper.writeValueAsString(banDTO))
-                .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(MockMvcRequestBuilders.post("/user/" + user.getId() + "/ban")
+                        .content(objectMapper.writeValueAsString(banDTO))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(200))
                 .andExpect(jsonPath("$.username", is("user")));
     }
+
     @Test
     @WithMockUser(username = "user1", roles = {"ADMIN"})
     public void banUserFailedNoUser() throws Exception {
@@ -311,6 +309,7 @@ class CategoryControllerTest {
                 .andExpect(status().is(400))
                 .andExpect(jsonPath("$.error", is("User does not exist")));
     }
+
     @Test
     @WithMockUser(username = "user1", roles = {"ADMIN"})
     public void banUserFailedNoDuration() throws Exception {
@@ -322,13 +321,12 @@ class CategoryControllerTest {
 
         BanDTO banDTO = new BanDTO(0);
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/user/"+user.getId()+"/ban")
+        mockMvc.perform(MockMvcRequestBuilders.post("/user/" + user.getId() + "/ban")
                         .content(objectMapper.writeValueAsString(banDTO))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(400))
                 .andExpect(jsonPath("$.error", is("Wrong ban duration")));
     }
-
 }
 
 

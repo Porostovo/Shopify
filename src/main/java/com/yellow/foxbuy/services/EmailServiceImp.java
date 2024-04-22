@@ -28,10 +28,11 @@ public class EmailServiceImp implements EmailService {
     private final AdRepository adRepository;
     private final UserRepository userRepository;
 
-    public EmailServiceImp(ConfirmationTokenService confirmationTokenService, AdRepository adRepository, UserRepository userRepository) {
+    public EmailServiceImp(ConfirmationTokenService confirmationTokenService,
+                           AdRepository adRepository,
+                           UserRepository userRepository) {
         this.confirmationTokenService = confirmationTokenService;
         this.adRepository = adRepository;
-
         this.userRepository = userRepository;
     }
 
