@@ -57,7 +57,6 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(authorize -> authorize
-                        //.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         .requestMatchers("/registration").permitAll()
                         .requestMatchers("/login").permitAll()
                         .requestMatchers("/confirm").permitAll()
@@ -77,12 +76,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST,"/user/**").hasRole("ADMIN")
                         .requestMatchers("/logs").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/test").hasAnyRole("USER", "VIP", "ADMIN")
+                        .requestMatchers(HttpMethod.POST,"/advertisement/watch").hasRole("VIP")
                         .requestMatchers("/refreshtoken").permitAll()
                         .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
                 .addFilterBefore(jwtAuthorisationFilter, UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling((exceptions) -> exceptions.authenticationEntryPoint(new CustomAuthenticationEntryPoint()))
                 .csrf(csrf -> csrf.disable());
         return http.build();
     }

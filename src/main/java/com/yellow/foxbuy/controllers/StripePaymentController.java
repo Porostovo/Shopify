@@ -32,21 +32,24 @@ public class StripePaymentController {
     private final UserService userService;
     private final RoleService roleService;
     private final StripeUtil stripeUtil;
-    private final GeneratePdfUtil generatePdfUtil;
     private final EmailService emailService;
     private final LogService logService;
     private static final Long vipPrice = 2000L;//20$
     private static final String currency = "usd";
 
     @Autowired
-    public StripePaymentController(UserService userService, RoleService roleService, StripeUtil stripeUtil, GeneratePdfUtil generatePdfUtil, EmailService emailService, LogService logService) {
+    public StripePaymentController(UserService userService,
+                                   RoleService roleService,
+                                   StripeUtil stripeUtil,
+                                   EmailService emailService,
+                                   LogService logService) {
         this.userService = userService;
         this.roleService = roleService;
         this.stripeUtil = stripeUtil;
-        this.generatePdfUtil = generatePdfUtil;
         this.emailService = emailService;
         this.logService = logService;
     }
+
     @Operation(summary = "User pay for VIP account.", description = "User can pay for VIP account. " +
             "Application need to contact 3rd party API (Stripe) with payment details and wait for response, " +
             "if payment was successful or not. If yes, give user VIP Role and send invoice to contact email.")
@@ -56,7 +59,7 @@ public class StripePaymentController {
     public ResponseEntity<?> processVipPayment(@Valid @RequestBody CustomerDTO customerDTO,
                                                BindingResult bindingResult,
                                                Authentication authentication)
-            throws StripeException,IOException, MessagingException {
+            throws StripeException, IOException, MessagingException {
         if (bindingResult.hasErrors()) {
             logService.addLog("POST /vip", "ERROR", customerDTO.toString());
             return ErrorsHandling.handleValidationErrors(bindingResult);
@@ -64,7 +67,8 @@ public class StripePaymentController {
         Map<String, String> response = new HashMap<>();
 
         if (!customerDTO.getPaymentMethod().equals("pm_card_visa")) {
-            response.put("error", "This is for testing purposes only, if you want test payments set 'paymentMethod' to 'pm_card_visa' ");
+            response.put("error", "This is for testing purposes only, if you want test payments set 'paymentMethod' " +
+                    "to 'pm_card_visa' ");
             logService.addLog("POST /vip", "ERROR", customerDTO.toString());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
@@ -106,11 +110,11 @@ public class StripePaymentController {
             String fileName = "invoice_vip_" + invoiceNumber + ".pdf";
             String attachmentPath = directoryPath + File.separator + fileName;
 
-            emailService.sendEmailWithAttachment(user.getEmail(),attachmentPath);
+            emailService.sendEmailWithAttachment(user.getEmail(), attachmentPath);
 
             response.put("message", "Payment successful. You are now a VIP member!");
             logService.addLog("POST /vip", "INFO", customerDTO.toString());
-            return ResponseEntity.ok(response);
+            return ResponseEntity.status(200).body(response);
         } else {
             response.put("error", "Payment failed. Please try again.");
             logService.addLog("POST /vip", "ERROR", customerDTO.toString());

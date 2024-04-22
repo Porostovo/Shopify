@@ -23,17 +23,17 @@ public class BanService {
         this.adService = adService;
     }
 
-    public ResponseEntity<?> banUser(UUID id, long duration) {
+    public Map<String,String> banUser(UUID id, long duration) {
         Map<String,String> result = new HashMap<>();
         User user = userService.getUserById(id);
 
         if (user == null){
             result.put("error", "User does not exist");
-            return ResponseEntity.status(400).body(result);
+            return result;
         }
         if (duration <1){
             result.put("error", "Wrong ban duration");
-            return ResponseEntity.badRequest().body(result);
+            return result;
         }
         user.setBanned(LocalDateTime.now().plusDays(duration));
         userService.save(user);
@@ -42,7 +42,7 @@ public class BanService {
             result.put("username", user.getUsername());
             result.put("banned_until", user.getBanned().toString());
 
-        return ResponseEntity.status(200).body(result);
+        return result;
     }
 
     @Scheduled (fixedRate = 1000000)

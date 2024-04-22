@@ -19,7 +19,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.nio.file.AccessDeniedException;
 import java.time.Instant;
 import java.util.*;
 
@@ -30,11 +29,12 @@ public class JwtAuthorisationFilter extends OncePerRequestFilter {
     @Autowired
     private JwtUtil jwtUtil;
 
-
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response,
-                                    @NonNull FilterChain filterChain) throws AccessDeniedException, ServletException, IOException, ExpiredJwtException {
+                                    @NonNull FilterChain filterChain)
+            throws ServletException, IOException, ExpiredJwtException {
+
         final String authHeader = request.getHeader("Authorization");
         final String jwt;
         final String username;
@@ -57,10 +57,11 @@ public class JwtAuthorisationFilter extends OncePerRequestFilter {
             final ObjectMapper mapper = new ObjectMapper();
             mapper.writeValue(response.getOutputStream(), body);
             //filterChain.doFilter(request, response);
-            //throw new AccessDeniedException(e.getMessage());
-            return;//NOT RECOMENDED to stop filterChain.doFilter(request, response) but we have AccessDeniedException
-        }
+            //NOT RECOMMENDED to stop filterChain.doFilter(request, response)
+            //we have unhandled AccessDeniedException
+            return;
 
+        }
         username = jwtUtil.getUsernameFromJWT(jwt);
         Date date = jwtUtil.extractExpiration(jwt);
 

@@ -16,21 +16,22 @@ import java.util.Objects;
 
 @RestController
 public class CategoryController {
-
     private final CategoryService categoryService;
     private final LogService logService;
 
     @Autowired
-    public CategoryController(CategoryService categoryService, LogService logService) {
+    public CategoryController(CategoryService categoryService,
+                              LogService logService) {
         this.categoryService = categoryService;
         this.logService = logService;
     }
 
     @GetMapping("/category")
-    @Operation(summary = "List categories", description = "Without parameter - lists categories with atleast one ad, with parameter empty = 'true' lists all categories (even empty)")
+    @Operation(summary = "List categories", description = "Without parameter - lists categories with atleast one ad," +
+            " with parameter empty = 'true' lists all categories (even empty)")
     @ApiResponse(responseCode = "200", description = "List of categories shown.")
     @ApiResponse(responseCode = "400", description = "Invalid parameter - empty can be only 'true' or empty.")
-    public ResponseEntity<?> getAllCategories(@RequestParam (required = false) String empty) {
+    public ResponseEntity<?> getAllCategories(@RequestParam(required = false) String empty) {
         Map<String, String> error = new HashMap<>();
         if (Objects.equals(empty, "true")) {
             logService.addLog("GET /category", "INFO", "empty = " + empty);

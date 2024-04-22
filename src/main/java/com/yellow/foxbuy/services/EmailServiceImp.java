@@ -15,8 +15,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -28,10 +28,11 @@ public class EmailServiceImp implements EmailService {
     private final AdRepository adRepository;
     private final UserRepository userRepository;
 
-    public EmailServiceImp(ConfirmationTokenService confirmationTokenService, AdRepository adRepository, UserRepository userRepository) {
+    public EmailServiceImp(ConfirmationTokenService confirmationTokenService,
+                           AdRepository adRepository,
+                           UserRepository userRepository) {
         this.confirmationTokenService = confirmationTokenService;
         this.adRepository = adRepository;
-
         this.userRepository = userRepository;
     }
 
@@ -93,5 +94,21 @@ public class EmailServiceImp implements EmailService {
         String message1 = message + "<br/><br/>" + "You can reply to Sender at: " + user.getEmail();
         sendSimpleMessage(ad.getUser().getEmail(), ad.getTitle(), message1);
     }
-}
 
+    // method to send email to user(s) who has specific watchdog(s)
+    @Override
+    public void sendEmailWithWatchdogToUser(List<String> userEmails) throws MessagingException {
+        MimeMessage message = emailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+        String subject = "The ad you were interested in has been created";
+        String text = "Hello, recently you set up a watchdog on specific category up to certain price.\n Just before a few moments the ad was created. Look into FOX BUY application";
+        helper.setFrom("noreply@baeldung.com");
+        String emailString = String.join(", ", userEmails);
+        helper.setTo(emailString);
+        helper.setSubject(subject);
+        helper.setText(text, true);
+
+        emailSender.send(message);
+    }
+}
