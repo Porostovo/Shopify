@@ -42,7 +42,7 @@ public class EmailServiceImp implements EmailService {
         MimeMessage message = emailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
-        helper.setFrom("noreply@baeldung.com");
+        helper.setFrom("yellow-team@foxbuy.com");
         helper.setTo(to);
         helper.setSubject(subject);
         helper.setText(text, true);
