@@ -75,7 +75,7 @@ public class EmailServiceImp implements EmailService {
                 "Thank you for using our FOX BUY application.\n" +
                 "Sincerely Your Yellow team";
 
-        helper.setFrom("noreply@baeldung.com");
+        helper.setFrom("yellow-team@foxbuy.com");
         helper.setTo(to);
         helper.setSubject(subject);
         helper.setText(text, true);
@@ -104,7 +104,7 @@ public class EmailServiceImp implements EmailService {
 
         String subject = "The ad you were interested in has been created";
         String text = "Hello, recently you set up a watchdog on specific category up to certain price.\n Just before a few moments the ad was created. Look into FOX BUY application";
-        helper.setFrom("noreply@baeldung.com");
+        helper.setFrom("yellow-team@foxbuy.com");
         String emailString = String.join(", ", userEmails);
         helper.setTo(emailString);
         helper.setSubject(subject);
