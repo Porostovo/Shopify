@@ -91,7 +91,8 @@ public class EmailServiceImp implements EmailService {
     public void sendMessageToSeller(Authentication authentication, Long id, String message) throws MessagingException {
         User user = userRepository.findByUsername(authentication.getName()).get();
         Ad ad = adRepository.findById(id).get();
-        String message1 = message + "<br/><br/>" + "You can reply to Sender at: " + user.getEmail();
+        String message1 = "Dear Seller" + "<br/><br/>" + user.getUsername() + " is sending you this message: <br/><br/>"
+                +  message + "<br/><br/>" + "You can reply to "+user.getUsername()+" at: " + user.getEmail();
         sendSimpleMessage(ad.getUser().getEmail(), ad.getTitle(), message1);
     }
 
