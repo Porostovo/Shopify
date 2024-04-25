@@ -11,8 +11,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.time.LocalDateTime;
 import java.util.*;
 
-import java.time.LocalDateTime;
-
 @Setter
 @Getter
 @NoArgsConstructor
@@ -42,6 +40,8 @@ public class  User implements UserDetails {
     private List<Watchdog> watchdog = new ArrayList<>();
     private LocalDateTime banned;
     private String refreshToken;
+    @OneToMany(mappedBy = "ratedUser", cascade = CascadeType.ALL)
+    private List<Rating> rating;
 
     public User(String username, String email, String password) {
         this.username = username;
