@@ -573,7 +573,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.message", is("Authentication failed, please send refresh token" +
                         " to renew JWT.")));
     }
-}
+
     @Test
     @WithMockUser(username = "user", roles = {"ADMIN"})
     public void getUserRatingSuccess() throws Exception {
