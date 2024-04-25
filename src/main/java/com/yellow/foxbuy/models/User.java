@@ -38,6 +38,8 @@ public class  User implements UserDetails {
     private String address;
     private String customerId;
     private LocalDateTime banned;
+    @OneToMany(mappedBy = "ratedUser", cascade = CascadeType.ALL)
+    private List<Rating> rating;
 
     public User(String username, String email, String password) {
         this.username = username;
