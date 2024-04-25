@@ -56,6 +56,7 @@ public class StripeControllerTest {
     @Test
     public void processVipPayment() throws Exception {
         Role roleUser = roleRepository.save(new Role("ROLE_USER"));
+        roleRepository.save(new Role("ROLE_VIP"));
 
         User user1 = new User("JohnUSER",
                 "email@email.com",

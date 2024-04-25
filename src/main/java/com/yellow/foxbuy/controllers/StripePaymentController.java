@@ -34,6 +34,7 @@ public class StripePaymentController {
     private final StripeUtil stripeUtil;
     private final EmailService emailService;
     private final LogService logService;
+    private final AuthenticationService authenticationService;
     private static final Long vipPrice = 2000L;//20$
     private static final String currency = "usd";
 
@@ -42,12 +43,14 @@ public class StripePaymentController {
                                    RoleService roleService,
                                    StripeUtil stripeUtil,
                                    EmailService emailService,
-                                   LogService logService) {
+                                   LogService logService,
+                                   AuthenticationService authenticationService) {
         this.userService = userService;
         this.roleService = roleService;
         this.stripeUtil = stripeUtil;
         this.emailService = emailService;
         this.logService = logService;
+        this.authenticationService = authenticationService;
     }
 
     @Operation(summary = "User pay for VIP account.", description = "User can pay for VIP account. " +
@@ -111,8 +114,10 @@ public class StripePaymentController {
             String attachmentPath = directoryPath + File.separator + fileName;
 
             emailService.sendEmailWithAttachment(user.getEmail(), attachmentPath);
+            String jwtToken = authenticationService.generateNewJwtToken(user);
 
             response.put("message", "Payment successful. You are now a VIP member!");
+            response.put("jwtToken", jwtToken);
             logService.addLog("POST /vip", "INFO", customerDTO.toString());
             return ResponseEntity.status(200).body(response);
         } else {
