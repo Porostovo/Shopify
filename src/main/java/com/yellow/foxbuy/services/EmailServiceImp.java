@@ -112,4 +112,11 @@ public class EmailServiceImp implements EmailService {
 
         emailSender.send(message);
     }
+
+    @Override
+    public void sendRatingNotification(User user) throws MessagingException {
+        String email = "Congratulation! \n" +"You have been rated by other user!";
+
+        sendSimpleMessage(user.getEmail(), "You have a new rating!", email);
+    }
 }

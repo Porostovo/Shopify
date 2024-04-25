@@ -12,6 +12,8 @@ public interface EmailService {
     void sendVerificationEmail(User user) throws MessagingException;
 
     void sendEmailWithAttachment(String to, String attachmentPath) throws MessagingException;
+    void sendRatingNotification(User user) throws MessagingException;
+
 
     void sendMessageToSeller(Authentication authentication, Long id, String message) throws MessagingException;
 

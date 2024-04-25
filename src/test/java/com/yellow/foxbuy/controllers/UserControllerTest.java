@@ -54,6 +54,8 @@ class UserControllerTest {
     private AdRepository adRepository;
     @Autowired
     private RoleRepository roleRepository;
+    @Autowired
+    private RatingRepository ratingRepository;
 
 
     private ObjectMapper objectMapper;
@@ -67,6 +69,9 @@ class UserControllerTest {
         userRepository.deleteAll();
         confirmationTokenRepository.deleteAll();
         roleRepository.deleteAll();
+        ratingRepository.deleteAll();
+        adRepository.deleteAll();
+        categoryRepository.deleteAll();
     }
 
     @Test
@@ -567,5 +572,300 @@ class UserControllerTest {
                 .andExpect(status().is(401))
                 .andExpect(jsonPath("$.message", is("Authentication failed, please send refresh token" +
                         " to renew JWT.")));
+    }
+
+    @Test
+    @WithMockUser(username = "user", roles = {"ADMIN"})
+    public void getUserRatingSuccess() throws Exception {
+        User user1 = new User("user1", "email@email.com", "Password123%");
+        User user2 = new User("user2", "email2@email.com", "Password123%");
+        userRepository.save(user1);
+        userRepository.save(user2);
+
+        ratingRepository.save(new Rating(4, "you are good", user1, user2.getId()));
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/user/"+ user1.getId() + "/rating"))
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.ratings.[0].rating", is(4)))
+                .andExpect(jsonPath("$.ratings.[0].comment", is("you are good")))
+                .andExpect(jsonPath("$.ratings.[0].reaction", is("No response yet")));
+    }
+    @Test
+    @WithMockUser(username = "user", roles = {"ADMIN"})
+    public void getUserRatingSuccessNoRatings() throws Exception {
+        User user1 = new User("user1", "email@email.com", "Password123%");
+        userRepository.save(user1);
+        mockMvc.perform(MockMvcRequestBuilders.get("/user/"+ user1.getId() + "/rating"))
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.error", is("User has no ratings")));
+    }
+    @Test
+    @WithMockUser(username = "user", roles = {"ADMIN"})
+    public void getUserRatingFailedNoUser() throws Exception {
+        User user1 = new User("user1", "email@email.com", "Password123%");
+        userRepository.save(user1);
+        UUID uuid = user1.getId();
+        userRepository.deleteAll();
+        mockMvc.perform(MockMvcRequestBuilders.get("/user/"+ uuid + "/rating"))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.error", is("User does not exist")));
+    }
+    @Test
+    @WithMockUser(username = "user2", roles = {"ADMIN"})
+    public void postUserRatingSuccess() throws Exception {
+        roleRepository.save(new Role("ROLE_ADMIN"));
+
+        User user1 = new User("user1", "email@email.com", "Password123%");
+        userRepository.save(user1);
+
+        UserDTO userDTO = new UserDTO("user2", "email3@email.com", "Password123%");
+        mockMvc.perform(MockMvcRequestBuilders.post("/registration")
+                .content(objectMapper.writeValueAsString(userDTO))
+                .contentType(MediaType.APPLICATION_JSON));
+
+        LoginRequest loginRequest = new LoginRequest("user2", "Password123%");
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post("/login")
+                        .content(objectMapper.writeValueAsString(loginRequest))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        String content = result.getResponse().getContentAsString();
+        AuthResponseDTO response = objectMapper.readValue(content, AuthResponseDTO.class);
+
+        RatingDTO ratingDTO = new RatingDTO(4, "you are good");
+        mockMvc.perform(MockMvcRequestBuilders.post("/user/"+ user1.getId() + "/rating")
+                        .header("Authorization", "Bearer " + response.getToken())
+                        .content(objectMapper.writeValueAsString(ratingDTO))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$[\"Your rating was successful:\"].rating", is(4)))
+                .andExpect(jsonPath("$[\"Your rating was successful:\"].comment", is("you are good")))
+                .andExpect(jsonPath("$[\"Your rating was successful:\"].reaction", is("No response yet")));
+    }
+    @Test
+    @WithMockUser(username = "user2", roles = {"ADMIN"})
+    public void postUserRatingFailedAlreadyRated() throws Exception {
+
+        roleRepository.save(new Role("ROLE_ADMIN"));
+        User user1 = new User("user1", "email@email.com", "Password123%");
+        userRepository.save(user1);
+
+        UserDTO userDTO = new UserDTO("user2", "email3@email.com", "Password123%");
+        mockMvc.perform(MockMvcRequestBuilders.post("/registration")
+                .content(objectMapper.writeValueAsString(userDTO))
+                .contentType(MediaType.APPLICATION_JSON));
+
+        LoginRequest loginRequest = new LoginRequest("user2", "Password123%");
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post("/login")
+                        .content(objectMapper.writeValueAsString(loginRequest))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        String content = result.getResponse().getContentAsString();
+        AuthResponseDTO response = objectMapper.readValue(content, AuthResponseDTO.class);
+
+        //rating 1
+        RatingDTO ratingDTO = new RatingDTO(4, "you are good");
+        mockMvc.perform(MockMvcRequestBuilders.post("/user/"+ user1.getId() + "/rating")
+                        .header("Authorization", "Bearer " + response.getToken())
+                        .content(objectMapper.writeValueAsString(ratingDTO))
+                        .contentType(MediaType.APPLICATION_JSON));
+        // rating 2
+        mockMvc.perform(MockMvcRequestBuilders.post("/user/"+ user1.getId() + "/rating")
+                        .header("Authorization", "Bearer " + response.getToken())
+                        .content(objectMapper.writeValueAsString(ratingDTO))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.error", is("You already sent rating to this user")));
+    }
+
+    @Test
+    @WithMockUser(username = "user2", roles = {"ADMIN"})
+    public void postUserRatingFailedRatingOwn() throws Exception {
+        UserDTO userDTO = new UserDTO("user2", "email3@email.com", "Password123%");
+        MvcResult result1 =  mockMvc.perform(MockMvcRequestBuilders.post("/registration")
+                        .content(objectMapper.writeValueAsString(userDTO))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+        String content1 = result1.getResponse().getContentAsString();
+        Map<?,?> convert = objectMapper.readValue(content1, Map.class);
+        String uuid = (String) convert.get("id");
+
+        LoginRequest loginRequest = new LoginRequest("user2", "Password123%");
+        MvcResult result2 = mockMvc.perform(MockMvcRequestBuilders.post("/login")
+                        .content(objectMapper.writeValueAsString(loginRequest))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        String content2 = result2.getResponse().getContentAsString();
+        AuthResponseDTO response2 = objectMapper.readValue(content2, AuthResponseDTO.class);
+
+        RatingDTO ratingDTO = new RatingDTO(4, "you are good");
+        mockMvc.perform(MockMvcRequestBuilders.post("/user/"+ uuid + "/rating")
+                        .header("Authorization", "Bearer " + response2.getToken())
+                        .content(objectMapper.writeValueAsString(ratingDTO))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.error", is("User cant comment on his own ad")));
+    }
+    @Test
+    @WithMockUser(username = "user2", roles = {"ADMIN"})
+    public void deleteUserRatingSuccess() throws Exception {
+        roleRepository.save(new Role("ROLE_ADMIN"));
+        User user1 = new User("user1", "email@email.com", "Password123%");
+        userRepository.save(user1);
+
+        UserDTO userDTO = new UserDTO("user2", "email3@email.com", "Password123%");
+        MvcResult result1 =  mockMvc.perform(MockMvcRequestBuilders.post("/registration")
+                        .content(objectMapper.writeValueAsString(userDTO))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+        String content1 = result1.getResponse().getContentAsString();
+        Map<?,?> convert = objectMapper.readValue(content1, Map.class);
+        String uuid = (String) convert.get("id");
+
+        LoginRequest loginRequest = new LoginRequest("user2", "Password123%");
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post("/login")
+                        .content(objectMapper.writeValueAsString(loginRequest))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        String content = result.getResponse().getContentAsString();
+        AuthResponseDTO response = objectMapper.readValue(content, AuthResponseDTO.class);
+
+        Rating rating =new Rating(5, "you are good",
+                userRepository.getReferenceById(UUID.fromString(uuid)),user1.getId());
+        ratingRepository.save(rating);
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/user/" + uuid+"/rating/"+rating.getId())
+                        .header("Authorization", "Bearer " + response.getToken()))
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.rating", is(5)))
+                .andExpect(jsonPath("$.comment", is("you are good")));
+    }
+    @Test
+    @WithMockUser(username = "user2", roles = {"ADMIN"})
+    public void deleteUserRatingFailRatingDontExist() throws Exception {
+        roleRepository.save(new Role("ROLE_ADMIN"));
+        User user1 = new User("user1", "email@email.com", "Password123%");
+        userRepository.save(user1);
+
+        UserDTO userDTO = new UserDTO("user2", "email3@email.com", "Password123%");
+        MvcResult result1 =  mockMvc.perform(MockMvcRequestBuilders.post("/registration")
+                        .content(objectMapper.writeValueAsString(userDTO))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+        String content1 = result1.getResponse().getContentAsString();
+        Map<?,?> convert = objectMapper.readValue(content1, Map.class);
+        String uuid = (String) convert.get("id");
+
+        LoginRequest loginRequest = new LoginRequest("user2", "Password123%");
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post("/login")
+                        .content(objectMapper.writeValueAsString(loginRequest))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        String content = result.getResponse().getContentAsString();
+        AuthResponseDTO response = objectMapper.readValue(content, AuthResponseDTO.class);
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/user/" + uuid+"/rating/0")
+                        .header("Authorization", "Bearer " + response.getToken()))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.error", is("Rating does not exist")));
+    }
+    @Test
+    @WithMockUser(username = "user2", roles = {"USER"})
+    public void deleteUserRatingFailDeletingOtherUsersRating() throws Exception {
+        Set<Role> roles = new HashSet<>();
+        Role role = new Role("ROLE_USER");
+        roles.add(role);
+        roleRepository.save(role);
+
+        User user1 = new User("user1", "email@email.com", "Password123%");
+        user1.setRoles(roles);
+        userRepository.save(user1);
+
+        UserDTO userDTO = new UserDTO("user2", "email3@email.com", "Password123%");
+        MvcResult result1 =  mockMvc.perform(MockMvcRequestBuilders.post("/registration")
+                        .content(objectMapper.writeValueAsString(userDTO))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+        String content1 = result1.getResponse().getContentAsString();
+        Map<?,?> convert = objectMapper.readValue(content1, Map.class);
+        String uuid = (String) convert.get("id");
+
+        LoginRequest loginRequest = new LoginRequest("user2", "Password123%");
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post("/login")
+                        .content(objectMapper.writeValueAsString(loginRequest))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+        String content = result.getResponse().getContentAsString();
+        AuthResponseDTO response = objectMapper.readValue(content, AuthResponseDTO.class);
+
+        Rating rating =new Rating(5, "you are good",
+                userRepository.getReferenceById(UUID.fromString(uuid)),user1.getId());
+        ratingRepository.save(rating);
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/user/" + user1.getId() +"/rating/"+rating.getId())
+                        .header("Authorization", "Bearer " + response.getToken()))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.error", is("You cannot delete rating of another user")));
+    }
+    @Test
+    @WithMockUser(username = "user2", roles = {"ADMIN"})
+    public void postCommentUserRatingSuccess() throws Exception {
+        roleRepository.save(new Role("ROLE_ADMIN"));
+        User user1 = new User("user1", "email@email.com", "Password123%");
+        userRepository.save(user1);
+        User user2 = new User("user2", "email@email.com", "Password123%");
+        userRepository.save(user2);
+
+        Rating rating =new Rating(5, "you are good", user2, user1.getId());
+        ratingRepository.save(rating);
+        RatingResponseDTO ratingResponseDTO = new RatingResponseDTO("thank you");
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/user/rating/" + rating.getId())
+                        .content(objectMapper.writeValueAsString(ratingResponseDTO))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.reaction", is("thank you")));
+    }
+
+    @Test
+    @WithMockUser(username = "user2", roles = {"ADMIN"})
+    public void postCommentUserRatingFailOtherUser() throws Exception {
+        roleRepository.save(new Role("ROLE_ADMIN"));
+        User user1 = new User("user1", "email@email.com", "Password123%");
+        userRepository.save(user1);
+        User user2 = new User("user2", "email@email.com", "Password123%");
+        userRepository.save(user2);
+
+        Rating rating =new Rating(5, "you are good", user1, user2.getId());
+        ratingRepository.save(rating);
+
+        RatingResponseDTO ratingResponseDTO = new RatingResponseDTO("thank you");
+        mockMvc.perform(MockMvcRequestBuilders.post("/user/rating/" + rating.getId())
+                        .content(objectMapper.writeValueAsString(ratingResponseDTO))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.error", is("You  cannot respond to rating of another user")));
+    }
+    @Test
+    @WithMockUser(username = "user2", roles = {"ADMIN"})
+    public void postCommentUserRatingFailBadId() throws Exception {
+        roleRepository.save(new Role("ROLE_ADMIN"));
+        User user1 = new User("user1", "email@email.com", "Password123%");
+        userRepository.save(user1);
+        User user2 = new User("user2", "email@email.com", "Password123%");
+        userRepository.save(user2);
+
+        ratingRepository.deleteAll();
+
+        RatingResponseDTO ratingResponseDTO = new RatingResponseDTO("thank you");
+        mockMvc.perform(MockMvcRequestBuilders.post("/user/rating/0")
+                        .content(objectMapper.writeValueAsString(ratingResponseDTO))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.error", is("Comment does not exist")));
     }
 }
