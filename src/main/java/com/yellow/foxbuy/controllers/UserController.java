@@ -113,12 +113,6 @@ public class UserController {
         return ResponseEntity.status(200).body(authenticationService.verifyJwtTokenSuccessful(authResponseDTO.getToken()));
     }
 
-    @GetMapping(path = "/test")
-    @Operation(summary = "Endpoint for testing", description = "Testing endpoint.")
-    public Authentication confirm(Authentication authentication) {
-        return authentication;
-    }
-
     @GetMapping("/user/{id}")
     @Operation(summary = "Get user details by ID", description = "Get username, email, role and list of ads by user UUID.")
     @ApiResponse(responseCode = "200", description = "User details received.")
