@@ -14,14 +14,4 @@ import java.util.UUID;
 public interface RatingRepository extends JpaRepository<Rating, Long> {
     boolean existsByRatedUserAndFromUser(User id, UUID uuid);
     List<Rating> getRatingsByRatedUser(User user);
-//    boolean existsByFromUser(UUID id);
-
-
-//    @Query(value = "SELECT * FROM Rating WHERE rated_user_id == ?1", nativeQuery = true)
-//    List<Rating> getRatingsByUUID(UUID uuid);
-
-//    List<Rating> getAllByRatedUserUUID(UUID uuid);
-
-
-
 }
