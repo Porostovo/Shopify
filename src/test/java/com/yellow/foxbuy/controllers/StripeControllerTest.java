@@ -26,6 +26,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
 @SpringBootTest
@@ -36,7 +37,9 @@ public class StripeControllerTest {
     private final RoleRepository roleRepository;
 
     @Autowired
-    public StripeControllerTest(MockMvc mockMvc, UserRepository userRepository, RoleRepository roleRepository) {
+    public StripeControllerTest(MockMvc mockMvc,
+                                UserRepository userRepository,
+                                RoleRepository roleRepository) {
         this.mockMvc = mockMvc;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
@@ -53,6 +56,7 @@ public class StripeControllerTest {
     @Test
     public void processVipPayment() throws Exception {
         Role roleUser = roleRepository.save(new Role("ROLE_USER"));
+        roleRepository.save(new Role("ROLE_VIP"));
 
         User user1 = new User("JohnUSER",
                 "email@email.com",
@@ -63,7 +67,7 @@ public class StripeControllerTest {
 
         LoginRequest loginRequest = new LoginRequest("JohnUSER", "Password123%");
 
-       List<User> users = userRepository.findAll();
+        List<User> users = userRepository.findAll();
         long initialCount = users.stream().filter(ads -> ads.getAddress() != null).count();
 
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post("/login")
@@ -90,8 +94,8 @@ public class StripeControllerTest {
         long latestCount = users2.stream().filter(ads -> ads.getAddress() != null).count();
         assertEquals(initialCount + 1, latestCount);
     }
-    @Test
 
+    @Test
     public void processVipPaymentFAILED() throws Exception {
         Role roleAdmin = roleRepository.save(new Role("ROLE_ADMIN"));
 

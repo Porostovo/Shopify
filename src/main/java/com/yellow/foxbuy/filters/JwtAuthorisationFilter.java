@@ -1,12 +1,14 @@
 package com.yellow.foxbuy.filters;
 
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yellow.foxbuy.utils.JwtUtil;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -18,9 +20,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 
 @Component
@@ -32,7 +32,9 @@ public class JwtAuthorisationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response,
-                                    @NonNull FilterChain filterChain) throws ServletException, IOException {
+                                    @NonNull FilterChain filterChain)
+            throws ServletException, IOException, ExpiredJwtException {
+
         final String authHeader = request.getHeader("Authorization");
         final String jwt;
         final String username;
@@ -43,6 +45,23 @@ public class JwtAuthorisationFilter extends OncePerRequestFilter {
         }
         jwt = authHeader.substring(7);
 
+        try {
+            jwtUtil.validateToken(jwt);
+        } catch (Exception e) {
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            final Map<String, Object> body = new HashMap<>();
+            body.put("statusCode", HttpServletResponse.SC_UNAUTHORIZED);
+            body.put("message", "Authentication failed, please send refresh token to renew JWT.");
+            body.put("errorMessage", e.getLocalizedMessage());
+            final ObjectMapper mapper = new ObjectMapper();
+            mapper.writeValue(response.getOutputStream(), body);
+            //filterChain.doFilter(request, response);
+            //NOT RECOMMENDED to stop filterChain.doFilter(request, response)
+            //we have unhandled AccessDeniedException
+            return;
+
+        }
         username = jwtUtil.getUsernameFromJWT(jwt);
         Date date = jwtUtil.extractExpiration(jwt);
 

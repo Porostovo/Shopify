@@ -2,9 +2,10 @@ package com.yellow.foxbuy.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yellow.foxbuy.config.SecurityConfig;
-import com.yellow.foxbuy.models.Ad;
-import com.yellow.foxbuy.models.Category;
+import com.yellow.foxbuy.models.*;
 import com.yellow.foxbuy.models.DTOs.AdDTO;
+import com.yellow.foxbuy.models.DTOs.WatchdogDTO;
+import com.yellow.foxbuy.repositories.*;
 import com.yellow.foxbuy.models.Role;
 import com.yellow.foxbuy.models.User;
 import com.yellow.foxbuy.repositories.AdRepository;
@@ -50,6 +51,8 @@ public class AdsControllerTest {
     private RoleRepository roleRepository;
     @Autowired
     private BanService banService;
+    @Autowired
+    private WatchdogRepository watchdogRepository;
 
     @BeforeEach
     public void setUp() {
@@ -58,6 +61,7 @@ public class AdsControllerTest {
         adRepository.deleteAll();
         userRepository.deleteAll();
         roleRepository.deleteAll();
+        watchdogRepository.deleteAll();
     }
 
     @Test
@@ -265,7 +269,7 @@ public class AdsControllerTest {
         Category beverageCategory = new Category("Beverage", "Buy some good beer.");
         categoryRepository.save(beverageCategory);
 
-        User user = new User("user", "user@email.cz","Password1*");
+        User user = new User("user", "user@email.cz", "Password1*");
         userRepository.save(user);
 
         Ad ad = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user, beverageCategory);
@@ -372,6 +376,75 @@ public class AdsControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "user", roles = "VIP")
+    void setUpWatchdogSuccess() throws Exception {
+        int initialWatchdogCount = watchdogRepository.findAll().size();
+
+        User user = new User("user", "email@email.com", "Password1");
+        userRepository.save(user);
+        Set<Role> roles = new HashSet<>();
+        Role role = new Role("ROLE_VIP");
+        roles.add(role);
+        roleRepository.save(role);
+        user.setRoles(roles);
+        userRepository.save(user);
+
+        Category beverageCategory = new Category("Beverage", "Buy some good beer.");
+        categoryRepository.save(beverageCategory);
+
+        Ad ad = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user, beverageCategory);
+        adRepository.save(ad);
+
+        WatchdogDTO watchdogDTO = new WatchdogDTO(1L, 2500, "Keyboard");
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/advertisement/watch")
+                        .content(objectMapper.writeValueAsString(watchdogDTO))
+                        .contentType(MediaType.APPLICATION_JSON))
+
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.success", is("Watchdog 'Keyboard' has been set up successfully")));
+
+        assertEquals(initialWatchdogCount + 1, watchdogRepository.findAll().size());
+    }
+
+    @Test
+    @WithMockUser(username = "user", roles = "VIP")
+    void setUpWatchdogFail() throws Exception {
+        int initialWatchdogCount = watchdogRepository.findAll().size();
+
+        User user = new User("user", "email@email.com", "Password1");
+        userRepository.save(user);
+        Set<Role> roles = new HashSet<>();
+        Role role = new Role("ROLE_VIP");
+        roles.add(role);
+        roleRepository.save(role);
+        user.setRoles(roles);
+        userRepository.save(user);
+
+        Category beverageCategory = new Category("Beverage", "Buy some good beer.");
+        categoryRepository.save(beverageCategory);
+
+        Watchdog firstWatchdog = new Watchdog(2500, "Keyboard", user, beverageCategory);
+        watchdogRepository.save(firstWatchdog);
+
+        WatchdogDTO duplicateWatchdogDTO = new WatchdogDTO();
+        duplicateWatchdogDTO.setCategory_id(beverageCategory.getId());
+        duplicateWatchdogDTO.setMax_price(2500);
+        duplicateWatchdogDTO.setKeyword("Keyboard");
+
+        // Attempt to set up another watchdog with the same parameters
+        mockMvc.perform(MockMvcRequestBuilders.post("/advertisement/watch")
+                        .content(objectMapper.writeValueAsString(duplicateWatchdogDTO))
+                        .contentType(MediaType.APPLICATION_JSON))
+
+                .andExpect(status().is(400)) // Expecting a failure status code
+                .andExpect(jsonPath("$.error", is("This watchdog already exists for this user.")));
+
+        // Assert that the number of watchdogs remains unchanged
+        assertEquals(initialWatchdogCount + 1, watchdogRepository.findAll().size());
+    }
+
+    @Test
     @WithMockUser(username = "JohnUSER")
     public void sendMessageToSeller() throws Exception {
         Role roleUser = roleRepository.save(new Role("ROLE_USER"));
@@ -466,15 +539,16 @@ public class AdsControllerTest {
                 .andExpect(jsonPath("$.error", is("If you want send messages you have to be logged in.")));
     }
 
+    @Test
     @WithMockUser(username = "user", roles = "USER")
     void listAdsUserSuccessWithBannedUser() throws Exception {
         Category beverageCategory = new Category("Beverage", "Buy some good beer.");
         categoryRepository.save(beverageCategory);
         Long categoryId = beverageCategory.getId();
 
-        User user = new User("user1", "user@email.cz","Password1*");
+        User user = new User("user1", "user@email.cz", "Password1*");
         userRepository.save(user);
-        User user2 = new User("user2", "user2@email.cz","Password1*");
+        User user2 = new User("user2", "user2@email.cz", "Password1*");
         userRepository.save(user2);
 
         Ad ad1 = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user, beverageCategory);
@@ -505,7 +579,7 @@ public class AdsControllerTest {
         Category beverageCategory = new Category("Beverage", "Buy some good beer.");
         categoryRepository.save(beverageCategory);
 
-        User user = new User("user1", "user@email.cz","Password1*");
+        User user = new User("user1", "user@email.cz", "Password1*");
         userRepository.save(user);
 
         banService.banUser(user.getId(), 5);
@@ -515,5 +589,35 @@ public class AdsControllerTest {
                 .andExpect(status().is(400))
                 .andExpect(jsonPath("$.error", is("User with this name doesn't exist.")));
 
+    }
+
+    @Test
+    @WithMockUser(username = "user", roles = "USER")
+    void searchAdsSuccess() throws Exception {
+        Category category = new Category("Category name", "category description");
+        categoryRepository.save(category);
+        adRepository.save(new Ad("Apple", "fruit", 20, "12345", category));
+        adRepository.save(new Ad("Orange", "fruit", 20, "12345", category));
+        adRepository.save(new Ad("Cucumber", "vegetable", 20, "12345", category));
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/advertisement")
+                .param("search", "apple vegetable"))
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.length()").value(2));
+    }
+
+    @Test
+    @WithMockUser(username = "user", roles = "USER")
+    void searchAdsFailed() throws Exception {
+        Category category = new Category("Category name", "category description");
+        categoryRepository.save(category);
+        adRepository.save(new Ad("Apple", "fruit", 20, "12345", category));
+        adRepository.save(new Ad("Orange", "fruit", 20, "12345", category));
+        adRepository.save(new Ad("Cucumber", "vegetable", 20, "12345", category));
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/advertisement")
+                        .param("search", "strawberry raspberry"))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.error", is("No match found.")));
     }
 }

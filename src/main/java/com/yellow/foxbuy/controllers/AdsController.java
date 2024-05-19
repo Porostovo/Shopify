@@ -1,7 +1,10 @@
 package com.yellow.foxbuy.controllers;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.yellow.foxbuy.models.DTOs.AdDTO;
+import com.yellow.foxbuy.models.DTOs.WatchdogDTO;
+import com.yellow.foxbuy.models.User;
 import com.yellow.foxbuy.services.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -13,10 +16,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import com.google.gson.JsonObject;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static com.yellow.foxbuy.services.AdManagementServiceImp.hasRole;
 
 
 
@@ -26,18 +30,19 @@ public class AdsController {
     private final AdService adService;
     private final CategoryService categoryService;
     private final UserService userService;
-private final LogService logService;
     private final EmailService emailService;
+    private final LogService logService;
+    private final WatchdogService watchDogService;
 
     @Autowired
-    public AdsController(AdManagementService adManagementService, AdService adService, CategoryService categoryService, UserService userService,EmailService emailService, LogService logService) {
-
-        this.adManagementService = adManagementService;
+    public AdsController(AdManagementService adManagementService, AdService adService, CategoryService categoryService, UserService userService, LogService logService, WatchdogService watchDogService, EmailService emailService) {
+           this.adManagementService = adManagementService;
         this.adService = adService;
         this.categoryService = categoryService;
         this.userService = userService;
         this.emailService = emailService;
         this.logService = logService;
+        this.watchDogService = watchDogService;
 
     }
 
@@ -47,13 +52,13 @@ private final LogService logService;
     @ApiResponse(responseCode = "400", description = "Invalid input or user is not verified.")
     public ResponseEntity<?> createAd(@Valid @RequestBody AdDTO adDTO,
                                       BindingResult bindingResult,
-                                      Authentication authentication) {
+                                      Authentication authentication) throws MessagingException {
 
         if (bindingResult.hasErrors()) {
             logService.addLog("POST /advertisement", "ERROR", adDTO.toString());
             return ErrorsHandling.handleValidationErrors(bindingResult);
         }
-        return adManagementService.createAd(adDTO, authentication);
+        return adManagementService.createAd(adDTO, authentication, new WatchdogDTO());
     }
 
     @PutMapping("advertisement/{id}")
@@ -62,13 +67,13 @@ private final LogService logService;
     @ApiResponse(responseCode = "400", description = "Invalid input or user is not verified.")
     public ResponseEntity<?> updateAd(@Valid @PathVariable Long id, @RequestBody AdDTO adDTO,
                                       BindingResult bindingResult,
-                                      Authentication authentication) {
+                                      Authentication authentication) throws MessagingException {
 
         if (bindingResult.hasErrors()) {
             logService.addLog("PUT /advertisement/{id}", "ERROR", "id = " + id + " | " + adDTO.toString());
             return ErrorsHandling.handleValidationErrors(bindingResult);
         }
-        return adManagementService.updateAd(id, adDTO, authentication);
+        return adManagementService.updateAd(id, adDTO, authentication, new WatchdogDTO());
     }
 
     @DeleteMapping("advertisement/{id}")
@@ -102,7 +107,8 @@ private final LogService logService;
     @ApiResponse(responseCode = "400", description = "User or category doesn't exist or unexpected error.")
     public ResponseEntity<?> listAds(@RequestParam(required = false) String user,
                                      @RequestParam(required = false) Long category,
-                                     @RequestParam(required = false, defaultValue = "1") Integer page) {
+                                     @RequestParam(required = false, defaultValue = "1") Integer page,
+                                     @RequestParam(required = false) String search) {
         Map<String, String> error = new HashMap<>();
         if (user != null && userService.existsByUsername(user) && userService.getUserByUsernameNotOptional(user).getBanned() == null) {
             logService.addLog("GET /advertisement", "INFO", "user = " + user);
@@ -112,7 +118,14 @@ private final LogService logService;
             error.put("error", "User with this name doesn't exist.");
             return ResponseEntity.status(400).body(error);
         }
-
+        if (search != null && !adService.searchAds(search).isEmpty()) {
+            logService.addLog("GET /advertisement", "INFO", "search = " + search);
+            return ResponseEntity.status(200).body(adService.searchAds(search));
+        } else if (search != null && adService.searchAds(search).isEmpty()) {
+            error.put("error", "No match found.");
+            logService.addLog("GET /advertisement", "ERROR", "search = " + search);
+            return ResponseEntity.status(400).body(error);
+        }
         int totalPages = adService.getTotalPages(category);
 
         if (!categoryService.categoryIdExists(category)) {
@@ -136,6 +149,56 @@ private final LogService logService;
         error.put("error", "Unexpected error");
         logService.addLog("GET /advertisement", "ERROR", "category = " + category + " | page = " + page);
         return ResponseEntity.status(400).body(error);
+    }
+
+    @PostMapping("advertisement/watch")
+    @Operation(summary = "Watchdog create", description = "VIP USER can set Watchdog.")
+    @ApiResponse(responseCode = "200", description = "Watchdog was successfully created.")
+    @ApiResponse(responseCode = "400", description = "An error occurred.")
+    public ResponseEntity<?> setUpWatchDog(@Valid @RequestBody WatchdogDTO watchdogDTO, BindingResult bindingResult, Authentication authentication) {
+        Map<String, String> result = new HashMap<>();
+
+        if (bindingResult.hasErrors()) {
+            logService.addLog("POST /advertisement/watch", "ERROR", watchdogDTO.toString());
+            return ErrorsHandling.handleValidationErrors(bindingResult);
+        }
+
+        User user = userService.findByUsername(authentication.getName()).orElse(null);
+
+        if (user == null) {
+            result.put("error", "User is not authenticated.");
+            logService.addLog("POST /advertisement/watch", "ERROR", watchdogDTO.toString());
+            return ResponseEntity.status(400).body(result);
+        }
+        //set the role VIP
+        boolean isVipUser = hasRole(authentication, "ROLE_VIP");
+        if (!isVipUser) {
+            result.put("error", "User is not VIP and cannot have WATCHDOG.");
+            logService.addLog("POST /advertisement/watch", "ERROR", watchdogDTO.toString());
+            return ResponseEntity.status(400).body(result);
+        }
+        // Check if watchdog already exists for the user
+        boolean watchdogExists = watchDogService.checkIfWatchdogExists(user, watchdogDTO);
+        if (watchdogExists) {
+            result.put("error", "This watchdog already exists for this user.");
+            logService.addLog("POST /advertisement/watch", "ERROR", watchdogDTO.toString());
+            return ResponseEntity.status(400).body(result);
+        }
+        //calling the method which will create watchdog
+        watchDogService.setupWatchdog(watchdogDTO, user, authentication);
+
+        logService.addLog("POST /advertisement/watch", "INFO", watchdogDTO.toString());
+
+        //if the keyword is empty
+        String keyword = watchdogDTO.getKeyword();
+        if (keyword == null || keyword.isEmpty()) {
+            result.put("success", "Watchdog has been set up successfully");
+
+            //if keyword is fill, show the name of the watchdog
+        } else {
+            result.put("success", "Watchdog '" + keyword + "' has been set up successfully");
+        }
+        return ResponseEntity.status(200).body(result);
     }
 
     @PostMapping("/advertisement/{id}/message")

@@ -67,6 +67,13 @@ public class FoxbuyYellowApplication implements CommandLineRunner {
         user2.setVerified(true);
         userRepository.save(user2);
 
+        User user3 = new User("JohnVIP",
+                "emailA@email.com",
+                SecurityConfig.passwordEncoder().encode("password"),
+                new HashSet<>(Collections.singletonList(roleVipUser)));
+        user3.setVerified(true);
+        userRepository.save(user3);
+
         Ad ad = new Ad("Pilsner urquell", "Tasty beer.", 3000.00, "12345", user1, beverageCategory);
         Ad ad1 = new Ad("Budweiser", "Good beer.", 2000.00, "23456", user1, beverageCategory);
         adRepository.save(ad);
@@ -102,5 +109,6 @@ public class FoxbuyYellowApplication implements CommandLineRunner {
         System.out.println("username: JohnUSER      id: "+user1.getId());
         System.out.println("username: JohnADMIN     id: "+user2.getId());
         System.out.println();
+        //test
     }
 }

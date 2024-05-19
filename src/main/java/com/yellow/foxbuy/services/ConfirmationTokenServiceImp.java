@@ -8,23 +8,20 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
-public class ConfirmationTokenServiceImp implements ConfirmationTokenService{
+public class ConfirmationTokenServiceImp implements ConfirmationTokenService {
 
     private final ConfirmationTokenRepository confirmationTokenRepository;
     private final UserService userService;
 
     @Autowired
-    public ConfirmationTokenServiceImp(ConfirmationTokenRepository confirmationTokenRepository, UserService userService) {
+    public ConfirmationTokenServiceImp(ConfirmationTokenRepository confirmationTokenRepository,
+                                       UserService userService) {
         this.confirmationTokenRepository = confirmationTokenRepository;
         this.userService = userService;
     }
 
     public void saveConfirmationToken(ConfirmationToken token) {
         confirmationTokenRepository.save(token);
-    }
-
-    public Optional<ConfirmationToken> getToken(String token) {
-        return confirmationTokenRepository.findByToken(token);
     }
 
     public String confirmToken(String token) {

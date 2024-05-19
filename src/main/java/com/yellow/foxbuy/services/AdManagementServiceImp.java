@@ -4,7 +4,9 @@ import com.yellow.foxbuy.models.Ad;
 import com.yellow.foxbuy.models.Category;
 import com.yellow.foxbuy.models.DTOs.AdDTO;
 import com.yellow.foxbuy.models.DTOs.AdResponseDTO;
+import com.yellow.foxbuy.models.DTOs.WatchdogDTO;
 import com.yellow.foxbuy.models.User;
+import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -21,17 +23,19 @@ public class AdManagementServiceImp implements AdManagementService {
     private final UserService userService;
     private final AdService adService;
     private final LogService logService;
+    private final WatchdogService watchdogService;
 
     @Autowired
-    public AdManagementServiceImp(CategoryService categoryService, UserService userService, AdService adService, LogService logService) {
+    public AdManagementServiceImp(CategoryService categoryService, UserService userService, AdService adService, LogService logService, WatchdogService watchdogService) {
         this.categoryService = categoryService;
         this.userService = userService;
         this.adService = adService;
         this.logService = logService;
+        this.watchdogService = watchdogService;
     }
 
     @Override
-    public ResponseEntity<?> createAd(AdDTO adDTO, Authentication authentication) {
+    public ResponseEntity<?> createAd(AdDTO adDTO, Authentication authentication, WatchdogDTO watchdogDTO) throws MessagingException {
         Map<String, String> result = new HashMap<>();
         User user = userService.findByUsername(authentication.getName()).orElse(null);
 
@@ -42,6 +46,14 @@ public class AdManagementServiceImp implements AdManagementService {
             logService.addLog("POST /advertisement", "ERROR", adDTO.toString());
             return ResponseEntity.status(400).body(result);
         }
+        // Check if the ad already exists for the user
+        boolean adExists = adService.checkIfAdExists(user, adDTO);
+        if (adExists) {
+            result.put("error", "This advertisement already exists for this user.");
+            logService.addLog("POST /advertisement", "ERROR", adDTO.toString());
+            return ResponseEntity.status(400).body(result);
+        }
+
         // Find the category in repository
         Category category = categoryService.findCategoryById(adDTO.getCategoryID());
 
@@ -52,6 +64,8 @@ public class AdManagementServiceImp implements AdManagementService {
         }
         // Create Ad from AdDTO
         Ad ad = new Ad(adDTO, user, category);
+        // Check if there is watchdog for this ad
+        watchdogService.findMatchingAdsAndNotifyUsers(adDTO, watchdogDTO);
 
         // Save ad to repository
         try {
@@ -76,7 +90,7 @@ public class AdManagementServiceImp implements AdManagementService {
     }
 
     @Override
-    public ResponseEntity<?> updateAd(Long id, AdDTO adDTO, Authentication authentication) {
+    public ResponseEntity<?> updateAd(Long id, AdDTO adDTO, Authentication authentication, WatchdogDTO watchdogDTO) throws MessagingException {
         Map<String, String> result = new HashMap<>();
 
         String username = authentication.getName();
@@ -107,6 +121,9 @@ public class AdManagementServiceImp implements AdManagementService {
         Ad ad = new Ad(adDTO, user, category);
         ad.setId(id); // Set the ID of the existing advertisement
 
+        // Check if there is watchdog for this ad
+        watchdogService.findMatchingAdsAndNotifyUsers(adDTO, watchdogDTO);
+
         try {
             adService.saveAd(ad);
             // Return response with ad id
@@ -118,6 +135,7 @@ public class AdManagementServiceImp implements AdManagementService {
                     adDTO.getZipcode(),
                     adDTO.getCategoryID()
             );
+
             logService.addLog("PUT /advertisement/{id}", "INFO", "id = " + id + " | " + adDTO.toString());
             return ResponseEntity.status(200).body(response);
         } catch (Exception e) {

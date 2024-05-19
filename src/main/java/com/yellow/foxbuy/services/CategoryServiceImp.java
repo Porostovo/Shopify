@@ -18,7 +18,8 @@ public class CategoryServiceImp implements CategoryService {
     private final AdRepository adRepository;
 
     @Autowired
-    public CategoryServiceImp(CategoryRepository categoryRepository, AdRepository adRepository) {
+    public CategoryServiceImp(CategoryRepository categoryRepository,
+                              AdRepository adRepository) {
         this.categoryRepository = categoryRepository;
         this.adRepository = adRepository;
     }
@@ -28,7 +29,6 @@ public class CategoryServiceImp implements CategoryService {
         return (categoryRepository.findFirstByName(name) == null);
     }
 
-
     public CategDTO save(CategDTO categDTO) {
         Category category = categoryRepository.save(new Category(categDTO.getName(), categDTO.getDescription()));
         categDTO.setId(category.getId());
@@ -37,6 +37,7 @@ public class CategoryServiceImp implements CategoryService {
 
     @Override
     public boolean categoryIdExists(Long id) {
+        if (id == null) return false;
         return categoryRepository.findById(id).isPresent();
     }
 
@@ -47,7 +48,7 @@ public class CategoryServiceImp implements CategoryService {
         Category category = categoryRepository.findFirstByName("Uncategorized");
         if (category == null) {
             category = new Category("Uncategorized", "N/A");
-            category=categoryRepository.save(category);
+            category = categoryRepository.save(category);
         }
 
         Category finalCategory = category;

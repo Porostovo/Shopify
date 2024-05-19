@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
-public class LogServiceImp implements LogService{
+public class LogServiceImp implements LogService {
 
     private final LogRepository logRepository;
 

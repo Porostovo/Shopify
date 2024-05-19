@@ -162,4 +162,9 @@ public class UserServiceImp implements UserService {
         user.setBanned(null);
         userRepository.save(user);
     }
+
+    @Override
+    public User findByRefreshToken(String refreshToken) {
+        return userRepository.findFirstByRefreshToken(refreshToken);
+    }
 }

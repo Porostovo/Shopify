@@ -1,6 +1,7 @@
 package com.yellow.foxbuy.services;
 
 import com.yellow.foxbuy.models.Ad;
+import com.yellow.foxbuy.models.DTOs.AdDTO;
 import com.yellow.foxbuy.models.DTOs.AdResponseDTO;
 import com.yellow.foxbuy.models.User;
 
@@ -30,5 +31,7 @@ public interface AdService {
     void updateAd(List<Ad> ad, Boolean cond);
     List<Ad> getHiddenAds(User user);
     boolean isHidden(Ad ad);
+    List<AdResponseDTO> searchAds(String search);
 
+    boolean checkIfAdExists(User user, AdDTO adDTO);
 }

@@ -20,4 +20,5 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findUserById(UUID id);
     List<User> findAllByBannedIsNotNull();
     boolean existsById (UUID id);
+    User findFirstByRefreshToken(String refreshToken);
 }
