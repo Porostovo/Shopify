@@ -109,5 +109,6 @@ public class FoxbuyYellowApplication implements CommandLineRunner {
         System.out.println("username: JohnUSER      id: "+user1.getId());
         System.out.println("username: JohnADMIN     id: "+user2.getId());
         System.out.println();
+        //test
     }
 }
