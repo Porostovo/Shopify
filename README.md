@@ -36,10 +36,13 @@ Our team is creating a marketplace backend web application as part of our learni
 ### 10. Java Code Coverage with Jacoco
 - Measuring and reporting code coverage for Java code.
 
-### 11. CI/CD with Git Actions
-- Automating build and deployment processes using Git Actions.
+### 11. Automated tests
+- Implement automated integration tests for all endpoints, ensuring that each endpoint is tested with both a positive and a negative case.
 
-### 12. Endpoint Logs
+### 12. CI/CD with Git Actions
+- Automating build and tests using Git Actions.
+
+### 13. Endpoint Logs
 - Logging endpoint activities for tracking and debugging.
 
 ## Getting Started
